@@ -1,0 +1,48 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <button (click)="abrirModal()">Nueva Orden</button>
+
+<app-order-form *ngIf="mostrarFormularioFlotante" (close)="cerrarModal()"></app-order-form>
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <div class="modal-title">
+        <h2>Nueva Orden de Producción</h2>
+        <p>Registre los detalles para el lote de manufactura.</p>
+      </div>
+      <button class="btn-close" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="input-label">Producto a Producir</label>
+        <select class="form-input">
+          <option value="">Seleccione un snack...</option>
+          <option value="1">Almendras Tostadas con Sal de Mar</option>
+          <option value="2">Mango Deshidratado Premium</option>
+        </select>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="input-label">Cantidad (Unidades)</label>
+          <input type="number" placeholder="Ej: 500" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="input-label">Fecha Programada</label>
+          <input type="date" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="input-label">Notas de Producción</label>
+        <textarea rows="3" placeholder="Indicaciones especiales para la planta..." class="form-textarea"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+      <button type="button" class="btn btn-primary" (click)="saveOrder()">Crear Orden</button>
+    </div>
+
+  </div>
+</div>

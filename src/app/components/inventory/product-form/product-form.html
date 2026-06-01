@@ -1,0 +1,79 @@
+<div class="form-container">
+  <form [formGroup]="productoForm" (ngSubmit)="saveProduct()">
+    <div class="form-header">
+      <div class="header-title">
+        <h1>Registro de Nuevo Producto</h1>
+        <p>Complete los detalles técnicos del nuevo snack de NATURIN'S.</p>
+      </div>
+      <div class="header-main-actions">
+        <button type="button" class="btn btn-secondary" routerLink="/inventory">✕ Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="main-column">
+        <div class="form-section-card">
+          <div class="section-card-header">
+            <span class="section-icon">🏷️</span>
+            <div class="section-header-text">
+              <h2>Información General</h2>
+              <p>Campos obligatorios según ProductoRequest</p>
+            </div>
+          </div>
+          
+          <!-- Campo: Nombre -->
+          <div class="form-group-full">
+            <label class="input-label">Nombre del Producto</label>
+            <input type="text" formControlName="nombre" placeholder="Nombre del snack" 
+                   class="form-input" [class.error]="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched">
+            <small class="text-danger" *ngIf="productoForm.get('nombre')?.hasError('maxlength')">Máximo 100 caracteres</small>
+          </div>
+
+          <div class="form-row-2">
+            <!-- Campo: Precio -->
+            <div>
+              <label class="input-label">Precio (S/.)</label>
+              <input type="number" formControlName="precio" placeholder="0.00" class="form-input">
+            </div>
+            <!-- Campo: Estado -->
+            <div>
+              <label class="input-label">Estado de Disponibilidad</label>
+              <select formControlName="estado" class="form-input select-input">
+                <option [ngValue]="true">Activo / En Venta</option>
+                <option [ngValue]="false">Inactivo / Agotado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campo: Descripción -->
+          <div class="form-group-full">
+            <label class="input-label">Descripción Detallada</label>
+            <textarea formControlName="descripcion" rows="4" class="form-textarea" 
+                      placeholder="Escriba la descripción del producto..."
+                      [class.error]="productoForm.get('descripcion')?.invalid && productoForm.get('descripcion')?.touched"></textarea>
+            <small class="text-danger" *ngIf="productoForm.get('descripcion')?.hasError('maxlength')">Máximo 500 caracteres</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Lateral (Multimedia / Feedback) -->
+      <div class="side-column">
+        <div class="form-section-card alert-card">
+          <h3 class="side-card-title">Validación de Datos</h3>
+          <ul class="review-checklist">
+            <li [class.checked]="productoForm.get('nombre')?.valid">
+              <span class="check-icon">{{ productoForm.get('nombre')?.valid ? '✓' : '●' }}</span> Nombre listo
+            </li>
+            <li [class.checked]="productoForm.get('precio')?.valid">
+              <span class="check-icon">{{ productoForm.get('precio')?.valid ? '✓' : '●' }}</span> Precio asignado
+            </li>
+            <li [class.checked]="productoForm.get('descripcion')?.valid">
+              <span class="check-icon">{{ productoForm.get('descripcion')?.valid ? '✓' : '●' }}</span> Descripción completa
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
