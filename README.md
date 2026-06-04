@@ -79,7 +79,7 @@ http://localhost:8080
 Clona el repositorio:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/snacks-naturins/naturins-erp-frontend.git
 ```
 
 Ingresa al proyecto:
@@ -146,7 +146,7 @@ src/
 
 # Estado del Proyecto
 
-🚧 In Development
+ In Development
 
 El sistema continúa en desarrollo y mejora continua.
 
@@ -154,11 +154,11 @@ El sistema continúa en desarrollo y mejora continua.
 
 # Equipo de Desarrollo
 
-* Andres Leon
-* Victor
-* Roxana
-* Elias
-* Tony
+* Carrasco Huaman, Josué Elías
+* Chavez Facundo, Roxana Isabel
+* Macukachi Castro, Victor Raul
+* Hinostroza Palaco, Tonny Gabriel
+* Leon Fernandez, Andres Angel
 
 ---
 
@@ -175,4 +175,4 @@ El sistema continúa en desarrollo y mejora continua.
 
 # Licencia
 
-Proyecto desarrollado con fines académicos y empresariales para Snacks Naturin's.
+Proyecto desarrollado con fines empresariales para Snacks Naturin's.
