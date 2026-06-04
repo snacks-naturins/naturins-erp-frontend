@@ -1,59 +1,178 @@
-# NaturinsErpFrontend
+# Naturins ERP Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.6.
+Frontend oficial del sistema ERP de **Snacks Naturin's**, desarrollado para gestionar y optimizar los procesos internos de la empresa mediante una interfaz moderna, escalable y responsiva.
 
-## Development server
+---
 
-To start a local development server, run:
+# Descripción General
+
+Este proyecto corresponde a la interfaz gráfica del sistema ERP de Snacks Naturin's.
+La aplicación permite administrar diferentes áreas empresariales desde una única plataforma centralizada.
+
+El sistema incluye módulos para:
+
+* Ventas
+* Compras
+* Producción
+* Inventario
+* Administración
+* Dashboard
+* Gestión de proveedores
+* Reportes
+
+---
+
+# Tecnologías Utilizadas
+
+## Frontend
+
+* Angular 21
+* TypeScript
+* Tailwind CSS
+* RxJS
+* Angular Signals
+
+## Arquitectura
+
+El proyecto sigue una arquitectura modular escalable basada en:
+
+* Modular Architecture
+* Core / Shared / Features
+* Standalone Components
+* Lazy Loading
+* Reactive State Management with Signals
+
+---
+
+# Características Principales
+
+* Sistema de autenticación
+* Dashboard administrativo
+* Gestión de inventario
+* Gestión de producción
+* Gestión de ventas
+* Gestión de proveedores
+* Generación de reportes
+* Diseño responsivo
+* Dark Mode
+* Componentes reutilizables
+* Arquitectura escalable
+
+---
+
+# Requisitos Previos
+
+Antes de ejecutar el proyecto asegúrate de tener instalado:
+
+* Node.js
+* Angular CLI
+* Backend del sistema ejecutándose en:
+
+```bash
+http://localhost:8080
+```
+
+---
+
+# Instalación
+
+Clona el repositorio:
+
+```bash
+git clone https://github.com/snacks-naturins/naturins-erp-frontend.git
+```
+
+Ingresa al proyecto:
+
+```bash
+cd naturins-erp-frontend
+```
+
+Instala las dependencias:
+
+```bash
+npm install
+```
+
+---
+
+# Ejecución del Proyecto
+
+## Servidor de desarrollo
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+La aplicación estará disponible en:
 
 ```bash
-ng generate component component-name
+http://localhost:4200
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+# Build de Producción
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Los archivos compilados se generarán en:
 
 ```bash
-ng test
+dist/
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+# Estructura del Proyecto
 
 ```bash
-ng e2e
+src/
+ ├── app/
+ │   ├── core/
+ │   ├── shared/
+ │   ├── features/
+ │   ├── layout/
+ │   └── auth/
+ │
+ ├── assets/
+ ├── environments/
+ └── styles/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+# Estado del Proyecto
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+ In Development
+
+El sistema continúa en desarrollo y mejora continua.
+
+---
+
+# Equipo de Desarrollo
+
+* Carrasco Huaman, Josué Elías
+* Chavez Facundo, Roxana Isabel
+* Macukachi Castro, Victor Raul
+* Hinostroza Palaco, Tonny Gabriel
+* Leon Fernandez, Andres Angel
+
+---
+
+# Futuras Mejoras
+
+* Implementación completa de variables de entorno
+* Optimización de rendimiento
+* Sistema avanzado de roles y permisos
+* Reportes exportables
+* Integración de gráficos analíticos
+* Tests automatizados
+
+---
+
+# Licencia
+
+Proyecto desarrollado con fines empresariales para Snacks Naturin's.
