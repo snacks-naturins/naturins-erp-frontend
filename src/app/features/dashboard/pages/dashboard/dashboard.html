@@ -1,0 +1,111 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div>
+    <h1 class="text-[28px] font-bold text-text-main">Dashboard</h1>
+    <p class="text-sm capitalize text-text-muted">{{ hoy }}</p>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    @for (kpi of kpis; track kpi.label) {
+      <div class="flex min-h-[120px] flex-col justify-between rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_6px_18px_rgba(0,0,0,0.08)]">
+        <div class="flex items-start justify-between">
+          <div class="grid h-10 w-10 place-items-center rounded-input" [class]="toneBg(kpi.tone)">
+            <mat-icon fontSet="material-icons-outlined">{{ kpi.icon }}</mat-icon>
+          </div>
+          <span
+            class="flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium"
+            [class]="kpi.deltaUp ? 'bg-[#ECFCCB] text-[#4D7C0F]' : 'bg-[#FEE2E2] text-[#B91C1C]'"
+          >
+            <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">
+              {{ kpi.deltaUp ? 'north_east' : 'priority_high' }}
+            </mat-icon>
+            {{ kpi.delta }}
+          </span>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main">{{ kpi.value }}</p>
+          <p class="text-sm text-text-muted">{{ kpi.label }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Ventas mensuales + Top productos -->
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    <div class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] lg:col-span-2">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-text-main">Ventas mensuales</h2>
+          <p class="text-xs text-text-muted">Ingresos por mes · 2026 (miles S/)</p>
+        </div>
+        <span class="flex items-center gap-1.5 rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-medium text-[#B45309]">
+          <span class="h-2 w-2 rounded-full bg-secondary"></span> Ventas
+        </span>
+      </div>
+      <div class="h-64">
+        <canvas #salesChart></canvas>
+      </div>
+    </div>
+
+    <div class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <h2 class="mb-4 text-lg font-semibold text-text-main">Productos más vendidos</h2>
+      <div class="flex flex-col gap-4">
+        @for (p of topProducts; track p.name) {
+          <div>
+            <div class="mb-1 flex items-center justify-between text-sm">
+              <span class="text-text-main">{{ p.name }}</span>
+              <span class="font-semibold text-text-muted">{{ p.pct }}%</span>
+            </div>
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-[#F1ECE2]">
+              <div class="h-full rounded-full" [style.width.%]="p.pct" [style.background]="p.color"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventario por almacén + Actividad reciente -->
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    <div class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <h2 class="mb-4 text-lg font-semibold text-text-main">Inventario por almacén</h2>
+      <div class="flex items-center gap-6">
+        <div class="relative h-40 w-40 shrink-0">
+          <canvas #invChart></canvas>
+          <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-lg font-bold text-text-main">S/ 1.2M</span>
+            <span class="text-[10px] text-text-muted">Valorizado</span>
+          </div>
+        </div>
+        <ul class="flex flex-col gap-2.5 text-sm">
+          <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#9B4D00]"></span> Principal <span class="ml-auto font-semibold">40%</span></li>
+          <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#F59E0B]"></span> Producción <span class="ml-auto font-semibold">25%</span></li>
+          <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#A3C614]"></span> Distribución <span class="ml-auto font-semibold">20%</span></li>
+          <li class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-[#3B82F6]"></span> Tienda <span class="ml-auto font-semibold">15%</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] lg:col-span-2">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-text-main">Actividad reciente</h2>
+        <a href="#" class="text-sm font-medium text-primary hover:underline">Ver todo</a>
+      </div>
+      <ul class="flex flex-col">
+        @for (a of activity; track a.text) {
+          <li class="flex items-start gap-3 border-b border-border-soft py-3 last:border-0">
+            <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-bg-app" [class]="a.tone">
+              <mat-icon fontSet="material-icons-outlined">{{ a.icon }}</mat-icon>
+            </div>
+            <p class="flex-1 text-sm text-text-main">{{ a.text }}</p>
+            <span class="whitespace-nowrap text-xs text-text-muted">{{ a.time }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<aside class="flex h-screen w-[280px] shrink-0 flex-col bg-[#3D220A] text-white">
+
+  <!-- Marca -->
+  <div class="flex items-center gap-3 p-6">
+    <div class="grid h-10 w-10 place-items-center rounded-[10px] bg-[#F59E0B]">
+      <mat-icon fontSet="material-icons-outlined" class="text-[#3D220A]">eco</mat-icon>
+    </div>
+    <div class="flex flex-col leading-tight">
+      <strong class="text-base font-semibold">Naturin's</strong>
+      <span class="text-[10px] font-medium tracking-[1.5px] text-[#A3C614]">SNACK-PRO ERP</span>
+    </div>
+  </div>
+
+  <!-- Navegación -->
+  <nav class="flex-1 overflow-y-auto px-4 pb-4">
+    @for (item of nav; track item.label) {
+      @if (item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="bg-[#9B4D00]! text-white!"
+          class="mb-1 flex items-center gap-3 rounded-[10px] px-4 py-2.5 text-sm text-white/80 transition hover:bg-[#5B2E05]"
+        >
+          <mat-icon fontSet="material-icons-outlined">{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <div
+          class="mb-1 flex cursor-not-allowed items-center gap-3 rounded-[10px] px-4 py-2.5 text-sm text-white/35"
+          title="Módulo próximamente"
+        >
+          <mat-icon fontSet="material-icons-outlined">{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+          <span class="ml-auto text-[9px] uppercase tracking-wide text-white/25">Pronto</span>
+        </div>
+      }
+    }
+  </nav>
+
+  <!-- Usuario -->
+  <div class="flex items-center gap-3 border-t border-white/10 p-4">
+    <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#A3C614] text-sm font-semibold text-[#1F2937]">
+      {{ initials() }}
+    </div>
+    <div class="flex min-w-0 flex-col leading-tight">
+      <span class="truncate text-sm font-medium">{{ user()?.username || 'Invitado' }}</span>
+      <span class="text-[11px] capitalize text-white/50">{{ user()?.rol || '—' }}</span>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      title="Cerrar sesión"
+      class="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/70 transition hover:bg-[#5B2E05] hover:text-white"
+    >
+      <mat-icon fontSet="material-icons-outlined">logout</mat-icon>
+    </button>
+  </div>
+</aside>

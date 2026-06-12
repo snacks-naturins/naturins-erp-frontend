@@ -1,0 +1,145 @@
+<div class="grid min-h-screen grid-cols-1 bg-[#1c1c1c] lg:grid-cols-2">
+
+  <!-- ===== Panel izquierdo: marca ===== -->
+  <aside
+    class="relative hidden flex-col justify-between p-14 text-[#f5efe6] lg:flex"
+    style="background: linear-gradient(150deg, #8a4510 0%, #6e3409 45%, #2f1605 100%);"
+  >
+    <!-- Logo -->
+    <div class="flex items-center gap-3">
+      <div class="grid h-11 w-11 place-items-center rounded-[10px] bg-[#f4a623]">
+        <mat-icon fontSet="material-icons-outlined" class="text-[#3d1d06]">eco</mat-icon>
+      </div>
+      <div class="flex flex-col leading-tight">
+        <strong class="text-lg text-white">Naturin's</strong>
+        <span class="text-[11px] tracking-[1.5px] text-[#8bbf4b]">SNACK-PRO ERP</span>
+      </div>
+    </div>
+
+    <!-- Centro -->
+    <div>
+      <h1 class="mb-5 text-[36px] font-extrabold leading-[1.15] text-white">
+        Gestión integral para<br />snacks naturales
+      </h1>
+      <p class="mb-10 max-w-[420px] text-base leading-relaxed text-[#e7d9c7]">
+        Controla inventario, producción, ventas y trazabilidad de tus lotes en una sola plataforma.
+      </p>
+
+      <ul class="flex list-none gap-12 p-0">
+        <li class="flex flex-col">
+          <strong class="text-[28px] font-extrabold text-[#8bbf4b]">+8</strong>
+          <span class="text-sm text-[#d9c8b4]">Módulos</span>
+        </li>
+        <li class="flex flex-col">
+          <strong class="text-[28px] font-extrabold text-[#8bbf4b]">100%</strong>
+          <span class="text-sm text-[#d9c8b4]">Trazabilidad</span>
+        </li>
+        <li class="flex flex-col">
+          <strong class="text-[28px] font-extrabold text-[#8bbf4b]">RBAC</strong>
+          <span class="text-sm text-[#d9c8b4]">Seguridad</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-xs text-[#c9b59b]">© 2025 Naturin's · Todos los derechos reservados</p>
+  </aside>
+
+  <!-- ===== Panel derecho: formulario ===== -->
+  <main class="flex items-center justify-center bg-[#f2ece1] p-8">
+    <div class="w-full max-w-[380px] rounded-2xl bg-white p-9 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+
+      <header class="mb-7">
+        <h2 class="mb-1 text-[26px] font-extrabold text-[#2b2b2b]">Bienvenido de nuevo</h2>
+        <p class="text-sm text-[#8a8a8a]">Ingresa tus credenciales para acceder al sistema</p>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="onLogin()" class="flex flex-col">
+
+        <!-- Error del backend -->
+        @if (errorMsg()) {
+          <div
+            class="mb-5 flex items-center gap-2 rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2.5 text-sm text-[#b71c1c]"
+          >
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px] leading-none">error_outline</mat-icon>
+            <span>{{ errorMsg() }}</span>
+          </div>
+        }
+
+        <!-- Usuario -->
+        <div class="mb-5">
+          <label for="username" class="mb-2 block text-sm font-semibold text-[#3a3a3a]">
+            Usuario o correo
+          </label>
+          <div class="relative flex items-center">
+            <mat-icon
+              fontSet="material-icons-outlined"
+              class="pointer-events-none absolute left-3 text-[18px] text-[#9ca3af]"
+            >person</mat-icon>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              placeholder="jrodriguez@naturins.pe"
+              autocomplete="username"
+              class="h-11 w-full rounded-[10px] border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+            />
+          </div>
+          @if (form.controls.username.touched && form.controls.username.invalid) {
+            <small class="mt-1.5 block text-xs text-[#c0392b]">
+              Ingresa tu usuario (mínimo 3 caracteres).
+            </small>
+          }
+        </div>
+
+        <!-- Contraseña -->
+        <div class="mb-4">
+          <label for="password" class="mb-2 block text-sm font-semibold text-[#3a3a3a]">
+            Contraseña
+          </label>
+          <div class="relative flex items-center">
+            <mat-icon
+              fontSet="material-icons-outlined"
+              class="pointer-events-none absolute left-3 text-[18px] text-[#9ca3af]"
+            >lock</mat-icon>
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              placeholder="••••••••••"
+              autocomplete="current-password"
+              class="h-11 w-full rounded-[10px] border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+            />
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <small class="mt-1.5 block text-xs text-[#c0392b]">
+              Ingresa tu contraseña (mínimo 3 caracteres).
+            </small>
+          }
+        </div>
+
+        <!-- Opciones -->
+        <div class="mb-6 flex items-center justify-between">
+          <label class="flex cursor-pointer items-center gap-2 text-sm text-[#5a5a5a]">
+            <input type="checkbox" formControlName="recordarme" class="h-4 w-4 accent-primary" />
+            <span>Recordarme</span>
+          </label>
+          <a href="#" class="text-[13px] font-semibold text-primary hover:underline">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
+        <!-- Botón -->
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-primary font-bold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px] leading-none">login</mat-icon>
+          {{ loading() ? 'Ingresando...' : 'Ingresar' }}
+        </button>
+      </form>
+    </div>
+  </main>
+
+</div>

@@ -1,0 +1,86 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado de página -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Catálogo de Productos</h1>
+      <p class="text-sm text-text-muted">Gestión de snacks y productos registrados en NATURIN'S ERP.</p>
+    </div>
+    <button
+      routerLink="/productos/nuevo"
+      class="flex h-11 items-center gap-2 rounded-btn bg-primary px-6 font-semibold text-white transition hover:bg-primary-hover"
+    >
+      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+      Registrar Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+          <th class="px-5 py-3 font-semibold">ID</th>
+          <th class="px-5 py-3 font-semibold">Nombre del Producto</th>
+          <th class="px-5 py-3 font-semibold">Descripción</th>
+          <th class="px-5 py-3 text-right font-semibold">Precio</th>
+          <th class="px-5 py-3 text-center font-semibold">Estado</th>
+          <th class="px-5 py-3 text-center font-semibold">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Cargando -->
+        @if (loading) {
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin align-middle">progress_activity</mat-icon>
+              Cargando productos...
+            </td>
+          </tr>
+        }
+
+        <!-- Filas -->
+        @for (p of productos; track p.id) {
+          <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
+            <td class="px-5 py-3 font-medium text-text-muted">#{{ p.id }}</td>
+            <td class="px-5 py-3 font-medium text-text-main">{{ p.nombre }}</td>
+            <td class="px-5 py-3 text-text-muted">
+              {{ p.descripcion | slice: 0 : 50 }}{{ p.descripcion.length > 50 ? '…' : '' }}
+            </td>
+            <td class="px-5 py-3 text-right font-semibold text-text-main">
+              S/. {{ p.precio | number: '1.2-2' }}
+            </td>
+            <td class="px-5 py-3 text-center">
+              <span
+                class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
+                [class]="p.estado ? 'bg-[#DCFCE7] text-[#15803D]' : 'bg-[#FEE2E2] text-[#B91C1C]'"
+              >
+                {{ p.estado ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="px-5 py-3">
+              <div class="flex items-center justify-center gap-1">
+                <button class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
+                  <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
+                </button>
+                <button class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-[#FEE2E2] hover:text-[#EF4444]" title="Eliminar">
+                  <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+
+        <!-- Vacío -->
+        @if (!loading && productos.length === 0) {
+          <tr>
+            <td colspan="6" class="px-5 py-12 text-center text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">inventory_2</mat-icon>
+              <p>No hay productos registrados.</p>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

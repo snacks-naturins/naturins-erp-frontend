@@ -1,0 +1,50 @@
+<header class="flex h-[72px] items-center gap-4 border-b border-border-soft bg-white px-6">
+
+  <!-- Buscador global -->
+  <div class="relative flex w-full max-w-md items-center">
+    <mat-icon
+      fontSet="material-icons-outlined"
+      class="pointer-events-none absolute left-3 text-text-muted"
+    >search</mat-icon>
+    <input
+      type="text"
+      placeholder="Buscar productos, pedidos, clientes…"
+      class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+    />
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+
+    <!-- Notificaciones -->
+    <button
+      type="button"
+      class="relative grid h-10 w-10 place-items-center rounded-input text-text-muted transition hover:bg-bg-app"
+      title="Notificaciones"
+    >
+      <mat-icon fontSet="material-icons-outlined">notifications</mat-icon>
+      <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-secondary"></span>
+    </button>
+
+    <!-- Alertas -->
+    <button
+      type="button"
+      class="relative grid h-10 w-10 place-items-center rounded-input text-text-muted transition hover:bg-bg-app"
+      title="Alertas"
+    >
+      <mat-icon fontSet="material-icons-outlined">warning_amber</mat-icon>
+      <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-[#EF4444]"></span>
+    </button>
+
+    <!-- Perfil -->
+    <div class="ml-2 flex items-center gap-2.5 pl-2">
+      <div class="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-white">
+        {{ initials() }}
+      </div>
+      <div class="hidden flex-col leading-tight sm:flex">
+        <span class="text-sm font-medium text-text-main">{{ user()?.username || 'Invitado' }}</span>
+        <span class="text-[11px] capitalize text-text-muted">{{ user()?.rol || '—' }}</span>
+      </div>
+      <mat-icon fontSet="material-icons-outlined" class="text-text-muted">expand_more</mat-icon>
+    </div>
+  </div>
+</header>

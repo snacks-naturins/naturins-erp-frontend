@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <div>
+    <h1 class="text-[28px] font-bold text-text-main">Kardex de Inventario</h1>
+    <p class="text-sm text-text-muted">Historial de movimientos de entrada y salida por producto.</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+          <th class="px-5 py-3 font-semibold">Fecha</th>
+          <th class="px-5 py-3 font-semibold">Producto</th>
+          <th class="px-5 py-3 font-semibold">Movimiento</th>
+          <th class="px-5 py-3 text-right font-semibold">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="4" class="px-5 py-12 text-center text-text-muted">
+            <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">swap_horiz</mat-icon>
+            <p>Aún no hay movimientos registrados.</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

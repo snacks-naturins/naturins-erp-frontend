@@ -1,71 +1,45 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
+@import "tailwindcss";
+
+/* ===== Tokens del Sistema de Diseño SNACK-PRO ERP =====
+   Disponibles como utilidades Tailwind: bg-primary, text-secondary, etc. */
+@theme {
+  --color-primary: #9B4D00;
+  --color-primary-hover: #7C3E00;
+  --color-secondary: #F59E0B;
+  --color-accent: #A3C614;
+
+  --color-bg-app: #F7F2E8;
+  --color-bg-card: #FFFFFF;
+
+  --color-text-main: #1F2937;
+  --color-text-muted: #6B7280;
+  --color-border-soft: #E5E7EB;
+
+  --color-sidebar: #3D220A;
+  --color-sidebar-active: #9B4D00;
+  --color-sidebar-hover: #5B2E05;
+
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-input: 10px;
+  --radius-card: 16px;
+  --radius-modal: 18px;
+  --radius-table: 12px;
 }
 
+html,
 body {
-  background: #f5f6fa;
-  color: #222;
+  height: 100%;
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  background: var(--color-bg-app);
+  color: var(--color-text-main);
 }
 
-.container {
-  display: flex;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-}
-
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.05);
-}
-
-.btn-dark {
-  background: #111;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  padding: 14px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.badge {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-}
-
-.badge-success {
-  background: #d4f8d4;
-  color: green;
-}
-
-.badge-danger {
-  background: #ffdede;
-  color: red;
+/* Material Icons en estilo Outlined a 20px por defecto */
+mat-icon,
+.material-icons-outlined {
+  font-size: 20px;
 }
