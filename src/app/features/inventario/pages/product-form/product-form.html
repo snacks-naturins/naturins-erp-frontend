@@ -1,79 +1,282 @@
-<div class="form-container">
-  <form [formGroup]="productoForm" (ngSubmit)="saveProduct()">
-    <div class="form-header">
-      <div class="header-title">
-        <h1>Registro de Nuevo Producto</h1>
-        <p>Complete los detalles técnicos del nuevo snack de NATURIN'S.</p>
-      </div>
-      <div class="header-main-actions">
-        <button type="button" class="btn btn-secondary" routerLink="/inventory">✕ Cancelar</button>
-        <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
-      </div>
+<form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-5">
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
+    <span routerLink="/dashboard" class="cursor-pointer hover:text-text-main">Inicio</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
+    <span>Inventario</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
+    <span routerLink="/productos" class="cursor-pointer hover:text-text-main">Productos</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
+    <span class="font-medium text-text-main">{{ editId() ? 'Editar' : 'Nuevo' }}</span>
+  </nav>
+
+  <!-- Encabezado + acciones -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">{{ editId() ? 'Editar producto' : 'Registrar producto' }}</h1>
+      <p class="text-sm text-text-muted">
+        {{ editId() ? 'Actualiza la información del producto.' : 'Completa la información para dar de alta un nuevo producto.' }}
+      </p>
     </div>
+    <div class="flex items-center gap-3">
+      <button type="button" routerLink="/productos" class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        Cancelar
+      </button>
+      <button type="submit" [disabled]="saving()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+        <mat-icon fontSet="material-icons-outlined">save</mat-icon>
+        {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar producto' : 'Guardar producto') }}
+      </button>
+    </div>
+  </div>
 
-    <div class="form-grid">
-      <div class="main-column">
-        <div class="form-section-card">
-          <div class="section-card-header">
-            <span class="section-icon">🏷️</span>
-            <div class="section-header-text">
-              <h2>Información General</h2>
-              <p>Campos obligatorios según ProductoRequest</p>
-            </div>
-          </div>
-          
-          <!-- Campo: Nombre -->
-          <div class="form-group-full">
-            <label class="input-label">Nombre del Producto</label>
-            <input type="text" formControlName="nombre" placeholder="Nombre del snack" 
-                   class="form-input" [class.error]="productoForm.get('nombre')?.invalid && productoForm.get('nombre')?.touched">
-            <small class="text-danger" *ngIf="productoForm.get('nombre')?.hasError('maxlength')">Máximo 100 caracteres</small>
-          </div>
+  <!-- Error -->
+  @if (errorMsg()) {
+    <div class="flex items-center gap-2 rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-4 py-3 text-sm text-[#b71c1c]">
+      <mat-icon fontSet="material-icons-outlined">error_outline</mat-icon>
+      <span>{{ errorMsg() }}</span>
+    </div>
+  }
 
-          <div class="form-row-2">
-            <!-- Campo: Precio -->
-            <div>
-              <label class="input-label">Precio (S/.)</label>
-              <input type="number" formControlName="precio" placeholder="0.00" class="form-input">
-            </div>
-            <!-- Campo: Estado -->
-            <div>
-              <label class="input-label">Estado de Disponibilidad</label>
-              <select formControlName="estado" class="form-input select-input">
-                <option [ngValue]="true">Activo / En Venta</option>
-                <option [ngValue]="false">Inactivo / Agotado</option>
-              </select>
-            </div>
-          </div>
+  <!-- Layout 2 columnas -->
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
-          <!-- Campo: Descripción -->
-          <div class="form-group-full">
-            <label class="input-label">Descripción Detallada</label>
-            <textarea formControlName="descripcion" rows="4" class="form-textarea" 
-                      placeholder="Escriba la descripción del producto..."
-                      [class.error]="productoForm.get('descripcion')?.invalid && productoForm.get('descripcion')?.touched"></textarea>
-            <small class="text-danger" *ngIf="productoForm.get('descripcion')?.hasError('maxlength')">Máximo 500 caracteres</small>
+    <!-- ===== Columna principal ===== -->
+    <div class="flex flex-col gap-5 lg:col-span-2">
+
+      <!-- Información general -->
+      <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 class="text-base font-semibold text-text-main">Información general</h2>
+        <p class="mb-5 text-xs text-text-muted">Datos básicos del producto</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre del producto</label>
+            <input type="text" formControlName="nombre" placeholder="Ej. Mix Frutos Secos 200g"
+              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+              <small class="mt-1 block text-xs text-[#c0392b]">Nombre requerido (3 a 150 caracteres).</small>
+            }
           </div>
         </div>
+
+        <div class="mt-4">
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Descripción</label>
+          <textarea formControlName="descripcion" rows="3" placeholder="Mezcla de almendras, nueces, pasas y maní tostado. Snack natural sin azúcar añadida."
+            class="w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 py-2.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"></textarea>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <div class="mb-1.5 flex items-center justify-between">
+              <label class="text-xs font-semibold text-text-main">Categoría</label>
+              <button type="button" (click)="abrirCatModal()" class="flex items-center gap-0.5 text-xs font-semibold text-primary hover:underline">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">add</mat-icon>
+                Nueva
+              </button>
+            </div>
+            <select formControlName="categoriaId"
+              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
+              <option value="" disabled>Selecciona una categoría</option>
+              @for (c of categorias(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }}</option>
+              }
+            </select>
+            @if (form.controls.categoriaId.touched && form.controls.categoriaId.invalid) {
+              <small class="mt-1 block text-xs text-[#c0392b]">Selecciona una categoría.</small>
+            }
+            @if (categorias().length === 0) {
+              <small class="mt-1 block text-xs text-text-muted">No hay categorías. Crea una primero (POST /api/categorias).</small>
+            }
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Unidad de medida</label>
+            <select formControlName="unidad"
+              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
+              <option value="UNIDAD">Unidad (u)</option>
+              <option value="KILOGRAMO">Kilogramo (kg)</option>
+              <option value="GRAMO">Gramo (g)</option>
+              <option value="CAJA">Caja</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Control de inventario -->
+      <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 class="text-base font-semibold text-text-main">Control de inventario</h2>
+        <p class="mb-5 text-xs text-text-muted">Niveles de alerta de stock</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          @for (f of [
+            { ctrl: 'stockMinimo', label: 'Stock mínimo', icon: 'layers' },
+            { ctrl: 'stockCritico', label: 'Stock crítico', icon: 'warning_amber' },
+            { ctrl: 'stockInicial', label: 'Stock inicial', icon: 'inventory' }
+          ]; track f.ctrl) {
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">{{ f.label }}</label>
+              <div class="relative flex items-center">
+                <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">{{ f.icon }}</mat-icon>
+                <input type="number" [formControlName]="f.ctrl"
+                  class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-10 pr-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Precios -->
+      <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 class="text-base font-semibold text-text-main">Precios</h2>
+        <p class="mb-5 text-xs text-text-muted">Costos y precio de venta (S/)</p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio de compra</label>
+            <div class="relative flex items-center">
+              <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">payments</mat-icon>
+              <input type="number" formControlName="precioCompra" placeholder="8.50"
+                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-10 pr-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            </div>
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio de venta</label>
+            <div class="relative flex items-center">
+              <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">sell</mat-icon>
+              <input type="number" formControlName="precioVenta" placeholder="14.90"
+                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-10 pr-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            </div>
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Margen</label>
+            <div class="relative flex items-center">
+              <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">percent</mat-icon>
+              <input type="text" [value]="margen() !== null ? margen() + '%' : '—'" readonly
+                class="h-11 w-full rounded-input border border-border-soft bg-[#F3F4F6] pl-10 pr-3 text-sm font-semibold text-text-main outline-none" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== Columna lateral ===== -->
+    <div class="flex flex-col gap-5">
+
+      <!-- Imagen del producto -->
+      <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 class="mb-4 text-base font-semibold text-text-main">Imagen del producto</h2>
+
+        @if (imagenUrl()) {
+          <div class="relative overflow-hidden rounded-input border border-border-soft">
+            <img [src]="imagenUrl()" alt="Vista previa" class="h-48 w-full object-cover" />
+            <button type="button" (click)="quitarImagen()" title="Quitar imagen"
+              class="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg bg-black/50 text-white transition hover:bg-black/70">
+              <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <label
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-input border-2 border-dashed px-4 py-10 text-center transition"
+            [class]="dragging() ? 'border-secondary bg-[#FFF8EE]' : 'border-border-soft bg-[#FAFAFA]'"
+          >
+            @if (uploading()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-secondary">progress_activity</mat-icon>
+              <p class="text-sm text-text-muted">Subiendo...</p>
+            } @else {
+              <mat-icon fontSet="material-icons-outlined" class="text-[36px]! h-9! w-9! text-secondary">add_photo_alternate</mat-icon>
+              <p class="text-sm text-text-main">Arrastra una imagen o haz clic</p>
+              <p class="text-xs text-text-muted">PNG, JPG hasta 5MB</p>
+            }
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden" />
+          </label>
+        }
+
+        @if (uploadError()) {
+          <p class="mt-2 text-xs text-[#c0392b]">{{ uploadError() }}</p>
+        }
+
+        <input type="text" formControlName="urlImagen" placeholder="o pega una URL de imagen"
+          class="mt-3 h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+      </section>
+
+      <!-- Estado y visibilidad -->
+      <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <h2 class="mb-4 text-base font-semibold text-text-main">Estado y visibilidad</h2>
+        <div class="flex flex-col gap-4">
+          @for (t of [
+            { ctrl: 'activo', label: 'Producto activo' },
+            { ctrl: 'visibleEcommerce', label: 'Visible en e-commerce' },
+            { ctrl: 'controlLotes', label: 'Control por lotes' },
+            { ctrl: 'permitirDescuentos', label: 'Permitir descuentos' }
+          ]; track t.ctrl) {
+            <label class="flex cursor-pointer items-center justify-between">
+              <span class="text-sm text-text-main">{{ t.label }}</span>
+              <input type="checkbox" [formControlName]="t.ctrl" class="peer sr-only" />
+              <span class="relative h-6 w-11 shrink-0 rounded-full bg-[#D1D5DB] transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:bg-accent peer-checked:after:translate-x-5"></span>
+            </label>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</form>
+
+<!-- ===== Modal: nueva categoría ===== -->
+@if (catModalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarCatModal()">
+    <div class="w-full max-w-[480px] overflow-hidden rounded-[18px] bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <h3 class="text-lg font-semibold text-text-main">Nueva categoría</h3>
+        <button type="button" (click)="cerrarCatModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+        </button>
       </div>
 
-      <!-- Columna Lateral (Multimedia / Feedback) -->
-      <div class="side-column">
-        <div class="form-section-card alert-card">
-          <h3 class="side-card-title">Validación de Datos</h3>
-          <ul class="review-checklist">
-            <li [class.checked]="productoForm.get('nombre')?.valid">
-              <span class="check-icon">{{ productoForm.get('nombre')?.valid ? '✓' : '●' }}</span> Nombre listo
-            </li>
-            <li [class.checked]="productoForm.get('precio')?.valid">
-              <span class="check-icon">{{ productoForm.get('precio')?.valid ? '✓' : '●' }}</span> Precio asignado
-            </li>
-            <li [class.checked]="productoForm.get('descripcion')?.valid">
-              <span class="check-icon">{{ productoForm.get('descripcion')?.valid ? '✓' : '●' }}</span> Descripción completa
-            </li>
-          </ul>
+      <!-- Body -->
+      <form [formGroup]="catForm" (ngSubmit)="guardarCategoria()">
+        <div class="flex flex-col gap-4 p-6">
+          @if (catError()) {
+            <div class="flex items-center gap-2 rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2 text-sm text-[#b71c1c]">
+              <mat-icon fontSet="material-icons-outlined">error_outline</mat-icon>
+              <span>{{ catError() }}</span>
+            </div>
+          }
+
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre de la categoría</label>
+            <input type="text" formControlName="nombre" placeholder="Ej. Frutos Secos"
+              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            @if (catForm.controls.nombre.touched && catForm.controls.nombre.invalid) {
+              <small class="mt-1 block text-xs text-[#c0392b]">Nombre requerido (3 a 100 caracteres).</small>
+            }
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Color de interfaz</label>
+            <div class="flex items-center gap-3">
+              <input type="color" formControlName="colorInterfaz"
+                class="h-11 w-14 cursor-pointer rounded-input border border-border-soft bg-white p-1" />
+              <input type="text" formControlName="colorInterfaz"
+                class="h-11 flex-1 rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
+          <button type="button" (click)="cerrarCatModal()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="catSaving()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+            {{ catSaving() ? 'Guardando...' : 'Crear categoría' }}
+          </button>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
+  </div>
+}

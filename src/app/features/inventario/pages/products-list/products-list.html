@@ -1,18 +1,58 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-5">
 
-  <!-- Encabezado de página -->
-  <div class="flex flex-wrap items-center justify-between gap-4">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
+    <span>Inicio</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
+    <span>Inventario</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
+    <span class="font-medium text-text-main">Productos</span>
+  </nav>
+
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-[28px] font-bold text-text-main">Catálogo de Productos</h1>
-      <p class="text-sm text-text-muted">Gestión de snacks y productos registrados en NATURIN'S ERP.</p>
+      <h1 class="text-[28px] font-bold text-text-main">Productos</h1>
+      <p class="text-sm text-text-muted">
+        {{ productos().length }} productos · {{ totalCategorias() }} categorías
+      </p>
     </div>
-    <button
-      routerLink="/productos/nuevo"
-      class="flex h-11 items-center gap-2 rounded-btn bg-primary px-6 font-semibold text-white transition hover:bg-primary-hover"
-    >
-      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
-      Registrar Nuevo Producto
-    </button>
+    <div class="flex items-center gap-3">
+      <button class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined">file_download</mat-icon>
+        Exportar
+      </button>
+      <button
+        routerLink="/productos/nuevo"
+        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+      >
+        <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+        Crear producto
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de filtros -->
+  <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+    <div class="relative flex min-w-[240px] flex-1 items-center">
+      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
+      <input
+        type="text"
+        (input)="onSearch($event)"
+        placeholder="Buscar producto o categoría..."
+        class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+      />
+    </div>
+    @for (f of ['Categoría', 'Almacén', 'Estado']; track f) {
+      <button class="flex h-11 items-center gap-2 rounded-input border border-border-soft bg-white px-4 text-sm text-text-main transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined" class="text-text-muted">filter_list</mat-icon>
+        {{ f }}
+        <mat-icon fontSet="material-icons-outlined" class="text-text-muted">expand_more</mat-icon>
+      </button>
+    }
+    <span class="ml-auto text-xs text-text-muted">
+      Mostrando {{ filtrados().length }} de {{ productos().length }}
+    </span>
   </div>
 
   <!-- Tabla -->
@@ -20,67 +60,178 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-          <th class="px-5 py-3 font-semibold">ID</th>
-          <th class="px-5 py-3 font-semibold">Nombre del Producto</th>
-          <th class="px-5 py-3 font-semibold">Descripción</th>
-          <th class="px-5 py-3 text-right font-semibold">Precio</th>
+          <th class="px-5 py-3 font-semibold">Código</th>
+          <th class="px-5 py-3 font-semibold">Producto</th>
+          <th class="px-5 py-3 font-semibold">Categoría</th>
+          <th class="px-5 py-3 text-right font-semibold">Stock</th>
           <th class="px-5 py-3 text-center font-semibold">Estado</th>
           <th class="px-5 py-3 text-center font-semibold">Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Cargando -->
-        @if (loading) {
+        @if (loading()) {
           <tr>
-            <td colspan="6" class="px-5 py-10 text-center text-text-muted">
+            <td colspan="6" class="px-5 py-12 text-center text-text-muted">
               <mat-icon fontSet="material-icons-outlined" class="animate-spin align-middle">progress_activity</mat-icon>
               Cargando productos...
             </td>
           </tr>
-        }
-
-        <!-- Filas -->
-        @for (p of productos; track p.id) {
-          <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
-            <td class="px-5 py-3 font-medium text-text-muted">#{{ p.id }}</td>
-            <td class="px-5 py-3 font-medium text-text-main">{{ p.nombre }}</td>
-            <td class="px-5 py-3 text-text-muted">
-              {{ p.descripcion | slice: 0 : 50 }}{{ p.descripcion.length > 50 ? '…' : '' }}
-            </td>
-            <td class="px-5 py-3 text-right font-semibold text-text-main">
-              S/. {{ p.precio | number: '1.2-2' }}
-            </td>
-            <td class="px-5 py-3 text-center">
-              <span
-                class="inline-flex rounded-full px-3 py-1 text-xs font-medium"
-                [class]="p.estado ? 'bg-[#DCFCE7] text-[#15803D]' : 'bg-[#FEE2E2] text-[#B91C1C]'"
-              >
-                {{ p.estado ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td class="px-5 py-3">
-              <div class="flex items-center justify-center gap-1">
-                <button class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
-                  <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
-                </button>
-                <button class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-[#FEE2E2] hover:text-[#EF4444]" title="Eliminar">
-                  <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
-
-        <!-- Vacío -->
-        @if (!loading && productos.length === 0) {
+        } @else if (error()) {
           <tr>
-            <td colspan="6" class="px-5 py-12 text-center text-text-muted">
-              <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">inventory_2</mat-icon>
-              <p>No hay productos registrados.</p>
+            <td colspan="6" class="px-5 py-12 text-center">
+              <mat-icon fontSet="material-icons-outlined" class="mb-1 text-[36px]! h-9! w-9! text-[#EF4444]">error_outline</mat-icon>
+              <p class="text-sm text-[#B91C1C]">{{ error() }}</p>
             </td>
           </tr>
+        } @else {
+          @for (p of filtrados(); track p.id) {
+            <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
+              <td class="px-5 py-3 font-semibold text-primary">{{ codigo(p) }}</td>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-bg-app">
+                    @if (p.urlImagen) {
+                      <img [src]="p.urlImagen" [alt]="p.nombre" class="h-full w-full object-cover" />
+                    } @else {
+                      <mat-icon fontSet="material-icons-outlined" class="text-text-muted">inventory_2</mat-icon>
+                    }
+                  </div>
+                  <span class="font-medium text-text-main">{{ p.nombre }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-text-muted">{{ p.nombreCategoria || '—' }}</td>
+              <td class="px-5 py-3 text-right">
+                <div class="flex flex-col items-end leading-tight">
+                  <span class="font-semibold" [class]="stockDe(p.id).stock === 0 ? 'text-[#B91C1C]' : 'text-text-main'">
+                    {{ stockDe(p.id).stock }} u
+                  </span>
+                  @if (stockDe(p.id).lotes > 0) {
+                    <span class="text-xs"
+                      [class]="stockDe(p.id).vencido ? 'text-[#B91C1C]' : (stockDe(p.id).proxVence ? 'text-[#B45309]' : 'text-text-muted')">
+                      {{ stockDe(p.id).lotes }} lote{{ stockDe(p.id).lotes === 1 ? '' : 's' }}
+                      @if (stockDe(p.id).vencido) { · vencido }
+                      @else if (stockDe(p.id).proxVence) { · vence pronto }
+                    </span>
+                  } @else {
+                    <span class="text-xs text-text-muted">sin lotes</span>
+                  }
+                </div>
+              </td>
+              <td class="px-5 py-3 text-center">
+                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium" [class]="estado(p.estado).classes">
+                  <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
+                  {{ estado(p.estado).label }}
+                </span>
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-center gap-1">
+                  <button type="button" (click)="ver(p)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-text-main" title="Ver">
+                    <mat-icon fontSet="material-icons-outlined">visibility</mat-icon>
+                  </button>
+                  <button type="button" [routerLink]="['/productos', p.id, 'editar']" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
+                    <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
+                  </button>
+                  <button type="button" (click)="pedirEliminar(p)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-[#FEE2E2] hover:text-[#EF4444]" title="Eliminar">
+                    <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @if (filtrados().length === 0) {
+            <tr>
+              <td colspan="6" class="px-5 py-14 text-center text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">inventory_2</mat-icon>
+                <p>No hay productos para mostrar.</p>
+                <button routerLink="/productos/nuevo" class="mt-3 text-sm font-semibold text-primary hover:underline">
+                  + Registrar el primero
+                </button>
+              </td>
+            </tr>
+          }
         }
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- ===== Modal: ver producto ===== -->
+@if (verTarget(); as p) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarVer()">
+    <div class="w-full max-w-[480px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <h3 class="text-lg font-semibold text-text-main">Detalle del producto</h3>
+        <button type="button" (click)="cerrarVer()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+        </button>
+      </div>
+      <div class="flex flex-col gap-4 p-6">
+        <div class="flex items-center gap-4">
+          <div class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-input bg-bg-app">
+            @if (p.urlImagen) {
+              <img [src]="p.urlImagen" [alt]="p.nombre" class="h-full w-full object-cover" />
+            } @else {
+              <mat-icon fontSet="material-icons-outlined" class="text-text-muted">inventory_2</mat-icon>
+            }
+          </div>
+          <div>
+            <p class="text-base font-semibold text-text-main">{{ p.nombre }}</p>
+            <p class="text-sm text-text-muted">{{ codigo(p) }}</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <p class="text-xs text-text-muted">Categoría</p>
+            <p class="font-medium text-text-main">{{ p.nombreCategoria || '—' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-text-muted">Estado</p>
+            <span class="mt-0.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="estado(p.estado).classes">
+              <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
+              {{ estado(p.estado).label }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
+        <button type="button" (click)="cerrarVer()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cerrar
+        </button>
+        <button type="button" [routerLink]="['/productos', p.id, 'editar']" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+          <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
+          Editar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Modal: confirmar eliminación ===== -->
+@if (eliminarTarget(); as p) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
+    <div class="w-full max-w-[440px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pt-6 text-center">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-[#FEE2E2]">
+          <mat-icon fontSet="material-icons-outlined" class="text-[#EF4444]">delete</mat-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-text-main">Eliminar producto</h3>
+        <p class="text-sm text-text-muted">
+          ¿Seguro que deseas eliminar <span class="font-semibold text-text-main">{{ p.nombre }}</span>?
+          Esta acción no se puede deshacer.
+        </p>
+        @if (eliminarError()) {
+          <p class="text-xs text-[#c0392b]">{{ eliminarError() }}</p>
+        }
+      </div>
+      <div class="mt-5 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
+        <button type="button" (click)="cancelarEliminar()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button type="button" (click)="confirmarEliminar()" [disabled]="eliminando()" class="flex h-11 items-center gap-2 rounded-btn bg-[#EF4444] px-5 text-sm font-semibold text-white transition hover:bg-[#dc2626] disabled:cursor-not-allowed disabled:opacity-60">
+          {{ eliminando() ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -16,6 +16,30 @@ export const INVENTARIO_ROUTES: Routes = [
       import('./pages/product-form/product-form').then((m) => m.ProductForm),
   },
   {
+    path: 'productos/:id/editar',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/product-form/product-form').then((m) => m.ProductForm),
+  },
+  {
+    path: 'presentaciones',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/presentaciones/presentaciones').then((m) => m.Presentaciones),
+  },
+  {
+    path: 'almacenes',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/almacenes/almacenes').then((m) => m.Almacenes),
+  },
+  {
+    path: 'lotes',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/lotes/lotes').then((m) => m.Lotes),
+  },
+  {
     path: 'kardex',
     canActivate: [authGuard],
     loadComponent: () =>

@@ -9,6 +9,7 @@ import { INVENTARIO_ROUTES } from '../features/inventario/inventario.routes';
 import { VENTAS_ROUTES } from '../features/ventas/ventas.routes';
 import { COMPRAS_ROUTES } from '../features/compras/compras.routes';
 import { CLIENTES_ROUTES } from '../features/clientes/clientes.routes';
+import { PROVEEDORES_ROUTES } from '../features/proveedores/proveedores.routes';
 
 export const routes: Routes = [
   // Al entrar a la web, redirige al login
@@ -28,6 +29,7 @@ export const routes: Routes = [
       ...VENTAS_ROUTES,
       ...COMPRAS_ROUTES,
       ...CLIENTES_ROUTES,
+      ...PROVEEDORES_ROUTES,
     ],
   },
 
