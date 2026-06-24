@@ -1,0 +1,227 @@
+<div class="p-6 space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-text-main">Órdenes de Compra</h1>
+      <p class="text-sm text-text-muted mt-0.5">Gestiona el abastecimiento de materias primas</p>
+    </div>
+    <button
+      (click)="abrirNuevaOC()"
+      class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium">
+      <mat-icon class="text-[18px] leading-none">add</mat-icon>
+      Nueva OC
+    </button>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+        <mat-icon class="text-amber-500 text-[20px]">pending</mat-icon>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-text-main">{{ totalPendientes() }}</p>
+        <p class="text-xs text-text-muted">Pendientes</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+        <mat-icon class="text-green-500 text-[20px]">check_circle</mat-icon>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-text-main">{{ totalCompletadas() }}</p>
+        <p class="text-xs text-text-muted">Completadas</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+        <mat-icon class="text-red-400 text-[20px]">cancel</mat-icon>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-text-main">{{ totalCanceladas() }}</p>
+        <p class="text-xs text-text-muted">Canceladas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-3 flex-wrap">
+    <div class="relative flex-1 min-w-[200px] max-w-sm">
+      <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Buscar por N° orden o proveedor..."
+        (input)="onSearch($event)"
+        class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+    </div>
+    <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
+      @for (opt of [['TODOS','Todos'],['PENDIENTE','Pendientes'],['COMPLETADA','Completadas'],['CANCELADA','Canceladas']] ; track opt[0]) {
+        <button
+          (click)="setFiltroEstado(opt[0])"
+          [class]="filtroEstado() === opt[0]
+            ? 'px-3 py-1 rounded-md text-xs font-medium bg-white shadow-sm text-primary'
+            : 'px-3 py-1 rounded-md text-xs font-medium text-gray-500 hover:text-gray-700'">
+          {{ opt[1] }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    @if (loading()) {
+      <div class="flex items-center justify-center py-20 gap-3 text-text-muted">
+        <mat-icon class="animate-spin text-primary">refresh</mat-icon>
+        <span class="text-sm">Cargando órdenes...</span>
+      </div>
+    } @else if (error()) {
+      <div class="flex flex-col items-center justify-center py-16 gap-3 text-red-500">
+        <mat-icon>error_outline</mat-icon>
+        <p class="text-sm">{{ error() }}</p>
+        <button (click)="cargar()" class="text-xs text-primary hover:underline">Reintentar</button>
+      </div>
+    } @else if (filtrados().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 gap-2 text-text-muted">
+        <mat-icon class="text-[40px] text-gray-200">shopping_cart</mat-icon>
+        <p class="text-sm font-medium">No hay órdenes de compra</p>
+        <p class="text-xs">Crea la primera orden con el botón "Nueva OC"</p>
+      </div>
+    } @else {
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">N° Orden</th>
+            <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Proveedor</th>
+            <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Fecha</th>
+            <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Total</th>
+            <th class="text-center px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Estado</th>
+            <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (oc of filtrados(); track oc.id) {
+            <tr class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-4 py-3">
+                <span class="font-mono font-semibold text-primary text-xs">{{ oc.numeroOrden }}</span>
+              </td>
+              <td class="px-4 py-3 text-text-main font-medium">{{ oc.nombreProveedor }}</td>
+              <td class="px-4 py-3 text-text-muted">{{ formatFecha(oc.fechaCompra) }}</td>
+              <td class="px-4 py-3 text-right font-semibold text-text-main">{{ formatMonto(oc.total) }}</td>
+              <td class="px-4 py-3 text-center">
+                <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + estadoBadge(oc.estado).classes">
+                  {{ estadoBadge(oc.estado).label }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button
+                  (click)="verDetalle(oc.id)"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors">
+                  <mat-icon class="text-[14px] leading-none">open_in_new</mat-icon>
+                  Ver detalle
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════ MODAL NUEVA OC ═══════════════════════════════ -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+
+      <!-- Header modal -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <mat-icon class="text-primary text-[18px]">add_shopping_cart</mat-icon>
+          </div>
+          <h2 class="text-base font-semibold text-text-main">Nueva Orden de Compra</h2>
+        </div>
+        <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Body modal -->
+      <form [formGroup]="form" (ngSubmit)="crearOC()" class="px-6 py-5 space-y-4">
+
+        @if (formError()) {
+          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+            <mat-icon class="text-[16px]">error_outline</mat-icon>
+            {{ formError() }}
+          </div>
+        }
+
+        <!-- Proveedor -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-main">
+            Proveedor <span class="text-red-500">*</span>
+          </label>
+          @if (loadingProveedores()) {
+            <div class="flex items-center gap-2 text-sm text-text-muted py-2">
+              <mat-icon class="animate-spin text-primary text-[16px]">refresh</mat-icon>
+              Cargando proveedores...
+            </div>
+          } @else {
+            <select
+              formControlName="proveedorId"
+              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+              <option value="">Selecciona un proveedor</option>
+              @for (p of proveedores(); track p.id) {
+                <option [value]="p.id">{{ p.nombreCompleto }}{{ p.razonSocial ? ' — ' + p.razonSocial : '' }}</option>
+              }
+            </select>
+            @if (form.controls.proveedorId.invalid && form.controls.proveedorId.touched) {
+              <p class="text-xs text-red-500">Selecciona un proveedor</p>
+            }
+          }
+        </div>
+
+        <!-- Observación -->
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-main">Observación</label>
+          <textarea
+            formControlName="observacion"
+            rows="3"
+            placeholder="Notas adicionales sobre la compra (opcional)"
+            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
+          </textarea>
+        </div>
+
+        <p class="text-xs text-text-muted bg-gray-50 rounded-lg px-3 py-2 flex items-start gap-2">
+          <mat-icon class="text-[14px] mt-0.5 text-gray-400">info</mat-icon>
+          Se creará la OC en estado <strong>Pendiente</strong>. Luego podrás agregar los ítems y recibir la mercancía.
+        </p>
+
+        <!-- Footer modal -->
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            (click)="cerrarModal()"
+            class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving()"
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+            @if (saving()) {
+              <mat-icon class="animate-spin text-[16px]">refresh</mat-icon>
+              Creando...
+            } @else {
+              <mat-icon class="text-[16px]">add</mat-icon>
+              Crear OC
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}

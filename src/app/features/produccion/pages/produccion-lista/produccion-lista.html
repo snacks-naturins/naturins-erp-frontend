@@ -1,0 +1,183 @@
+<div class="p-6 flex flex-col gap-5 h-full">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between shrink-0">
+    <div>
+      <h1 class="text-2xl font-bold text-text-main">Producción</h1>
+      <p class="text-sm text-text-muted mt-0.5">Tablero de órdenes de producción</p>
+    </div>
+    <button (click)="abrirNuevaOP()"
+      class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium">
+      <mat-icon class="text-[18px] leading-none">add</mat-icon>
+      Nueva orden
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-24 gap-3 text-text-muted">
+      <mat-icon class="animate-spin text-primary">refresh</mat-icon>
+      <span class="text-sm">Cargando órdenes...</span>
+    </div>
+  } @else if (error()) {
+    <div class="flex flex-col items-center justify-center py-16 gap-3 text-red-500">
+      <mat-icon>error_outline</mat-icon>
+      <p class="text-sm">{{ error() }}</p>
+      <button (click)="cargar()" class="text-xs text-primary hover:underline">Reintentar</button>
+    </div>
+  } @else {
+
+    <!-- Kanban board -->
+    <div class="flex gap-4 flex-1 overflow-x-auto pb-2">
+
+      <!-- Columna PLANIFICADA -->
+      <div class="flex flex-col min-w-[260px] flex-1">
+        <div class="flex items-center gap-2 mb-3 px-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
+          <span class="text-sm font-semibold text-text-main">Planificada</span>
+          <span class="ml-auto text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium">{{ planificadas().length }}</span>
+        </div>
+        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
+          @for (op of planificadas(); track op.id) {
+            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
+          }
+          @if (planificadas().length === 0) {
+            <div class="border-2 border-dashed border-gray-100 rounded-xl py-8 text-center text-xs text-gray-300">Sin órdenes</div>
+          }
+        </div>
+      </div>
+
+      <!-- Columna EN_PROCESO -->
+      <div class="flex flex-col min-w-[260px] flex-1">
+        <div class="flex items-center gap-2 mb-3 px-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+          <span class="text-sm font-semibold text-text-main">En proceso</span>
+          <span class="ml-auto text-xs bg-amber-50 text-amber-600 rounded-full px-2 py-0.5 font-medium">{{ enProceso().length }}</span>
+        </div>
+        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
+          @for (op of enProceso(); track op.id) {
+            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
+          }
+          @if (enProceso().length === 0) {
+            <div class="border-2 border-dashed border-amber-100 rounded-xl py-8 text-center text-xs text-amber-200">Sin órdenes</div>
+          }
+        </div>
+      </div>
+
+      <!-- Columna COMPLETADA -->
+      <div class="flex flex-col min-w-[260px] flex-1">
+        <div class="flex items-center gap-2 mb-3 px-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0"></span>
+          <span class="text-sm font-semibold text-text-main">Completada</span>
+          <span class="ml-auto text-xs bg-green-50 text-green-600 rounded-full px-2 py-0.5 font-medium">{{ completadas().length }}</span>
+        </div>
+        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
+          @for (op of completadas(); track op.id) {
+            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
+          }
+          @if (completadas().length === 0) {
+            <div class="border-2 border-dashed border-green-100 rounded-xl py-8 text-center text-xs text-green-200">Sin órdenes</div>
+          }
+        </div>
+      </div>
+
+      <!-- Columna CANCELADA -->
+      <div class="flex flex-col min-w-[260px] flex-1">
+        <div class="flex items-center gap-2 mb-3 px-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-300 shrink-0"></span>
+          <span class="text-sm font-semibold text-text-main">Cancelada</span>
+          <span class="ml-auto text-xs bg-red-50 text-red-400 rounded-full px-2 py-0.5 font-medium">{{ canceladas().length }}</span>
+        </div>
+        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
+          @for (op of canceladas(); track op.id) {
+            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
+          }
+          @if (canceladas().length === 0) {
+            <div class="border-2 border-dashed border-red-100 rounded-xl py-8 text-center text-xs text-red-200">Sin órdenes</div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>
+
+<!-- Card template -->
+<ng-template #cardTpl let-op="op">
+  <div (click)="irDetalle(op.id)"
+    class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all group">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-mono font-bold text-primary">{{ op.numeroOrden }}</span>
+      <span class="text-xs text-text-muted">{{ formatFecha(op.fechaProduccion) }}</span>
+    </div>
+    @if (op.observacion) {
+      <p class="text-sm text-text-main leading-snug line-clamp-2 mb-3">{{ op.observacion }}</p>
+    } @else {
+      <p class="text-sm text-gray-300 italic mb-3">Sin descripción</p>
+    }
+    <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+      <div class="flex items-center gap-1.5 text-xs text-text-muted">
+        <mat-icon class="text-[13px]">person_outline</mat-icon>
+        <span class="truncate max-w-[90px]">{{ op.nombreCompleto || op.nombreUsuario || 'Sin asignar' }}</span>
+      </div>
+      <span class="text-sm font-semibold text-text-main">{{ formatMonto(op.costoTotal) }}</span>
+    </div>
+    <div class="mt-2 flex justify-end">
+      <span [class]="'text-[10px] font-medium px-2 py-0.5 rounded-full ' + estadoBadge(op.estado)">
+        {{ op.estado === 'EN_PROCESO' ? 'En proceso' : op.estado === 'PLANIFICADA' ? 'Planificada' : op.estado === 'COMPLETADA' ? 'Completada' : 'Cancelada' }}
+      </span>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ═══════════════ MODAL NUEVA OP ═══════════════ -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <mat-icon class="text-primary text-[18px]">precision_manufacturing</mat-icon>
+          </div>
+          <h2 class="text-base font-semibold text-text-main">Nueva Orden de Producción</h2>
+        </div>
+        <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        @if (formError()) {
+          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+            <mat-icon class="text-[16px]">error_outline</mat-icon>
+            {{ formError() }}
+          </div>
+        }
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-main">Descripción / Observación</label>
+          <textarea
+            [value]="observacion()"
+            (input)="onObservacion($event)"
+            rows="3"
+            placeholder="Ej: Producción semanal de Granola Natural 500g (opcional)"
+            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
+          </textarea>
+        </div>
+        <p class="text-xs text-text-muted bg-gray-50 rounded-lg px-3 py-2 flex items-start gap-2">
+          <mat-icon class="text-[14px] mt-0.5 text-gray-400">info</mat-icon>
+          Se creará en estado <strong>Planificada</strong>. Después agregas los insumos y los productos a fabricar.
+        </p>
+        <div class="flex justify-end gap-3 pt-1">
+          <button (click)="cerrarModal()"
+            class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button (click)="crearOP()" [disabled]="saving()"
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors flex items-center gap-2">
+            @if (saving()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Creando... }
+            @else { <mat-icon class="text-[16px]">add</mat-icon> Crear OP }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

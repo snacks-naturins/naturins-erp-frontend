@@ -8,8 +8,11 @@ export interface AlmacenResponse {
   tipo?: TipoAlmacen | string | null;
   ubicacion: string;
   telefono?: string | null;
-  capacidad?: number | null;
+  capacidadKg?: number | null;
+  responsableId?: string | null;
   estado: EstadoAlmacen | string;
+  stockOcupadoKg?: number | null;
+  porcentajeUso?: number | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }
@@ -20,8 +23,12 @@ export interface CreateAlmacenRequest {
   tipo: TipoAlmacen;
   ubicacion: string;
   telefono?: string;
-  capacidad?: number | null;
+  capacidadKg?: number | null;
+  responsableId?: string;
   estado: EstadoAlmacen;
 }
 
-export type UpdateAlmacenRequest = CreateAlmacenRequest;
+export type UpdateAlmacenRequest = Partial<CreateAlmacenRequest>;
+
+export type ZonaEstado = 'libre' | 'ocupado' | 'lleno' | 'bloqueado';
+export interface Zona { id: string; estado: ZonaEstado; }

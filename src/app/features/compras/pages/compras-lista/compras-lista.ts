@@ -1,0 +1,162 @@
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+
+import { CompraService } from '../../services/compra.service';
+import { CompraResponse, EstadoCompra } from '../../models/compra.model';
+import { ProveedorService } from '../../../proveedores/services/proveedor.service';
+import { ProveedorResponse } from '../../../proveedores/models/proveedor.model';
+
+@Component({
+  selector: 'app-compras-lista',
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule],
+  templateUrl: './compras-lista.html',
+})
+export class ComprasLista implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly compraService = inject(CompraService);
+  private readonly proveedorService = inject(ProveedorService);
+
+  // ── Lista ──────────────────────────────────────────────────
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly items = signal<CompraResponse[]>([]);
+  readonly search = signal('');
+  readonly filtroEstado = signal<string>('TODOS');
+
+  readonly filtrados = computed(() => {
+    const q = this.search().toLowerCase().trim();
+    const estado = this.filtroEstado();
+    return this.items().filter((c) => {
+      const matchQ =
+        !q ||
+        c.numeroOrden.toLowerCase().includes(q) ||
+        c.nombreProveedor.toLowerCase().includes(q);
+      const matchE = estado === 'TODOS' || c.estado === estado;
+      return matchQ && matchE;
+    });
+  });
+
+  // ── Stats ──────────────────────────────────────────────────
+  readonly totalPendientes = computed(
+    () => this.items().filter((c) => c.estado === 'PENDIENTE').length,
+  );
+  readonly totalCompletadas = computed(
+    () => this.items().filter((c) => c.estado === 'COMPLETADA').length,
+  );
+  readonly totalCanceladas = computed(
+    () => this.items().filter((c) => c.estado === 'CANCELADA').length,
+  );
+
+  // ── Modal nueva OC ─────────────────────────────────────────
+  readonly modalOpen = signal(false);
+  readonly saving = signal(false);
+  readonly formError = signal<string | null>(null);
+  readonly proveedores = signal<ProveedorResponse[]>([]);
+  readonly loadingProveedores = signal(false);
+
+  readonly form = this.fb.nonNullable.group({
+    proveedorId: ['', [Validators.required]],
+    observacion: [''],
+  });
+
+  // ── Lifecycle ──────────────────────────────────────────────
+  ngOnInit(): void {
+    this.cargar();
+  }
+
+  cargar(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.compraService.listar().subscribe({
+      next: (d) => {
+        this.items.set(d.sort((a, b) => b.fechaCompra.localeCompare(a.fechaCompra)));
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudieron cargar las órdenes de compra.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  onSearch(e: Event): void {
+    this.search.set((e.target as HTMLInputElement).value);
+  }
+
+  setFiltroEstado(e: string): void {
+    this.filtroEstado.set(e);
+  }
+
+  // ── Modal ──────────────────────────────────────────────────
+  abrirNuevaOC(): void {
+    this.formError.set(null);
+    this.form.reset({ proveedorId: '', observacion: '' });
+    this.modalOpen.set(true);
+    if (this.proveedores().length === 0) {
+      this.loadingProveedores.set(true);
+      this.proveedorService.listar().subscribe({
+        next: (d) => {
+          this.proveedores.set(d.filter((p) => p.estado === 'ACTIVO'));
+          this.loadingProveedores.set(false);
+        },
+        error: () => this.loadingProveedores.set(false),
+      });
+    }
+  }
+
+  cerrarModal(): void {
+    this.modalOpen.set(false);
+  }
+
+  crearOC(): void {
+    this.formError.set(null);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.saving.set(true);
+    const v = this.form.getRawValue();
+    this.compraService
+      .crear({ proveedorId: v.proveedorId, observacion: v.observacion || undefined })
+      .subscribe({
+        next: (oc) => {
+          this.saving.set(false);
+          this.modalOpen.set(false);
+          this.router.navigate(['/compras', oc.id]);
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.formError.set(err?.error?.message ?? 'No se pudo crear la orden de compra.');
+        },
+      });
+  }
+
+  // ── Helpers visuales ───────────────────────────────────────
+  estadoBadge(estado: string): { label: string; classes: string } {
+    const map: Record<string, { label: string; classes: string }> = {
+      PENDIENTE:        { label: 'Pendiente',   classes: 'bg-amber-100 text-amber-700' },
+      RECIBIDA_PARCIAL: { label: 'Parcial',      classes: 'bg-blue-100 text-blue-700' },
+      COMPLETADA:       { label: 'Completada',   classes: 'bg-green-100 text-green-700' },
+      CANCELADA:        { label: 'Cancelada',    classes: 'bg-red-100 text-red-600' },
+    };
+    return map[estado] ?? { label: estado, classes: 'bg-gray-100 text-gray-600' };
+  }
+
+  formatFecha(fecha: string): string {
+    return new Date(fecha).toLocaleDateString('es-PE', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
+  }
+
+  formatMonto(v: number): string {
+    return `S/ ${v.toFixed(2)}`;
+  }
+
+  verDetalle(id: string): void {
+    this.router.navigate(['/compras', id]);
+  }
+}

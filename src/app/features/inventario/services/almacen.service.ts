@@ -18,6 +18,18 @@ export class AlmacenService {
     return this.http.get<AlmacenResponse[]>(this.API_URL);
   }
 
+  buscarPorId(id: string): Observable<AlmacenResponse> {
+    return this.http.get<AlmacenResponse>(`${this.API_URL}/${id}`);
+  }
+
+  listarPorEstado(estado: string): Observable<AlmacenResponse[]> {
+    return this.http.get<AlmacenResponse[]>(`${this.API_URL}/por-estado/${estado}`);
+  }
+
+  listarPorTipo(tipo: string): Observable<AlmacenResponse[]> {
+    return this.http.get<AlmacenResponse[]>(`${this.API_URL}/por-tipo/${tipo}`);
+  }
+
   crear(dto: CreateAlmacenRequest): Observable<AlmacenResponse> {
     return this.http.post<AlmacenResponse>(this.API_URL, dto);
   }

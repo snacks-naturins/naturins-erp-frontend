@@ -8,6 +8,7 @@ import { DASHBOARD_ROUTES } from '../features/dashboard/dashboard.routes';
 import { INVENTARIO_ROUTES } from '../features/inventario/inventario.routes';
 import { VENTAS_ROUTES } from '../features/ventas/ventas.routes';
 import { COMPRAS_ROUTES } from '../features/compras/compras.routes';
+import { PRODUCCION_ROUTES } from '../features/produccion/produccion.routes';
 import { CLIENTES_ROUTES } from '../features/clientes/clientes.routes';
 import { PROVEEDORES_ROUTES } from '../features/proveedores/proveedores.routes';
 
@@ -28,6 +29,7 @@ export const routes: Routes = [
       ...INVENTARIO_ROUTES,
       ...VENTAS_ROUTES,
       ...COMPRAS_ROUTES,
+      ...PRODUCCION_ROUTES,
       ...CLIENTES_ROUTES,
       ...PROVEEDORES_ROUTES,
     ],

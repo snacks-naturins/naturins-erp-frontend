@@ -1,172 +1,249 @@
-<div class="flex flex-col gap-5">
-
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
-    <span>Inicio</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span>Inventario</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span class="font-medium text-text-main">Almacenes</span>
-  </nav>
+<div class="flex flex-col gap-6">
 
   <!-- Encabezado -->
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-[28px] font-bold text-text-main">Almacenes</h1>
-      <p class="text-sm text-text-muted">{{ items().length }} almacenes registrados</p>
+      <h1 class="text-2xl font-bold text-text-main">Almacenes</h1>
+      <p class="mt-0.5 text-sm text-text-muted">Capacidad y ocupación</p>
     </div>
-    <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+    <button (click)="abrirCrear()"
+      class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
       Nuevo almacén
     </button>
   </div>
 
-  <!-- Filtro -->
-  <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <div class="relative flex min-w-[240px] flex-1 items-center">
-      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
-      <input type="text" (input)="onSearch($event)" placeholder="Buscar almacén o ubicación..."
-        class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
-    </div>
-    <span class="ml-auto text-xs text-text-muted">Mostrando {{ filtrados().length }} de {{ items().length }}</span>
-  </div>
+  <!-- Subtítulo de resumen -->
+  @if (!loading() && !error()) {
+    <p class="text-sm text-text-muted">
+      <span class="font-semibold text-text-main">{{ items().length }}</span> ubicaciones
+      &nbsp;·&nbsp;
+      Stock total&nbsp;<span class="font-semibold text-text-main">{{ totalStockLabel() }}</span>
+    </p>
+  }
 
-  <!-- Tabla -->
-  <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-          <th class="px-5 py-3 font-semibold">Almacén</th>
-          <th class="px-5 py-3 font-semibold">Ubicación</th>
-          <th class="px-5 py-3 text-center font-semibold">Estado</th>
-          <th class="px-5 py-3 text-center font-semibold">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          <tr><td colspan="4" class="px-5 py-12 text-center text-text-muted">
-            <mat-icon fontSet="material-icons-outlined" class="animate-spin align-middle">progress_activity</mat-icon> Cargando...
-          </td></tr>
-        } @else if (error()) {
-          <tr><td colspan="4" class="px-5 py-12 text-center text-[#B91C1C]">{{ error() }}</td></tr>
-        } @else {
-          @for (a of filtrados(); track a.id) {
-            <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
-              <td class="px-5 py-3">
-                <div class="flex items-center gap-3">
-                  <div class="grid h-9 w-9 place-items-center rounded-lg bg-bg-app text-primary">
-                    <mat-icon fontSet="material-icons-outlined">warehouse</mat-icon>
-                  </div>
-                  <div class="flex flex-col leading-tight">
-                    <span class="font-medium text-text-main">{{ a.nombre }}</span>
-                    <span class="text-xs text-text-muted">
-                      {{ a.codigo ? a.codigo + ' · ' : '' }}{{ tipoLabel(a.tipo) }}
-                    </span>
-                  </div>
-                </div>
-              </td>
-              <td class="px-5 py-3 text-text-muted">{{ a.ubicacion }}</td>
-              <td class="px-5 py-3 text-center">
-                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium" [class]="estado(a.estado).classes">
-                  <span class="h-1.5 w-1.5 rounded-full" [class]="estado(a.estado).dot"></span>
-                  {{ estado(a.estado).label }}
-                </span>
-              </td>
-              <td class="px-5 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  <button (click)="abrirEditar(a)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
-                    <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
-                  </button>
-                  <button (click)="pedirEliminar(a)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-[#FEE2E2] hover:text-[#EF4444]" title="Eliminar">
-                    <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </tr>
+  <!-- Estado de carga / error -->
+  @if (loading()) {
+    <div class="flex h-40 items-center justify-center gap-2 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+      Cargando almacenes...
+    </div>
+  } @else if (error()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</div>
+  } @else {
+
+    <!-- Grid de cards -->
+    <div class="grid gap-4" [class]="items().length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'">
+      @for (a of items(); track a.id) {
+        <div (click)="seleccionar(a)"
+          class="cursor-pointer rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+          [class.ring-2]="estaSeleccionado(a)"
+          [class.ring-primary]="estaSeleccionado(a)">
+
+          <!-- Fila superior: icono + nombre + acciones -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl" [class]="tipoConfig(a.tipo).bg">
+                <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5!" [class]="tipoConfig(a.tipo).color">
+                  {{ tipoConfig(a.tipo).icon }}
+                </mat-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="truncate font-semibold text-text-main">{{ a.nombre }}</p>
+                <p class="truncate text-xs text-text-muted">{{ a.ubicacion }}</p>
+              </div>
+            </div>
+            <!-- acciones (detener propagación del click de selección) -->
+            <div class="flex shrink-0 gap-1" (click)="$event.stopPropagation()">
+              <button (click)="abrirEditar(a)"
+                class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary"
+                title="Editar">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">edit</mat-icon>
+              </button>
+              <button (click)="pedirEliminar(a)"
+                class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500"
+                title="Eliminar">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ocupación -->
+          <div class="mt-4">
+            <div class="mb-1.5 flex items-center justify-between text-xs">
+              <span class="text-text-muted">Ocupación</span>
+              <span [class]="pctTextColor(a.porcentajeUso)">{{ pctLabel(a.porcentajeUso) }}</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+              @if (a.porcentajeUso != null) {
+                <div class="h-full rounded-full transition-all duration-500" [class]="barraColor(a.porcentajeUso)"
+                  [style.width.%]="a.porcentajeUso > 100 ? 100 : a.porcentajeUso"></div>
+              }
+            </div>
+          </div>
+
+          <!-- Stats: stock ocupado + capacidad -->
+          <div class="mt-4 flex items-center gap-4 border-t border-border-soft pt-3">
+            <div>
+              <p class="text-base font-bold text-text-main">{{ stockKgLabel(a.stockOcupadoKg) }}</p>
+              <p class="text-xs text-text-muted">stock ocupado</p>
+            </div>
+            <div class="h-8 w-px bg-border-soft"></div>
+            <div>
+              <p class="text-base font-bold text-text-main">
+                {{ a.capacidadKg != null ? stockKgLabel(a.capacidadKg) : '∞' }}
+              </p>
+              <p class="text-xs text-text-muted">capacidad</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Estado vacío -->
+      @if (items().length === 0) {
+        <div class="col-span-full flex flex-col items-center gap-3 rounded-2xl bg-white py-16 text-center text-text-muted shadow-sm">
+          <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-30">warehouse</mat-icon>
+          <p class="text-sm">No hay almacenes registrados.</p>
+          <button (click)="abrirCrear()"
+            class="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
+            <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
+            Crear almacén
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Mapa visual del almacén seleccionado -->
+    @if (almacenSeleccionado(); as sel) {
+      <div class="rounded-2xl bg-white p-6 shadow-sm">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-sm font-semibold text-text-main">
+            Mapa visual &mdash; {{ sel.nombre }}
+          </h2>
+          <!-- Leyenda -->
+          <div class="flex flex-wrap items-center gap-4 text-xs text-text-muted">
+            <span class="flex items-center gap-1.5">
+              <span class="h-3 w-3 rounded-sm bg-green-100 border border-green-200"></span> Libre
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="h-3 w-3 rounded-sm bg-rose-100 border border-rose-200"></span> Ocupado
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="h-3 w-3 rounded-sm bg-amber-100 border border-amber-200"></span> Lleno
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="h-3 w-3 rounded-sm bg-rose-200 border border-rose-300"></span> Bloqueado
+            </span>
+          </div>
+        </div>
+
+        <!-- Grid de zonas A1-D10 -->
+        <div class="grid grid-cols-10 gap-1.5">
+          @for (z of zonas(); track z.id) {
+            <div class="flex h-14 items-center justify-center rounded-lg border text-[10px] font-medium text-gray-500"
+              [class]="zonaClase(z.estado)"
+              [title]="'Zona ' + z.id + ' — ' + z.estado">
+              {{ z.id }}
+            </div>
           }
-          @if (filtrados().length === 0) {
-            <tr><td colspan="4" class="px-5 py-14 text-center text-text-muted">
-              <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">warehouse</mat-icon>
-              <p>No hay almacenes. Crea el primero.</p>
-            </td></tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
+        </div>
+      </div>
+    }
+
+  }<!-- /else -->
 </div>
 
-<!-- Modal crear/editar -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: CREAR / EDITAR
+═══════════════════════════════════════════════════════ -->
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarModal()">
-    <div class="w-full max-w-[480px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    (click)="cerrarModal()">
+    <div class="w-full max-w-[500px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header modal -->
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
-        <h3 class="text-lg font-semibold text-text-main">{{ editId() ? 'Editar almacén' : 'Nuevo almacén' }}</h3>
-        <button (click)="cerrarModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+        <h3 class="font-semibold text-text-main">{{ editId() ? 'Editar almacén' : 'Nuevo almacén' }}</h3>
+        <button (click)="cerrarModal()"
+          class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
+
       <form [formGroup]="form" (ngSubmit)="guardar()">
         <div class="flex flex-col gap-4 p-6">
           @if (formError()) {
-            <div class="rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2 text-sm text-[#b71c1c]">{{ formError() }}</div>
+            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {{ formError() }}
+            </div>
           }
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Código</label>
               <input type="text" formControlName="codigo" placeholder="Ej. ALM-01"
-                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo</label>
               <select formControlName="tipo"
-                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
+                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
                 @for (t of tipos; track t.value) {
                   <option [value]="t.value">{{ t.label }}</option>
                 }
               </select>
             </div>
           </div>
+
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre <span class="text-red-500">*</span></label>
             <input type="text" formControlName="nombre" placeholder="Ej. Almacén Principal"
-              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-              <small class="mt-1 block text-xs text-[#c0392b]">Nombre requerido.</small>
+              <small class="mt-1 block text-xs text-red-600">Nombre requerido.</small>
             }
           </div>
+
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Ubicación</label>
-            <input type="text" formControlName="ubicacion" placeholder="Ej. Av. Industrial 123, Lima"
-              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Ubicación <span class="text-red-500">*</span></label>
+            <input type="text" formControlName="ubicacion" placeholder="Ej. Av. Industrial 450, Lima"
+              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             @if (form.controls.ubicacion.touched && form.controls.ubicacion.invalid) {
-              <small class="mt-1 block text-xs text-[#c0392b]">Ubicación requerida.</small>
+              <small class="mt-1 block text-xs text-red-600">Ubicación requerida.</small>
             }
           </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Teléfono</label>
               <input type="text" formControlName="telefono" placeholder="Ej. 987654321"
-                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
-              <label class="mb-1.5 block text-xs font-semibold text-text-main">Capacidad (u)</label>
-              <input type="number" formControlName="capacidad" placeholder="Ej. 10000"
-                class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">Capacidad (kg)</label>
+              <input type="number" formControlName="capacidadKg" placeholder="Sin límite si vacío"
+                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
+
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
+              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
             </select>
           </div>
         </div>
+
         <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
-          <button type="button" (click)="cerrarModal()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">Cancelar</button>
-          <button type="submit" [disabled]="saving()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+          <button type="button" (click)="cerrarModal()"
+            class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="saving()"
+            class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
             {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar' : 'Crear almacén') }}
           </button>
         </div>
@@ -175,21 +252,34 @@
   </div>
 }
 
-<!-- Modal eliminar -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: CONFIRMAR ELIMINAR
+═══════════════════════════════════════════════════════ -->
 @if (deleteTarget(); as t) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
-    <div class="w-full max-w-[440px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-3 px-6 pt-6 text-center">
-        <div class="grid h-12 w-12 place-items-center rounded-full bg-[#FEE2E2]">
-          <mat-icon fontSet="material-icons-outlined" class="text-[#EF4444]">delete</mat-icon>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    (click)="cancelarEliminar()">
+    <div class="w-full max-w-[420px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+      (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
         </div>
-        <h3 class="text-lg font-semibold text-text-main">Eliminar almacén</h3>
-        <p class="text-sm text-text-muted">¿Eliminar <span class="font-semibold text-text-main">{{ t.nombre }}</span>?</p>
-        @if (deleteError()) { <p class="text-xs text-[#c0392b]">{{ deleteError() }}</p> }
+        <h3 class="font-semibold text-text-main">Eliminar almacén</h3>
+        <p class="text-sm text-text-muted">
+          ¿Deseas eliminar <span class="font-semibold text-text-main">{{ t.nombre }}</span>?
+          Esta acción no se puede deshacer.
+        </p>
+        @if (deleteError()) {
+          <p class="text-xs text-red-600">{{ deleteError() }}</p>
+        }
       </div>
-      <div class="mt-5 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
-        <button (click)="cancelarEliminar()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">Cancelar</button>
-        <button (click)="confirmarEliminar()" [disabled]="deleting()" class="flex h-11 items-center rounded-btn bg-[#EF4444] px-5 text-sm font-semibold text-white transition hover:bg-[#dc2626] disabled:opacity-60">
+      <div class="flex justify-center gap-3 border-t border-border-soft px-6 py-4 mt-3">
+        <button (click)="cancelarEliminar()"
+          class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button (click)="confirmarEliminar()" [disabled]="deleting()"
+          class="flex h-10 items-center rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
           {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
         </button>
       </div>

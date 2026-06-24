@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
 
 import { PresentacionService } from '../../services/presentacion.service';
 import { ProductoService } from '../../services/producto.service';
@@ -10,7 +11,7 @@ import { ProductoResponse } from '../../models/producto.model';
 @Component({
   selector: 'app-presentaciones',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatIconModule, NgClass],
   templateUrl: './presentaciones.html',
 })
 export class Presentaciones implements OnInit {
@@ -35,6 +36,32 @@ export class Presentaciones implements OnInit {
     precioVenta: [null as number | null, [Validators.required, Validators.min(0.01)]],
     estado: ['ACTIVO' as EstadoPresentacion, [Validators.required]],
   });
+
+  // ── Producto search dropdown ──────────────────────────────
+  readonly productoSearch       = signal('');
+  readonly productoDropdown     = signal(false);
+  readonly productoIdSignal     = signal('');   // espejo del form control como Signal
+  readonly productoSeleccionado = computed(() =>
+    this.productos().find((p) => p.id === this.productoIdSignal()) ?? null,
+  );
+  readonly productosFiltrados = computed(() => {
+    const q = this.productoSearch().toLowerCase().trim();
+    return q
+      ? this.productos().filter((p) => p.nombre.toLowerCase().includes(q) || (p.nombreCategoria ?? '').toLowerCase().includes(q))
+      : this.productos();
+  });
+
+  seleccionarProducto(p: ProductoResponse): void {
+    this.form.controls.productoId.setValue(p.id);
+    this.productoIdSignal.set(p.id);
+    this.productoSearch.set('');
+    this.productoDropdown.set(false);
+  }
+
+  limpiarProducto(): void {
+    this.form.controls.productoId.setValue('');
+    this.productoIdSignal.set('');
+  }
 
   readonly deleteTarget = signal<PresentacionResponse | null>(null);
   readonly deleting = signal(false);
@@ -81,6 +108,9 @@ export class Presentaciones implements OnInit {
   abrirCrear(): void {
     this.editId.set(null);
     this.formError.set(null);
+    this.productoSearch.set('');
+    this.productoDropdown.set(false);
+    this.productoIdSignal.set('');
     this.form.reset({ productoId: '', nombre: '', factorConversion: 1, precioVenta: null, estado: 'ACTIVO' });
     this.form.controls.productoId.enable();
     this.modalOpen.set(true);
@@ -89,6 +119,9 @@ export class Presentaciones implements OnInit {
   abrirEditar(p: PresentacionResponse): void {
     this.editId.set(p.id);
     this.formError.set(null);
+    this.productoSearch.set('');
+    this.productoDropdown.set(false);
+    this.productoIdSignal.set(p.productoId);
     this.form.reset({
       productoId: p.productoId,
       nombre: p.nombre,
@@ -96,7 +129,7 @@ export class Presentaciones implements OnInit {
       precioVenta: p.precioVenta,
       estado: (p.estado as EstadoPresentacion) ?? 'ACTIVO',
     });
-    this.form.controls.productoId.disable(); // no se cambia el producto al editar
+    this.form.controls.productoId.disable();
     this.modalOpen.set(true);
   }
 

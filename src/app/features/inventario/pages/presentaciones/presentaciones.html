@@ -96,15 +96,71 @@
           @if (formError()) {
             <div class="rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2 text-sm text-[#b71c1c]">{{ formError() }}</div>
           }
-          <div>
+          <div class="relative" [class.opacity-60]="form.controls.productoId.disabled">
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Producto</label>
-            <select formControlName="productoId"
-              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30 disabled:opacity-60">
-              <option value="" disabled>Selecciona un producto</option>
-              @for (pr of productos(); track pr.id) {
-                <option [value]="pr.id">{{ pr.nombre }}</option>
+
+            @if (productoSeleccionado(); as sel) {
+              <!-- Producto ya seleccionado -->
+              <div class="flex h-11 items-center gap-3 rounded-input border border-secondary bg-white px-3 ring-2 ring-secondary/20">
+                @if (sel.urlImagen) {
+                  <img [src]="sel.urlImagen" class="h-7 w-7 rounded-md object-cover shrink-0" />
+                } @else {
+                  <div class="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                    <mat-icon fontSet="material-icons-outlined" class="text-primary text-[14px]!">eco</mat-icon>
+                  </div>
+                }
+                <span class="flex-1 text-sm font-medium text-text-main truncate">{{ sel.nombre }}</span>
+                <span class="text-xs text-text-muted shrink-0">{{ sel.nombreCategoria }}</span>
+                @if (!form.controls.productoId.disabled) {
+                  <button type="button" (click)="limpiarProducto()"
+                    class="ml-1 text-gray-400 hover:text-red-400 transition-colors shrink-0">
+                    <mat-icon class="text-[16px]">close</mat-icon>
+                  </button>
+                }
+              </div>
+            } @else {
+              <!-- Backdrop para cerrar al hacer click fuera -->
+              @if (productoDropdown()) {
+                <div class="fixed inset-0 z-40" (click)="productoDropdown.set(false)"></div>
               }
-            </select>
+
+              <!-- Buscador -->
+              <div class="relative">
+                <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]!">search</mat-icon>
+                <input type="text" placeholder="Buscar producto..."
+                  [value]="productoSearch()"
+                  (input)="productoSearch.set($any($event.target).value)"
+                  (click)="productoDropdown.set(true)"
+                  [disabled]="form.controls.productoId.disabled"
+                  class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30 disabled:opacity-60" />
+
+                @if (productoDropdown()) {
+                  <div class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl">
+                    @if (productosFiltrados().length === 0) {
+                      <div class="px-4 py-6 text-center text-sm text-text-muted">Sin resultados</div>
+                    } @else {
+                      @for (pr of productosFiltrados(); track pr.id) {
+                        <button type="button" (click)="seleccionarProducto(pr)"
+                          class="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-primary/5 transition-colors">
+                          @if (pr.urlImagen) {
+                            <img [src]="pr.urlImagen" class="h-9 w-9 rounded-lg object-cover shrink-0" />
+                          } @else {
+                            <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <mat-icon fontSet="material-icons-outlined" class="text-primary text-[18px]!">eco</mat-icon>
+                            </div>
+                          }
+                          <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-text-main truncate">{{ pr.nombre }}</p>
+                            <p class="text-xs text-text-muted">{{ pr.nombreCategoria }}</p>
+                          </div>
+                        </button>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+
             @if (form.controls.productoId.touched && form.controls.productoId.invalid) {
               <small class="mt-1 block text-xs text-[#c0392b]">Selecciona un producto.</small>
             }
