@@ -1,0 +1,452 @@
+<div class="flex flex-col gap-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Seguridad'}, {label:'Empleados'}]" />
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Empleados</h1>
+      <p class="text-sm text-text-muted">
+        <span class="font-medium text-text-main">{{ usuarios().length }}</span> usuarios registrados
+      </p>
+    </div>
+    <button (click)="abrirWizard()"
+      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+      style="background:var(--color-primary,#16a34a)">
+      <mat-icon>person_add</mat-icon> Nuevo empleado
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon> {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+    </div>
+  }
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="relative flex items-center">
+      <mat-icon class="pointer-events-none absolute left-3 text-text-muted text-[18px]">search</mat-icon>
+      <input type="text" placeholder="Buscar empleado..."
+        [value]="search()" (input)="search.set($any($event.target).value)"
+        class="h-10 rounded-input border border-border-soft bg-white pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-52" />
+    </div>
+    <select [value]="filtroDep()" (change)="filtroDep.set($any($event.target).value)"
+      class="h-10 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-secondary">
+      <option value="">Todos los departamentos</option>
+      @for (d of departamentos(); track d.id) {
+        <option [value]="d.id">{{ d.nombre }}</option>
+      }
+    </select>
+    <select [value]="filtroRol()" (change)="filtroRol.set($any($event.target).value)"
+      class="h-10 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-secondary">
+      <option value="">Todos los roles</option>
+      @for (r of roles(); track r.id) {
+        <option [value]="r.id">{{ r.nombre }}</option>
+      }
+    </select>
+    <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)"
+      class="h-10 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-secondary">
+      <option value="">Todos los estados</option>
+      <option value="ACTIVO">Activo</option>
+      <option value="INACTIVO">Inactivo</option>
+      <option value="BLOQUEADO">Bloqueado</option>
+    </select>
+    <button (click)="cargar()" class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-white text-text-muted hover:bg-bg-app">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Cuerpo -->
+  @if (loading()) {
+    <div class="flex justify-center py-20"><mat-icon class="animate-spin text-4xl text-text-muted">progress_activity</mat-icon></div>
+  } @else if (grupos().length === 0) {
+    <div class="rounded-xl border-2 border-dashed border-border-soft p-10 text-center">
+      <mat-icon class="text-5xl text-text-muted/40">people</mat-icon>
+      <h3 class="mt-3 font-semibold text-text-main">Sin resultados</h3>
+      <p class="mt-1 text-sm text-text-muted">Prueba con otros filtros o crea el primer empleado</p>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-8">
+      @for (grupo of grupos(); track grupo.nombre) {
+        <div>
+          <!-- Encabezado grupo / departamento -->
+          <div class="mb-3 flex items-center gap-3">
+            <div class="grid h-8 w-8 place-items-center rounded-lg"
+              style="background:color-mix(in srgb,var(--color-primary,#16a34a) 12%,white)">
+              <mat-icon style="color:var(--color-primary,#16a34a);font-size:16px">corporate_fare</mat-icon>
+            </div>
+            <span class="font-bold text-text-main">{{ grupo.nombre }}</span>
+            <span class="rounded-full bg-bg-app px-2.5 py-0.5 text-xs font-semibold text-text-muted">{{ grupo.usuarios.length }}</span>
+            <div class="flex-1 border-t border-border-soft"></div>
+          </div>
+
+          <!-- Tarjetas empleados -->
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            @for (u of grupo.usuarios; track u.id) {
+              <div class="group relative flex flex-col gap-3 rounded-xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
+                [class.opacity-60]="u.estado !== 'ACTIVO'">
+
+                <!-- Avatar + estado -->
+                <div class="flex items-start justify-between">
+                  <div class="grid h-12 w-12 place-items-center rounded-xl text-white text-sm font-bold"
+                    [style.background]="colorAvatar(u.nombreCompleto)">
+                    @if (u.urlAvatar) {
+                      <img [src]="u.urlAvatar" [alt]="u.nombreCompleto" class="h-12 w-12 rounded-xl object-cover" />
+                    } @else {
+                      {{ iniciales(u.nombreCompleto) }}
+                    }
+                  </div>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoClasses(u.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full"
+                      [class]="u.estado === 'ACTIVO' ? 'bg-green-500' : u.estado === 'BLOQUEADO' ? 'bg-red-500' : 'bg-gray-400'"></span>
+                    {{ u.estado === 'ACTIVO' ? 'Activo' : u.estado === 'BLOQUEADO' ? 'Bloqueado' : 'Inactivo' }}
+                  </span>
+                </div>
+
+                <!-- Info -->
+                <div>
+                  <p class="font-semibold text-text-main truncate">{{ u.nombreCompleto }}</p>
+                  <p class="text-xs text-text-muted truncate">&#64;{{ u.username }}</p>
+                </div>
+
+                <!-- Rol + departamento -->
+                <div class="flex flex-wrap gap-1">
+                  <span class="rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ u.nombreRol }}</span>
+                  @if (u.nombreDepartamento) {
+                    <span class="rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-purple-50 text-purple-700">{{ u.nombreDepartamento }}</span>
+                  }
+                </div>
+
+                <!-- Contacto -->
+                @if (u.correo || u.telefono) {
+                  <div class="border-t border-border-soft pt-2 text-xs text-text-muted space-y-0.5">
+                    @if (u.correo) {
+                      <div class="flex items-center gap-1 truncate">
+                        <mat-icon class="text-[13px]">email</mat-icon> {{ u.correo }}
+                      </div>
+                    }
+                    @if (u.telefono) {
+                      <div class="flex items-center gap-1">
+                        <mat-icon class="text-[13px]">phone</mat-icon> {{ u.telefono }}
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Último acceso -->
+                <p class="text-[11px] text-text-muted/60">Acceso: {{ u.ultimoAcceso | fecha:'corto':'Nunca' }}</p>
+
+                <!-- Acciones hover -->
+                <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                  <button (click)="abrirEditar(u)"
+                    class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-text-muted hover:text-primary hover:bg-bg-app">
+                    <mat-icon class="text-[14px]">edit</mat-icon>
+                  </button>
+                  <button (click)="pedirEliminar(u)"
+                    class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-red-400 hover:bg-red-50">
+                    <mat-icon class="text-[14px]">delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- ══════ WIZARD CREAR EMPLEADO ══════ -->
+@if (wizardOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-lg rounded-modal bg-white shadow-2xl overflow-hidden">
+
+      <!-- Header wizard -->
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <div>
+          <h3 class="font-bold text-text-main">Nuevo empleado</h3>
+          <p class="text-xs text-text-muted">Paso {{ wizardStep() }} de 2 — {{ wizardStep() === 1 ? 'Datos personales' : 'Cuenta del sistema' }}</p>
+        </div>
+        <button (click)="wizardOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="h-1 bg-bg-app">
+        <div class="h-1 transition-all" style="background:var(--color-primary,#16a34a)"
+          [style.width]="wizardStep() === 1 ? '50%' : '100%'"></div>
+      </div>
+
+      <!-- Paso 1: Persona -->
+      @if (wizardStep() === 1) {
+        <form [formGroup]="formPersona" (ngSubmit)="paso1Siguiente()" class="overflow-y-auto max-h-[70vh] p-5 flex flex-col gap-4">
+
+          <!-- Foto de perfil -->
+          <div class="flex items-center gap-4">
+            <div class="relative shrink-0">
+              @if (fotoPreview()) {
+                <img [src]="fotoPreview()" alt="Foto"
+                  class="h-20 w-20 rounded-full object-cover ring-2 ring-border-soft" />
+                <button type="button" (click)="quitarFoto()"
+                  class="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-white shadow">
+                  <mat-icon class="text-[12px]">close</mat-icon>
+                </button>
+              } @else {
+                <div class="grid h-20 w-20 place-items-center rounded-full bg-bg-app ring-2 ring-dashed ring-border-soft">
+                  <mat-icon class="text-4xl text-text-muted/40">person</mat-icon>
+                </div>
+              }
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold text-text-muted">FOTO DEL EMPLEADO</span>
+              <label class="cursor-pointer">
+                <input type="file" accept="image/*" class="hidden" (change)="seleccionarFoto($event)" />
+                <span class="inline-flex items-center gap-1.5 rounded-btn border border-border-soft px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-bg-app">
+                  <mat-icon class="text-[14px]">upload</mat-icon>
+                  {{ fotoPreview() ? 'Cambiar foto' : 'Subir foto' }}
+                </span>
+              </label>
+              <span class="text-[10px] text-text-muted/60">PNG, JPG, WEBP — Opcional</span>
+            </div>
+          </div>
+
+          <!-- CV -->
+          <div>
+            <span class="mb-1.5 block text-xs font-semibold text-text-muted">CURRICULUM VITAE</span>
+            @if (cvNombre()) {
+              <div class="flex items-center gap-2 rounded-input border border-green-200 bg-green-50 px-3 py-2.5">
+                <mat-icon class="text-green-600 text-[20px] shrink-0">description</mat-icon>
+                <span class="flex-1 truncate text-xs text-green-700 font-medium">{{ cvNombre() }}</span>
+                <button type="button" (click)="quitarCv()" class="shrink-0 text-green-400 hover:text-red-500">
+                  <mat-icon class="text-[16px]">close</mat-icon>
+                </button>
+              </div>
+            } @else {
+              <label class="cursor-pointer block">
+                <input type="file" accept=".pdf,.doc,.docx" class="hidden" (change)="seleccionarCv($event)" />
+                <span class="flex w-full items-center gap-2 rounded-input border border-dashed border-border-soft bg-bg-app/50 px-3 py-2.5 text-xs text-text-muted hover:border-secondary hover:bg-bg-app">
+                  <mat-icon class="text-[18px] shrink-0">attach_file</mat-icon>
+                  Adjuntar CV — PDF, DOC o DOCX · Opcional
+                </span>
+              </label>
+            }
+          </div>
+
+          <div class="border-t border-border-soft"></div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-text-muted">TIPO DOCUMENTO *</label>
+              <select formControlName="tipoDocumentoId"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formPersona.controls.tipoDocumentoId.invalid && formPersona.controls.tipoDocumentoId.touched">
+                <option value="">Seleccionar...</option>
+                @for (t of tiposDocs(); track t.id) {
+                  <option [value]="t.id">{{ t.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">Nº DOCUMENTO *</label>
+              <input formControlName="numeroDocumento" type="text" placeholder="12345678"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formPersona.controls.numeroDocumento.invalid && formPersona.controls.numeroDocumento.touched" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">TELÉFONO</label>
+              <input formControlName="telefono" type="text" placeholder="987654321"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">NOMBRES *</label>
+              <input formControlName="nombres" type="text" placeholder="Juan Carlos"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formPersona.controls.nombres.invalid && formPersona.controls.nombres.touched" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">APELLIDOS *</label>
+              <input formControlName="apellidos" type="text" placeholder="García Pérez"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formPersona.controls.apellidos.invalid && formPersona.controls.apellidos.touched" />
+            </div>
+            <div class="col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-text-muted">CORREO</label>
+              <input formControlName="correo" type="email" placeholder="empleado@naturins.com"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+            </div>
+            <div class="col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-text-muted">DIRECCIÓN</label>
+              <input formControlName="direccion" type="text" placeholder="Av. Lima 123..."
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+            </div>
+          </div>
+          <div class="flex gap-3 pt-1">
+            <button type="button" (click)="wizardOpen.set(false)"
+              class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+              Cancelar
+            </button>
+            <button type="submit" [disabled]="formPersona.invalid || saving()"
+              class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              style="background:var(--color-primary,#16a34a)">
+              @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> } @else { <mat-icon class="text-[18px]">arrow_forward</mat-icon> }
+              {{ saving() ? 'Guardando…' : 'Siguiente' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- Paso 2: Usuario -->
+      @if (wizardStep() === 2) {
+        <form [formGroup]="formUsuario" (ngSubmit)="paso2Guardar()" class="p-5 flex flex-col gap-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">USUARIO *</label>
+              <input formControlName="username" type="text" placeholder="juangarcia"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formUsuario.controls.username.invalid && formUsuario.controls.username.touched" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">CONTRASEÑA *</label>
+              <input formControlName="password" type="password" placeholder="mín. 8 caracteres"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formUsuario.controls.password.invalid && formUsuario.controls.password.touched" />
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">ROL *</label>
+              <select formControlName="rolId"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+                [class.border-red-300]="formUsuario.controls.rolId.invalid && formUsuario.controls.rolId.touched">
+                <option value="">Seleccionar rol...</option>
+                @for (r of roles(); track r.id) {
+                  <option [value]="r.id">{{ r.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold text-text-muted">DEPARTAMENTO</label>
+              <select formControlName="departamentoId"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+                <option value="">Sin departamento</option>
+                @for (d of departamentos(); track d.id) {
+                  @if (d.estado === 'ACTIVO') {
+                    <option [value]="d.id">{{ d.nombre }}</option>
+                  }
+                }
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-text-muted">ESTADO</label>
+              <select formControlName="estado"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+                <option value="ACTIVO">Activo</option>
+                <option value="INACTIVO">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-3 pt-1">
+            <button type="button" (click)="wizardStep.set(1)"
+              class="flex items-center gap-1 rounded-btn border border-border-soft px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+              <mat-icon class="text-[18px]">arrow_back</mat-icon> Atrás
+            </button>
+            <button type="submit" [disabled]="formUsuario.invalid || saving()"
+              class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              style="background:var(--color-primary,#16a34a)">
+              @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> } @else { <mat-icon class="text-[18px]">check_circle</mat-icon> }
+              {{ saving() ? 'Creando…' : 'Crear empleado' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}
+
+<!-- ══════ MODAL EDITAR ══════ -->
+@if (editandoUsuario(); as u) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="editandoUsuario.set(null)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <div>
+          <h3 class="font-bold text-text-main">Editar: {{ u.nombreCompleto }}</h3>
+          <p class="text-xs text-text-muted">&#64;{{ u.username }}</p>
+        </div>
+        <button (click)="editandoUsuario.set(null)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <form [formGroup]="formEditar" (ngSubmit)="guardarEdicion()" class="p-5 flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-semibold text-text-muted">NUEVA CONTRASEÑA *</label>
+            <input formControlName="password" type="password" placeholder="mín. 8 caracteres"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              [class.border-red-300]="formEditar.controls.password.invalid && formEditar.controls.password.touched" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">ROL *</label>
+            <select formControlName="rolId"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              @for (r of roles(); track r.id) {
+                <option [value]="r.id">{{ r.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">DEPARTAMENTO</label>
+            <select formControlName="departamentoId"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="">Sin departamento</option>
+              @for (d of departamentos(); track d.id) {
+                <option [value]="d.id">{{ d.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-semibold text-text-muted">ESTADO</label>
+            <select formControlName="estado"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+              <option value="BLOQUEADO">Bloqueado</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="editandoUsuario.set(null)"
+            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">Cancelar</button>
+          <button type="submit" [disabled]="formEditar.invalid || saving()"
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            style="background:var(--color-primary,#16a34a)">
+            {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Confirm eliminar -->
+@if (confirmDelete(); as u) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
+          <mat-icon class="text-red-600">person_remove</mat-icon>
+        </div>
+        <div>
+          <p class="font-semibold text-text-main">¿Eliminar usuario?</p>
+          <p class="text-sm text-text-muted">{{ u.nombreCompleto }} · &#64;{{ u.username }}</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-muted mb-5">Esta acción es irreversible y eliminará el acceso al sistema.</p>
+      <div class="flex gap-3">
+        <button (click)="confirmDelete.set(null)"
+          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">Cancelar</button>
+        <button (click)="confirmarEliminar()"
+          class="flex-1 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

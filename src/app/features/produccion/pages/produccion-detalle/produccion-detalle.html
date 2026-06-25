@@ -34,7 +34,7 @@
               </span>
             </div>
             <p class="text-sm text-text-muted mt-1">
-              {{ formatFecha(op()!.fechaProduccion) }}
+              {{ op()!.fechaProduccion | fecha:'largo' }}
               @if (op()!.nombreCompleto) { &nbsp;·&nbsp;<span class="text-text-main">{{ op()!.nombreCompleto }}</span> }
             </p>
             @if (op()!.observacion) {

@@ -7,11 +7,13 @@ import { CompraService } from '../../services/compra.service';
 import { CompraResponse, EstadoCompra } from '../../models/compra.model';
 import { ProveedorService } from '../../../proveedores/services/proveedor.service';
 import { ProveedorResponse } from '../../../proveedores/models/proveedor.model';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 @Component({
   selector: 'app-compras-lista',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule],
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule, FechaPipe],
   templateUrl: './compras-lista.html',
 })
 export class ComprasLista implements OnInit {
@@ -25,10 +27,11 @@ export class ComprasLista implements OnInit {
   readonly error = signal<string | null>(null);
   readonly items = signal<CompraResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
   readonly filtroEstado = signal<string>('TODOS');
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const estado = this.filtroEstado();
     return this.items().filter((c) => {
       const matchQ =
@@ -146,11 +149,6 @@ export class ComprasLista implements OnInit {
     return map[estado] ?? { label: estado, classes: 'bg-gray-100 text-gray-600' };
   }
 
-  formatFecha(fecha: string): string {
-    return new Date(fecha).toLocaleDateString('es-PE', {
-      day: '2-digit', month: 'short', year: 'numeric',
-    });
-  }
 
   formatMonto(v: number): string {
     return `S/ ${v.toFixed(2)}`;

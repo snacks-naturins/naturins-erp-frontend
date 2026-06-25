@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ProductoService } from '../../services/producto.service';
@@ -8,6 +8,9 @@ import { LoteService } from '../../services/lote.service';
 import { ProductoResponse } from '../../models/producto.model';
 import { PresentacionResponse } from '../../models/presentacion.model';
 import { LoteResponse } from '../../models/lote.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
 interface EstadoView {
   label: string;
@@ -25,13 +28,14 @@ interface StockInfo {
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, MatIconModule, BreadcrumbComponent, EmptyState],
   templateUrl: './products-list.html',
 })
 export class ProductList implements OnInit {
   private readonly productoService = inject(ProductoService);
   private readonly presentacionService = inject(PresentacionService);
   private readonly loteService = inject(LoteService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -39,6 +43,7 @@ export class ProductList implements OnInit {
   readonly presentaciones = signal<PresentacionResponse[]>([]);
   readonly lotes = signal<LoteResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
   /** Stock agregado por producto: suma de lotes de todas sus presentaciones. */
   readonly stockMap = computed(() => {
@@ -74,7 +79,7 @@ export class ProductList implements OnInit {
   readonly eliminarError = signal<string | null>(null);
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const list = this.productos();
     if (!q) return list;
     return list.filter(
@@ -139,6 +144,8 @@ export class ProductList implements OnInit {
         return { label: 'Inactivo', dot: 'bg-[#9CA3AF]', classes: 'bg-[#F3F4F6] text-[#6B7280]' };
     }
   }
+
+  irNuevoProducto(): void { this.router.navigate(['/productos/nuevo']); }
 
   // --- Ver ---
   ver(p: ProductoResponse): void {

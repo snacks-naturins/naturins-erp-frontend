@@ -11,6 +11,7 @@ import { COMPRAS_ROUTES } from '../features/compras/compras.routes';
 import { PRODUCCION_ROUTES } from '../features/produccion/produccion.routes';
 import { CLIENTES_ROUTES } from '../features/clientes/clientes.routes';
 import { PROVEEDORES_ROUTES } from '../features/proveedores/proveedores.routes';
+import { SEGURIDAD_ROUTES } from '../features/seguridad/seguridad.routes';
 
 export const routes: Routes = [
   // Al entrar a la web, redirige al login
@@ -32,6 +33,7 @@ export const routes: Routes = [
       ...PRODUCCION_ROUTES,
       ...CLIENTES_ROUTES,
       ...PROVEEDORES_ROUTES,
+      ...SEGURIDAD_ROUTES,
     ],
   },
 

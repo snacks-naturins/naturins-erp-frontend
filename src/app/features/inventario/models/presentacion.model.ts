@@ -7,6 +7,8 @@ export interface PresentacionResponse {
   nombre: string;
   factorConversion: number;
   precioVenta: number;
+  peso?: number | null;
+  unidadMedida?: string | null;
   estado: EstadoPresentacion | string;
   fechaCreacion?: string;
   fechaModificacion?: string;
@@ -17,6 +19,8 @@ export interface CreatePresentacionRequest {
   nombre: string;
   factorConversion: number;
   precioVenta: number;
+  peso?: number | null;
+  unidadMedida?: string | null;
   estado: EstadoPresentacion;
 }
 
@@ -25,5 +29,7 @@ export interface UpdatePresentacionRequest {
   nombre: string;
   factorConversion: number;
   precioVenta: number;
+  peso?: number | null;
+  unidadMedida?: string | null;
   estado: EstadoPresentacion;
 }

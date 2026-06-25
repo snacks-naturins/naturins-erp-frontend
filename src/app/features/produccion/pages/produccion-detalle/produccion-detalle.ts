@@ -22,6 +22,7 @@ import { MateriaPrimaResponse }  from '../../../inventario/models/materia-prima.
 import { PresentacionResponse }  from '../../../inventario/models/presentacion.model';
 import { AlmacenResponse }       from '../../../inventario/models/almacen.model';
 import { LoteResponse }          from '../../../inventario/models/lote.model';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 
 interface LineaInsumo  { mp: MateriaPrimaResponse;      cantidad: string; costo: string; }
 interface LineaSalida  { pres: PresentacionResponse;    cantidad: string; }
@@ -29,7 +30,7 @@ interface LineaSalida  { pres: PresentacionResponse;    cantidad: string; }
 @Component({
   selector: 'app-produccion-detalle',
   standalone: true,
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, MatIconModule, FechaPipe],
   templateUrl: './produccion-detalle.html',
 })
 export class ProduccionDetalle implements OnInit {
@@ -495,9 +496,6 @@ export class ProduccionDetalle implements OnInit {
     return map[estado] ?? { label: estado, classes: 'bg-gray-100 text-gray-600' };
   }
 
-  formatFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }
   formatNum(v: number): string { return v?.toFixed(3).replace(/\.?0+$/, '') ?? '0'; }

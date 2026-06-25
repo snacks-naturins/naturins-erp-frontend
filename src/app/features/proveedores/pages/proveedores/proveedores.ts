@@ -18,6 +18,7 @@ import { TipoDocumentoService } from '../../../../core/services/tipo-documento.s
 import { TipoDocumentoResponse } from '../../../../core/models/tipo-documento.model';
 import { MateriaPrimaService } from '../../../inventario/services/materia-prima.service';
 import { MateriaPrimaResponse } from '../../../inventario/models/materia-prima.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 type Tab = 'compras' | 'catalogo';
 
@@ -40,11 +41,12 @@ export class Proveedores implements OnInit {
   readonly error = signal<string | null>(null);
   readonly items = signal<ProveedorResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
   readonly tiposDoc = signal<TipoDocumentoResponse[]>([]);
   readonly materiasPrimas = signal<MateriaPrimaResponse[]>([]);
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     if (!q) return this.items();
     return this.items().filter(
       (p) =>

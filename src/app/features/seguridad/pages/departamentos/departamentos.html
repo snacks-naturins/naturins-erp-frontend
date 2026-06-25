@@ -1,0 +1,158 @@
+<div class="flex flex-col gap-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Seguridad'}, {label:'Departamentos'}]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Departamentos</h1>
+      <p class="text-sm text-text-muted">Áreas de la empresa para organizar al personal</p>
+    </div>
+    <button (click)="abrirCrear()"
+      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+      style="background:var(--color-primary,#16a34a)">
+      <mat-icon>add</mat-icon> Nuevo departamento
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon> {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="flex justify-center py-16"><mat-icon class="animate-spin text-4xl text-text-muted">progress_activity</mat-icon></div>
+  } @else if (items().length === 0) {
+    <div class="rounded-xl border-2 border-dashed border-border-soft p-10 text-center">
+      <mat-icon class="text-5xl text-text-muted/40">corporate_fare</mat-icon>
+      <h3 class="mt-3 font-semibold text-text-main">Sin departamentos</h3>
+      <p class="mt-1 text-sm text-text-muted">Crea los departamentos para organizar a tus empleados</p>
+      <button (click)="abrirCrear()"
+        class="mt-4 inline-flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white"
+        style="background:var(--color-primary,#16a34a)">
+        <mat-icon>add</mat-icon> Crear primero
+      </button>
+    </div>
+  } @else {
+    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+            <th class="px-5 py-3 font-semibold">Departamento</th>
+            <th class="px-5 py-3 font-semibold">Descripción</th>
+            <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <th class="px-5 py-3 text-right font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of items(); track d.id) {
+            <tr class="border-b border-border-soft last:border-0 hover:bg-bg-app/40 transition">
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
+                    style="background:color-mix(in srgb,var(--color-primary,#16a34a) 10%,white)">
+                    <mat-icon style="color:var(--color-primary,#16a34a);font-size:18px">corporate_fare</mat-icon>
+                  </div>
+                  <span class="font-semibold text-text-main">{{ d.nombre }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-text-muted">{{ d.descripcion || '—' }}</td>
+              <td class="px-5 py-3 text-center">
+                <span class="inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium" [class]="estadoClasses(d.estado)">
+                  <span class="h-1.5 w-1.5 rounded-full" [class]="d.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
+                  {{ d.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-right">
+                <div class="flex justify-end gap-1">
+                  <button (click)="abrirEditar(d)"
+                    class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+                    <mat-icon class="text-[16px]">edit</mat-icon>
+                  </button>
+                  <button (click)="pedirEliminar(d)"
+                    class="grid h-8 w-8 place-items-center rounded-lg text-red-400 hover:bg-red-50">
+                    <mat-icon class="text-[16px]">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="modalOpen.set(false)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <h3 class="font-bold text-text-main">{{ editandoId() ? 'Editar departamento' : 'Nuevo departamento' }}</h3>
+        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="p-5 flex flex-col gap-4">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-text-main">Nombre <span class="text-red-500">*</span></label>
+          <input formControlName="nombre" type="text" placeholder="Ej: Ventas, Almacén, Producción..."
+            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+            [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-text-main">Descripción</label>
+          <textarea formControlName="descripcion" rows="2" placeholder="Función del departamento..."
+            class="w-full rounded-input border border-border-soft px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"></textarea>
+        </div>
+        @if (editandoId()) {
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text-main">Estado</label>
+            <select formControlName="estado"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+            </select>
+          </div>
+        }
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="modalOpen.set(false)"
+            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="form.invalid || saving()"
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            style="background:var(--color-primary,#16a34a)">
+            @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> }
+            {{ saving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Confirm delete -->
+@if (confirmDelete(); as d) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
+          <mat-icon class="text-red-600">delete</mat-icon>
+        </div>
+        <div>
+          <p class="font-semibold text-text-main">¿Eliminar departamento?</p>
+          <p class="text-sm text-text-muted">{{ d.nombre }}</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-muted mb-5">Los empleados asignados a este departamento quedarán sin departamento.</p>
+      <div class="flex gap-3">
+        <button (click)="confirmDelete.set(null)"
+          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">Cancelar</button>
+        <button (click)="confirmarEliminar()"
+          class="flex-1 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

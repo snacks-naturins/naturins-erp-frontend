@@ -14,6 +14,10 @@ export class LoteService {
     return this.http.get<LoteResponse[]>(this.API_URL);
   }
 
+  listarDisponibles(): Observable<LoteResponse[]> {
+    return this.http.get<LoteResponse[]>(`${this.API_URL}/disponibles`);
+  }
+
   crear(dto: CreateLoteRequest): Observable<LoteResponse> {
     return this.http.post<LoteResponse>(this.API_URL, dto);
   }

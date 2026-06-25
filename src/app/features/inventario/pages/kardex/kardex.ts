@@ -10,11 +10,13 @@ import {
   TipoMovimientoInventario,
 } from '../../models/movimiento.model';
 import { LoteResponse } from '../../models/lote.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 
 @Component({
   selector: 'app-kardex',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule, DatePipe],
+  imports: [ReactiveFormsModule, MatIconModule, DatePipe, BreadcrumbComponent],
   templateUrl: './kardex.html',
 })
 export class Kardex implements OnInit {
@@ -27,6 +29,7 @@ export class Kardex implements OnInit {
   readonly items = signal<MovimientoInventarioResponse[]>([]);
   readonly lotes = signal<LoteResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -56,7 +59,7 @@ export class Kardex implements OnInit {
   });
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const list = this.items();
     if (!q) return list;
     return list.filter((mv) => {

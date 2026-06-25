@@ -36,7 +36,7 @@
             </div>
             <p class="text-sm text-text-muted mt-1">
               <span class="font-medium text-text-main">{{ compra()!.nombreProveedor }}</span>
-              &nbsp;·&nbsp;{{ formatFecha(compra()!.fechaCompra) }}
+              &nbsp;·&nbsp;{{ compra()!.fechaCompra | fecha:'largo' }}
             </p>
             @if (compra()!.observacion) {
               <p class="text-xs text-text-muted mt-2 italic">{{ compra()!.observacion }}</p>

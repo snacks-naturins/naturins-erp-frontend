@@ -1,219 +1,359 @@
-<div class="pos-content">
+<div class="flex h-screen overflow-hidden bg-gray-100">
 
-    <!-- TOP -->
-    <div class="top-bar">
-
-      <div>
-        <h1>Punto de Venta & Pedidos</h1>
-        <p>Gestione ventas directas y seguimiento de despachos.</p>
+  <!-- ─── Loading / Error full-screen ─── -->
+  @if (loading()) {
+    <div class="flex flex-1 items-center justify-center">
+      <mat-icon class="animate-spin text-primary" style="font-size:3rem">refresh</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="flex flex-1 items-center justify-center">
+      <div class="text-center">
+        <mat-icon class="text-red-400" style="font-size:3rem">error_outline</mat-icon>
+        <p class="mt-2 text-red-600">{{ error() }}</p>
       </div>
+    </div>
+  } @else {
 
-      <div class="top-actions">
+  <!-- ═══════════════ PANEL IZQUIERDO: CATÁLOGO ═══════════════ -->
+  <div class="flex flex-col" style="width:62%;background:white;border-right:1px solid #e5e7eb">
 
-        <button class="light-btn">
-          Combos Activos
-        </button>
-
-        <button class="dark-btn">
-          + Nueva Venta Especial
-        </button>
-
+    <!-- Header catálogo -->
+    <div class="flex items-center gap-3 px-5 py-3 shrink-0" style="background:var(--color-primary,#16a34a)">
+      <mat-icon style="color:white">storefront</mat-icon>
+      <span style="color:white;font-weight:600;font-size:1.1rem">Punto de Venta</span>
+      <div class="ml-auto flex items-center gap-2 rounded-lg px-3 py-2" style="background:rgba(255,255,255,.2);width:18rem">
+        <mat-icon style="color:rgba(255,255,255,.8);font-size:18px">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Buscar producto..."
+          class="bg-transparent outline-none flex-1 text-sm"
+          style="color:white"
+          [value]="busqueda()"
+          (input)="onBusqueda($event)"
+        />
       </div>
-
     </div>
 
-    <!-- CATEGORIAS -->
-    <div class="categories">
-
-      <button class="active-category">Todos</button>
-      <button>Frutos Secos</button>
-      <button>Snacks</button>
-      <button>Vegetales</button>
-      <button>Frutas</button>
-
+    <!-- Chips de categorías -->
+    <div class="flex items-center gap-2 px-5 py-2 shrink-0 overflow-x-auto" style="border-bottom:1px solid #f3f4f6">
+      <button
+        type="button"
+        (click)="setCategoria('Todos')"
+        class="chip"
+        [class.chip-active]="categoriaActiva() === 'Todos'"
+      >Todos</button>
+      @for (cat of categorias(); track cat) {
+        <button
+          type="button"
+          (click)="setCategoria(cat)"
+          class="chip"
+          [class.chip-active]="categoriaActiva() === cat"
+        >{{ cat }}</button>
+      }
     </div>
 
-    <!-- MAIN -->
-    <div class="main-grid">
-
-      <!-- PRODUCTOS -->
-      <div class="products-section">
-
-        <div class="products-grid">
-
-          <!-- CARD -->
-          <div class="product-card">
-
-            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800&auto=format&fit=crop">
-
-            <span class="stock">
-              Stock: 120
-            </span>
-
-            <div class="product-info">
-
-              <small>FRUTOS SECOS</small>
-
-              <h3>Mix Energético Naturin's</h3>
-
-              <div class="price-row">
-
-                <h2>S/ 5.50</h2>
-
-                <button>+</button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- CARD -->
-          <div class="product-card">
-
-            <img src="https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=800&auto=format&fit=crop">
-
-            <span class="stock">
-              Stock: 45
-            </span>
-
-            <div class="product-info">
-
-              <small>FRUTOS SECOS</small>
-
-              <h3>Pecanas Premium</h3>
-
-              <div class="price-row">
-
-                <h2>S/ 12.00</h2>
-
-                <button>+</button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <!-- CARD -->
-          <div class="product-card">
-
-            <img src="https://images.unsplash.com/photo-1514517220017-8ce97a34a7b6?q=80&w=800&auto=format&fit=crop">
-
-            <span class="stock">
-              Stock: 200
-            </span>
-
-            <div class="product-info">
-
-              <small>SNACKS</small>
-
-              <h3>Maní con Sal</h3>
-
-              <div class="price-row">
-
-                <h2>S/ 3.50</h2>
-
-                <button>+</button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- TABLA -->
-        <div class="orders-table">
-
-          <div class="table-header">
-            <h3>Pedidos Recientes</h3>
-          </div>
-
-          <table>
-
-            <thead>
-
-              <tr>
-                <th>Orden</th>
-                <th>Cliente</th>
-                <th>Monto</th>
-                <th>Estado</th>
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              <tr>
-                <td>ORD-9281</td>
-                <td>Minimarket El Sol</td>
-                <td>S/ 450</td>
-                <td>
-                  <span class="status pending">
-                    Pendiente
-                  </span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>ORD-9280</td>
-                <td>PowerFit</td>
-                <td>S/ 580</td>
-                <td>
-                  <span class="status success">
-                    Entregado
-                  </span>
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+    <!-- Alerta de stock -->
+    @if (cartAlert()) {
+      <div class="mx-4 mt-3 flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-medium text-orange-700 shadow-sm shrink-0">
+        <mat-icon class="shrink-0 text-[18px]">warning_amber</mat-icon>
+        <span>{{ cartAlert() }}</span>
       </div>
+    }
 
-      <!-- CARRITO -->
-      <div class="cart-section">
-
-        <div class="cart-card">
-
-          <div class="cart-header">
-
-            <h2>Carrito</h2>
-
-            <span>0 Items</span>
-
-          </div>
-
-          <div class="empty-cart">
-
-            <div class="plus-icon">+</div>
-
-            <p>El carrito está vacío</p>
-
-          </div>
-
-          <div class="cart-footer">
-
-            <div class="total-row">
-              <span>Total</span>
-              <h2>S/ 0.00</h2>
+    <!-- Grid de productos -->
+    <div class="flex-1 overflow-y-auto p-4">
+      @if (productosFiltrados().length === 0) {
+        <div class="flex flex-col items-center justify-center h-full text-gray-400">
+          <mat-icon style="font-size:3.5rem;color:#9ca3af">inventory_2</mat-icon>
+          <p class="mt-2 text-sm">No hay productos disponibles</p>
+        </div>
+      }
+      <div class="products-grid">
+        @for (pres of productosFiltrados(); track pres.id) {
+          <button
+            type="button"
+            (click)="agregarAlCarrito(pres)"
+            class="product-card"
+            [class.product-card--active]="cantidadEnCarrito(pres) > 0"
+          >
+            @if (cantidadEnCarrito(pres) > 0) {
+              <span class="badge-qty">{{ cantidadEnCarrito(pres) }}</span>
+            }
+            <div class="product-img" [class]="bgCard(pres)">
+              @if (pres.urlImagen) {
+                <img [src]="pres.urlImagen" [alt]="pres.nombreProducto" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />
+              } @else {
+                <mat-icon style="font-size:2.5rem;opacity:.5;color:var(--color-primary,#16a34a)">{{ iconoProducto(pres) }}</mat-icon>
+              }
             </div>
+            <p class="product-name">{{ pres.nombreProducto }}</p>
+            <p class="product-pres">{{ pres.nombre }}</p>
+            <div class="product-footer">
+              <span class="price">{{ formatMonto(pres.precioVenta) }}</span>
+              <span class="stock-label" [style]="colorStockClass(pres)">{{ formatNum(stockReal(pres)) }} u.</span>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
 
-            <button class="checkout-btn">
-              COBRAR
+  <!-- ═══════════════ PANEL DERECHO: CARRITO ═══════════════ -->
+  <div class="flex flex-col flex-1" style="background:white">
+
+    <!-- Header carrito -->
+    <div class="flex items-center justify-between px-5 py-3 shrink-0" style="border-bottom:1px solid #e5e7eb">
+      <div class="flex items-center gap-2">
+        <mat-icon style="color:var(--color-primary,#16a34a)">shopping_cart</mat-icon>
+        <span style="font-weight:600;color:#1f2937">Carrito</span>
+        @if (carrito().length > 0) {
+          <span class="badge-primary">{{ carrito().length }}</span>
+        }
+      </div>
+      @if (carrito().length > 0) {
+        <button type="button" (click)="vaciarCarrito()" class="flex items-center gap-1 text-sm" style="color:#ef4444">
+          <mat-icon style="font-size:16px">delete_sweep</mat-icon> Vaciar
+        </button>
+      }
+    </div>
+
+    <!-- ─── Cliente selector ─── -->
+    <div class="px-4 py-3 shrink-0" style="border-bottom:1px solid #f3f4f6">
+      <label class="block text-xs font-semibold mb-1" style="color:#6b7280">CLIENTE</label>
+
+      @if (clienteSeleccionado(); as c) {
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.3)">
+          <mat-icon style="color:var(--color-primary,#16a34a);font-size:18px">person</mat-icon>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate" style="color:#1f2937">{{ c.nombreCompleto }}</p>
+            @if (c.ruc) { <p class="text-xs" style="color:#6b7280">RUC: {{ c.ruc }}</p> }
+            @if (c.razonSocial && !c.ruc) { <p class="text-xs" style="color:#6b7280">{{ c.razonSocial }}</p> }
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            @if (c.aplicaIgv) {
+              <span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:#dbeafe;color:#1d4ed8">+IGV</span>
+            }
+            <button type="button" (click)="limpiarCliente()" style="color:#9ca3af" class="ml-1">
+              <mat-icon style="font-size:16px">close</mat-icon>
             </button>
-
           </div>
-
         </div>
+      } @else {
+        @if (clienteDropdown()) {
+          <div class="fixed inset-0" style="z-index:40" (click)="clienteDropdown.set(false)"></div>
+        }
+        <div class="relative">
+          <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="border:1px solid #d1d5db">
+            <mat-icon style="color:#9ca3af;font-size:18px">search</mat-icon>
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
+              class="flex-1 outline-none text-sm"
+              [value]="clienteSearch()"
+              (input)="clienteSearch.set($any($event.target).value)"
+              (click)="clienteDropdown.set(true)"
+            />
+          </div>
+          @if (clienteDropdown()) {
+            <div class="absolute left-0 right-0 bg-white rounded-lg overflow-y-auto" style="top:calc(100% + 4px);border:1px solid #e5e7eb;box-shadow:0 10px 25px rgba(0,0,0,.1);max-height:13rem;z-index:50">
+              @if (clientesFiltrados().length === 0) {
+                <p class="text-center text-sm py-4" style="color:#9ca3af">Sin resultados</p>
+              }
+              @for (c of clientesFiltrados(); track c.id) {
+                <button
+                  type="button"
+                  (click)="seleccionarCliente(c)"
+                  class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-50"
+                >
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(22,163,74,.1)">
+                    <mat-icon style="color:var(--color-primary,#16a34a);font-size:16px">{{ c.tipoCliente === 'EMPRESA' ? 'business' : 'person' }}</mat-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate" style="color:#1f2937">{{ c.nombreCompleto }}</p>
+                    @if (c.ruc) { <p class="text-xs" style="color:#6b7280">RUC: {{ c.ruc }}</p> }
+                  </div>
+                  @if (c.aplicaIgv) {
+                    <span class="text-xs px-1.5 py-0.5 rounded shrink-0" style="background:#dbeafe;color:#1d4ed8">IGV</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
 
+    <!-- ─── Ítems del carrito ─── -->
+    <div class="flex-1 overflow-y-auto px-4 py-2">
+      @if (carrito().length === 0) {
+        <div class="flex flex-col items-center justify-center h-full gap-2" style="color:#d1d5db">
+          <mat-icon style="font-size:3.5rem;color:#d1d5db">add_shopping_cart</mat-icon>
+          <p class="text-sm">Agrega productos del catálogo</p>
+        </div>
+      }
+      @for (item of carrito(); track item.lote.id + item.presentacion.id) {
+        <div class="flex items-center gap-3 py-3" style="border-bottom:1px solid #f3f4f6">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" [class]="bgCard(item.presentacion)">
+            @if (item.presentacion.urlImagen) {
+              <img [src]="item.presentacion.urlImagen" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />
+            } @else {
+              <mat-icon style="font-size:18px;opacity:.6;color:var(--color-primary,#16a34a)">{{ iconoProducto(item.presentacion) }}</mat-icon>
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate" style="color:#1f2937">{{ item.presentacion.nombreProducto }}</p>
+            <p class="text-xs truncate" style="color:#6b7280">{{ item.presentacion.nombre }}</p>
+            <p class="text-xs" style="color:#9ca3af">Lote: {{ item.lote.codigoLote }}</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" (click)="decrementar(item)" class="qty-btn">
+              <mat-icon style="font-size:14px">remove</mat-icon>
+            </button>
+            <span style="width:1.5rem;text-align:center;font-size:.875rem;font-weight:600">{{ item.cantidad }}</span>
+            <button type="button" (click)="incrementar(item)" class="qty-btn">
+              <mat-icon style="font-size:14px">add</mat-icon>
+            </button>
+          </div>
+          <div class="text-right shrink-0 ml-2">
+            <p class="text-sm font-semibold" style="color:#1f2937">{{ formatMonto(item.cantidad * item.presentacion.precioVenta) }}</p>
+            <button type="button" (click)="eliminarDelCarrito(item)" style="color:#f87171;font-size:.75rem">
+              <mat-icon style="font-size:14px">delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ─── Totales ─── -->
+    <div class="px-4 pt-3 pb-2 shrink-0" style="border-top:1px solid #e5e7eb">
+      <div class="flex justify-between text-sm mb-1" style="color:#6b7280">
+        <span>Subtotal</span><span>{{ formatMonto(subtotal()) }}</span>
       </div>
+      @if (igv() > 0) {
+        <div class="flex justify-between text-sm mb-1" style="color:#6b7280">
+          <span>IGV (18%)</span><span>{{ formatMonto(igv()) }}</span>
+        </div>
+      }
+      <div class="flex justify-between font-bold text-base pt-1" style="color:#111827;border-top:1px solid #e5e7eb;margin-top:4px">
+        <span>TOTAL</span>
+        <span style="color:var(--color-primary,#16a34a);font-size:1.125rem">{{ formatMonto(total()) }}</span>
+      </div>
+    </div>
 
+    <!-- ─── Tipo de entrega ─── -->
+    <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
+      <p class="text-xs font-semibold mb-2" style="color:#6b7280">TIPO DE ENTREGA</p>
+      <div class="flex gap-1">
+        @for (te of tiposEntrega; track te.value) {
+          <button
+            type="button"
+            (click)="tipoEntregaSignal.set(te.value)"
+            class="flex flex-1 flex-col items-center gap-1 rounded-lg py-2 text-xs font-medium transition border"
+            [style]="tipoEntregaSignal() === te.value
+              ? 'background:color-mix(in srgb,var(--color-primary,#16a34a) 10%,white);border-color:var(--color-primary,#16a34a);color:var(--color-primary,#16a34a)'
+              : 'background:white;border-color:#e5e7eb;color:#6b7280'">
+            <mat-icon style="font-size:18px">{{ te.icon }}</mat-icon>
+            <span class="leading-tight text-center" style="font-size:10px">{{ te.label }}</span>
+          </button>
+        }
+      </div>
+      @if (tipoEntregaSignal() === 'DELIVERY') {
+        <input
+          type="text"
+          placeholder="Dirección de entrega *"
+          [value]="direccionEntrega()"
+          (input)="direccionEntrega.set($any($event.target).value)"
+          class="mt-2 h-9 w-full rounded-lg border px-3 text-xs outline-none transition"
+          [style]="direccionEntrega().trim()
+            ? 'border-color:var(--color-primary,#16a34a)'
+            : 'border-color:#fca5a5;background:#fff7f7'" />
+        @if (!direccionEntrega().trim()) {
+          <p class="mt-0.5 text-[10px]" style="color:#ef4444">Ingresa la dirección para continuar</p>
+        }
+      }
+    </div>
+
+    <!-- ─── Métodos de pago ─── -->
+    <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
+      <p class="text-xs font-semibold mb-2" style="color:#6b7280">MÉTODO DE PAGO</p>
+      @if (metodosPago().length === 0) {
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="background:#fffbeb;border:1px solid #fcd34d">
+          <mat-icon style="color:#d97706;font-size:18px">warning</mat-icon>
+          <div>
+            <p class="text-xs font-semibold" style="color:#92400e">Sin métodos de pago</p>
+            <p class="text-[11px]" style="color:#b45309">Configura al menos uno en
+              <a routerLink="/metodos-pago" style="text-decoration:underline;color:#92400e">Ajustes → Métodos de pago</a>
+            </p>
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-2 gap-2">
+          @for (m of metodosPago(); track m.id) {
+            <button
+              type="button"
+              (click)="seleccionarMetodo(m)"
+              class="metodo-btn"
+              [class.metodo-btn--active]="metodoPagoId() === m.id"
+            >
+              <mat-icon style="font-size:18px">{{ metodoIcono(m.nombre) }}</mat-icon>
+              <span class="truncate text-sm">{{ m.nombre }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ─── Error + botón finalizar ─── -->
+    <div class="px-4 pb-4 shrink-0">
+      @if (errorVenta()) {
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2 mb-2" style="background:#fef2f2;border:1px solid #fecaca">
+          <mat-icon style="color:#ef4444;font-size:18px">error</mat-icon>
+          <p class="text-xs" style="color:#b91c1c">{{ errorVenta() }}</p>
+        </div>
+      }
+      <button
+        type="button"
+        (click)="finalizarVenta()"
+        [disabled]="!canFinalizar"
+        class="finalizar-btn"
+        [class.finalizar-btn--active]="canFinalizar"
+      >
+        @if (saving()) {
+          <mat-icon class="animate-spin" style="font-size:18px">refresh</mat-icon>
+          <span>Procesando...</span>
+        } @else {
+          <mat-icon style="font-size:18px">check_circle</mat-icon>
+          <span>Finalizar Venta</span>
+        }
+      </button>
+      @if (!clienteIdSignal() && carrito().length > 0) {
+        <p class="text-center text-xs mt-1" style="color:#9ca3af">Selecciona un cliente para continuar</p>
+      }
     </div>
 
   </div>
+
+  } <!-- end else -->
+
+</div>
+
+<!-- ══════════════════ MODAL ÉXITO ══════════════════ -->
+@if (modalExito()) {
+  <div class="fixed inset-0 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5);z-index:50">
+    <div class="bg-white rounded-2xl p-8 text-center" style="max-width:22rem;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.2)">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#dcfce7">
+        <mat-icon style="color:#16a34a;font-size:2.5rem">check_circle</mat-icon>
+      </div>
+      <h2 style="font-size:1.25rem;font-weight:700;color:#1f2937;margin-bottom:4px">¡Venta registrada!</h2>
+      @if (pedidoCreado(); as p) {
+        <p class="text-sm mb-1" style="color:#6b7280">Pedido <span style="font-weight:600;color:var(--color-primary,#16a34a)">{{ p.numeroPedido }}</span></p>
+        <p style="font-size:1.75rem;font-weight:700;color:#111827;margin-bottom:1.5rem">{{ formatMonto(totalVenta()) }}</p>
+      }
+      <button
+        type="button"
+        (click)="cerrarModalExito()"
+        style="width:100%;padding:.75rem;background:var(--color-primary,#16a34a);color:white;border-radius:.75rem;font-weight:600;border:none;cursor:pointer;font-size:1rem"
+      >Nueva Venta</button>
+    </div>
+  </div>
+}

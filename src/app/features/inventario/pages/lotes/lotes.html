@@ -1,12 +1,6 @@
 <div class="flex flex-col gap-5">
 
-  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
-    <span>Inicio</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span>Inventario</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span class="font-medium text-text-main">Gestión de Lotes</span>
-  </nav>
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Inventario'}, {label:'Gestión de Lotes'}]" />
 
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
@@ -128,9 +122,8 @@
             </tr>
           }
           @if (filtrados().length === 0) {
-            <tr><td colspan="9" class="px-5 py-14 text-center text-text-muted">
-              <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">inventory</mat-icon>
-              <p>No hay lotes registrados.</p>
+            <tr><td colspan="9">
+              <app-empty-state icono="inventory" titulo="No hay lotes registrados" descripcion="Registra el primer lote para llevar el control de inventario." labelCta="Nuevo lote" (cta)="abrirCrear()" />
             </td></tr>
           }
         }

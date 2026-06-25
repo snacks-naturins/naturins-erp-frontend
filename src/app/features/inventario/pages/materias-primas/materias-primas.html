@@ -246,7 +246,7 @@
             <select formControlName="unidadMedida"
               class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
               <option value="" disabled>Selecciona</option>
-              @for (u of ['kg','g','L','mL','unidad','saco','caja','bolsa']; track u) {
+              @for (u of ['kg','g','L','mL','unidad']; track u) {
                 <option [value]="u">{{ u }}</option>
               }
             </select>

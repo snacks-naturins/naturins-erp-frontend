@@ -1,0 +1,147 @@
+<div class="flex flex-col gap-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Seguridad'}, {label:'Roles'}]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Roles</h1>
+      <p class="text-sm text-text-muted">Permisos y niveles de acceso al sistema</p>
+    </div>
+    <button (click)="abrirCrear()"
+      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+      style="background:var(--color-primary,#16a34a)">
+      <mat-icon>add</mat-icon> Nuevo rol
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon> {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="flex justify-center py-16"><mat-icon class="animate-spin text-4xl text-text-muted">progress_activity</mat-icon></div>
+  } @else if (items().length === 0) {
+    <div class="rounded-xl border-2 border-dashed border-border-soft p-10 text-center">
+      <mat-icon class="text-5xl text-text-muted/40">badge</mat-icon>
+      <h3 class="mt-3 font-semibold text-text-main">Sin roles</h3>
+      <p class="mt-1 text-sm text-text-muted">Crea los roles para asignar permisos a los empleados</p>
+      <button (click)="abrirCrear()"
+        class="mt-4 inline-flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white"
+        style="background:var(--color-primary,#16a34a)">
+        <mat-icon>add</mat-icon> Crear primero
+      </button>
+    </div>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (r of items(); track r.id) {
+        <div class="group relative flex flex-col gap-3 rounded-xl bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
+          [class.opacity-60]="r.estado !== 'ACTIVO'">
+
+          <div class="flex items-start justify-between">
+            <div class="grid h-10 w-10 place-items-center rounded-xl"
+              style="background:color-mix(in srgb,var(--color-primary,#16a34a) 12%,white)">
+              <mat-icon style="color:var(--color-primary,#16a34a);font-size:20px">badge</mat-icon>
+            </div>
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoClasses(r.estado)">
+              <span class="h-1.5 w-1.5 rounded-full" [class]="r.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
+              {{ r.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <div>
+            <p class="font-bold text-text-main">{{ r.nombre }}</p>
+            <p class="mt-0.5 text-xs text-text-muted line-clamp-2">{{ r.descripcion || 'Sin descripción' }}</p>
+          </div>
+
+          <!-- Acciones hover -->
+          <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+            <button (click)="abrirEditar(r)"
+              class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-text-muted hover:text-primary hover:bg-bg-app">
+              <mat-icon class="text-[14px]">edit</mat-icon>
+            </button>
+            <button (click)="pedirEliminar(r)"
+              class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-red-400 hover:bg-red-50">
+              <mat-icon class="text-[14px]">delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="modalOpen.set(false)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <h3 class="font-bold text-text-main">{{ editandoId() ? 'Editar rol' : 'Nuevo rol' }}</h3>
+        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="p-5 flex flex-col gap-4">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-text-main">Nombre <span class="text-red-500">*</span></label>
+          <input formControlName="nombre" type="text" placeholder="Ej: Vendedor, Almacenero, Admin..."
+            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+            [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-text-main">Descripción</label>
+          <textarea formControlName="descripcion" rows="2" placeholder="Permisos y responsabilidades..."
+            class="w-full rounded-input border border-border-soft px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"></textarea>
+        </div>
+        @if (editandoId()) {
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text-main">Estado</label>
+            <select formControlName="estado"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+            </select>
+          </div>
+        }
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="modalOpen.set(false)"
+            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="form.invalid || saving()"
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            style="background:var(--color-primary,#16a34a)">
+            @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> }
+            {{ saving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Confirm delete -->
+@if (confirmDelete(); as r) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
+          <mat-icon class="text-red-600">delete</mat-icon>
+        </div>
+        <div>
+          <p class="font-semibold text-text-main">¿Eliminar rol?</p>
+          <p class="text-sm text-text-muted">{{ r.nombre }}</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-muted mb-5">Los usuarios con este rol perderán su asignación.</p>
+      <div class="flex gap-3">
+        <button (click)="confirmDelete.set(null)"
+          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">Cancelar</button>
+        <button (click)="confirmarEliminar()"
+          class="flex-1 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

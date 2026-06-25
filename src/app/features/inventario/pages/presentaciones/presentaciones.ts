@@ -7,11 +7,14 @@ import { PresentacionService } from '../../services/presentacion.service';
 import { ProductoService } from '../../services/producto.service';
 import { PresentacionResponse, EstadoPresentacion } from '../../models/presentacion.model';
 import { ProductoResponse } from '../../models/producto.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
 @Component({
   selector: 'app-presentaciones',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule, NgClass],
+  imports: [ReactiveFormsModule, MatIconModule, NgClass, BreadcrumbComponent, EmptyState],
   templateUrl: './presentaciones.html',
 })
 export class Presentaciones implements OnInit {
@@ -24,6 +27,7 @@ export class Presentaciones implements OnInit {
   readonly items = signal<PresentacionResponse[]>([]);
   readonly productos = signal<ProductoResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -32,7 +36,9 @@ export class Presentaciones implements OnInit {
   readonly form = this.fb.nonNullable.group({
     productoId: ['', [Validators.required]],
     nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
-    factorConversion: [1, [Validators.required, Validators.min(0.01)]],
+    peso: [null as number | null],
+    unidadMedida: ['g'],
+    factorConversion: [1, [Validators.required, Validators.min(0.001)]],
     precioVenta: [null as number | null, [Validators.required, Validators.min(0.01)]],
     estado: ['ACTIVO' as EstadoPresentacion, [Validators.required]],
   });
@@ -63,12 +69,35 @@ export class Presentaciones implements OnInit {
     this.productoIdSignal.set('');
   }
 
+  /** Calcula factorConversion en kg a partir de peso + unidadMedida y actualiza el control. */
+  recalcularFactor(): void {
+    const peso = this.form.controls.peso.value;
+    const unidad = this.form.controls.unidadMedida.value;
+    if (peso === null || peso <= 0) return;
+    let fc = 1;
+    switch (unidad) {
+      case 'g':  fc = +(peso / 1000).toFixed(5); break;
+      case 'kg': fc = +peso.toFixed(5); break;
+      case 'mL': fc = +(peso / 1000).toFixed(5); break;
+      case 'L':  fc = +peso.toFixed(5); break;
+      case 'unidad': fc = 1; break;
+      default: fc = +peso.toFixed(5);
+    }
+    this.form.controls.factorConversion.setValue(fc);
+  }
+
+  /** Etiqueta legible de la unidad base que usa factorConversion (siempre kg o L). */
+  unidadBase(): string {
+    const u = this.form.controls.unidadMedida.value;
+    return (u === 'L' || u === 'mL') ? 'L' : 'kg';
+  }
+
   readonly deleteTarget = signal<PresentacionResponse | null>(null);
   readonly deleting = signal(false);
   readonly deleteError = signal<string | null>(null);
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const list = this.items();
     if (!q) return list;
     return list.filter(
@@ -111,7 +140,7 @@ export class Presentaciones implements OnInit {
     this.productoSearch.set('');
     this.productoDropdown.set(false);
     this.productoIdSignal.set('');
-    this.form.reset({ productoId: '', nombre: '', factorConversion: 1, precioVenta: null, estado: 'ACTIVO' });
+    this.form.reset({ productoId: '', nombre: '', peso: null, unidadMedida: 'g', factorConversion: 1, precioVenta: null, estado: 'ACTIVO' });
     this.form.controls.productoId.enable();
     this.modalOpen.set(true);
   }
@@ -125,6 +154,8 @@ export class Presentaciones implements OnInit {
     this.form.reset({
       productoId: p.productoId,
       nombre: p.nombre,
+      peso: p.peso ?? null,
+      unidadMedida: p.unidadMedida ?? 'g',
       factorConversion: p.factorConversion,
       precioVenta: p.precioVenta,
       estado: (p.estado as EstadoPresentacion) ?? 'ACTIVO',
@@ -151,6 +182,8 @@ export class Presentaciones implements OnInit {
           nombre: v.nombre,
           factorConversion: v.factorConversion,
           precioVenta: v.precioVenta!,
+          peso: v.peso ?? null,
+          unidadMedida: v.unidadMedida || null,
           estado: v.estado,
         })
       : this.service.crear({
@@ -158,6 +191,8 @@ export class Presentaciones implements OnInit {
           nombre: v.nombre,
           factorConversion: v.factorConversion,
           precioVenta: v.precioVenta!,
+          peso: v.peso ?? null,
+          unidadMedida: v.unidadMedida || null,
           estado: v.estado,
         });
     req$.subscribe({

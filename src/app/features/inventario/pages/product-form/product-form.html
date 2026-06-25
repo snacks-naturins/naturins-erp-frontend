@@ -1,15 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-5">
 
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
-    <span routerLink="/dashboard" class="cursor-pointer hover:text-text-main">Inicio</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span>Inventario</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span routerLink="/productos" class="cursor-pointer hover:text-text-main">Productos</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span class="font-medium text-text-main">{{ editId() ? 'Editar' : 'Nuevo' }}</span>
-  </nav>
+  <app-breadcrumb [items]="breadcrumb()" />
 
   <!-- Encabezado + acciones -->
   <div class="flex flex-wrap items-start justify-between gap-4">

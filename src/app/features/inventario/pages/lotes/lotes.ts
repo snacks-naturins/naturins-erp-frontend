@@ -9,11 +9,14 @@ import { AlmacenService } from '../../services/almacen.service';
 import { LoteResponse } from '../../models/lote.model';
 import { PresentacionResponse } from '../../models/presentacion.model';
 import { AlmacenResponse } from '../../models/almacen.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
 @Component({
   selector: 'app-lotes',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule, DatePipe],
+  imports: [ReactiveFormsModule, MatIconModule, DatePipe, BreadcrumbComponent, EmptyState],
   templateUrl: './lotes.html',
 })
 export class Lotes implements OnInit {
@@ -28,6 +31,7 @@ export class Lotes implements OnInit {
   readonly presentaciones = signal<PresentacionResponse[]>([]);
   readonly almacenes = signal<AlmacenResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -54,7 +58,7 @@ export class Lotes implements OnInit {
   readonly deleteError = signal<string | null>(null);
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const list = this.items();
     if (!q) return list;
     return list.filter(

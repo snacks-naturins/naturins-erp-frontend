@@ -108,7 +108,7 @@
     class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all group">
     <div class="flex items-center justify-between mb-2">
       <span class="text-xs font-mono font-bold text-primary">{{ op.numeroOrden }}</span>
-      <span class="text-xs text-text-muted">{{ formatFecha(op.fechaProduccion) }}</span>
+      <span class="text-xs text-text-muted">{{ op.fechaProduccion | fecha }}</span>
     </div>
     @if (op.observacion) {
       <p class="text-sm text-text-main leading-snug line-clamp-2 mb-3">{{ op.observacion }}</p>

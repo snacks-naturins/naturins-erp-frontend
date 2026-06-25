@@ -1,0 +1,164 @@
+<div class="flex flex-col gap-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Ventas'}, {label:'Métodos de Pago'}]" />
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Métodos de Pago</h1>
+      <p class="text-sm text-text-muted">Configura los métodos aceptados en el POS y cotizaciones</p>
+    </div>
+    <button
+      (click)="abrirCrear()"
+      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+      style="background:var(--color-primary,#16a34a)">
+      <mat-icon>add</mat-icon> Nuevo método
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon>
+      {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+    </div>
+  }
+
+  @if (!loading() && metodos().length === 0) {
+    <app-empty-state icono="payments" titulo="Sin métodos configurados" descripcion="Agrega el primer método de pago para empezar a registrar ventas." labelCta="Nuevo método" (cta)="abrirCrear()" />
+  }
+
+  <!-- Lista -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else if (metodos().length > 0) {
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      @for (m of metodos(); track m.id) {
+        <div class="group flex items-center gap-4 rounded-xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-md"
+          [class.opacity-50]="m.estado === 'INACTIVO'">
+          <!-- Icono -->
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+            style="background:color-mix(in srgb,var(--color-primary,#16a34a) 12%,white)">
+            <mat-icon style="color:var(--color-primary,#16a34a)">{{ metodoIcono(m.nombre) }}</mat-icon>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-text-main truncate">{{ m.nombre }}</p>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+              [class]="m.estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'">
+              <span class="h-1.5 w-1.5 rounded-full"
+                [class]="m.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
+              {{ m.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
+            <button (click)="abrirEditar(m)" title="Editar"
+              class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+              <mat-icon class="text-[16px]">edit</mat-icon>
+            </button>
+            <button (click)="toggleEstado(m)" title="{{ m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}"
+              class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+              <mat-icon class="text-[16px]">{{ m.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+            </button>
+            <button (click)="pedirEliminar(m)" title="Eliminar"
+              class="grid h-7 w-7 place-items-center rounded-lg text-red-400 hover:bg-red-50">
+              <mat-icon class="text-[16px]">delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal crear / editar -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarModal()">
+    <div class="w-full max-w-sm rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <h3 class="font-bold text-text-main">
+          {{ editandoId() ? 'Editar método' : 'Nuevo método de pago' }}
+        </h3>
+        <button (click)="cerrarModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="p-5 flex flex-col gap-4">
+        <!-- Nombre -->
+        <div>
+          <label class="mb-1 block text-sm font-medium text-text-main">Nombre <span class="text-red-500">*</span></label>
+          <input formControlName="nombre" type="text" placeholder="Ej: Efectivo, Yape, Tarjeta Visa..."
+            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+            [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <p class="mt-1 text-xs text-red-500">Nombre requerido (mínimo 2 caracteres)</p>
+          }
+        </div>
+
+        <!-- Estado (solo al editar) -->
+        @if (editandoId()) {
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text-main">Estado</label>
+            <select formControlName="estado"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+            </select>
+          </div>
+        }
+
+        <!-- Acciones -->
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="cerrarModal()"
+            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="form.invalid || saving()"
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            style="background:var(--color-primary,#16a34a)">
+            @if (saving()) {
+              <mat-icon class="animate-spin text-[18px]">refresh</mat-icon>
+            } @else {
+              <mat-icon class="text-[18px]">save</mat-icon>
+            }
+            {{ saving() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Confirm eliminar -->
+@if (confirmDelete(); as m) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
+          <mat-icon class="text-red-600">delete</mat-icon>
+        </div>
+        <div>
+          <p class="font-semibold text-text-main">¿Eliminar método?</p>
+          <p class="text-sm text-text-muted">{{ m.nombre }}</p>
+        </div>
+      </div>
+      <p class="text-sm text-text-muted mb-5">Esta acción no se puede deshacer. Los pedidos existentes no se verán afectados.</p>
+      <div class="flex gap-3">
+        <button (click)="confirmDelete.set(null)"
+          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button (click)="confirmarEliminar()"
+          class="flex-1 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}

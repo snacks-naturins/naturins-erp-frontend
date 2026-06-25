@@ -1,0 +1,125 @@
+<div class="flex flex-col gap-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Seguridad'}, {label:'Permisos RBAC'}]" />
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Permisos RBAC</h1>
+      <p class="text-sm text-text-muted">Configura qué puede hacer cada rol en cada módulo</p>
+    </div>
+    <button (click)="guardar()" [disabled]="saving() || !rolActivo()"
+      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
+      style="background:var(--color-primary,#16a34a)">
+      @if (saving()) {
+        <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> Guardando…
+      } @else {
+        <mat-icon class="text-[18px]">save</mat-icon> Guardar cambios
+      }
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon> {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+    </div>
+  }
+  @if (success()) {
+    <div class="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
+      <mat-icon class="text-[18px]">check_circle</mat-icon>
+      Permisos de <strong>{{ rolNombre(rolActivo()) }}</strong> guardados correctamente.
+    </div>
+  }
+
+  <!-- Tabs de roles -->
+  <div class="flex flex-wrap gap-2">
+    @for (rol of roles(); track rol.id) {
+      <button (click)="seleccionarRol(rol.id)"
+        class="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition"
+        [class]="rol.id === rolActivo()
+          ? 'text-white shadow'
+          : 'border border-border-soft bg-white text-text-muted hover:bg-bg-app'"
+        [style]="rol.id === rolActivo() ? 'background:var(--color-primary,#16a34a)' : ''">
+        <mat-icon class="text-[16px]">badge</mat-icon>
+        {{ rol.nombre }}
+      </button>
+    }
+  </div>
+
+  <!-- Matriz -->
+  @if (loading()) {
+    <div class="flex justify-center py-20">
+      <mat-icon class="animate-spin text-4xl text-text-muted">progress_activity</mat-icon>
+    </div>
+  } @else if (roles().length === 0) {
+    <app-empty-state icono="badge" titulo="No hay roles creados" descripcion="Crea roles primero desde la sección Roles." />
+  } @else {
+    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left">
+            <th class="px-5 py-3.5 font-semibold text-text-muted w-64">Módulo</th>
+            @for (a of acciones; track a.key) {
+              <th class="px-4 py-3.5 text-center font-semibold text-text-muted">{{ a.label }}</th>
+            }
+            <th class="px-4 py-3.5 text-center font-semibold text-text-muted">Todos</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of matriz(); track row.moduloId) {
+            <tr class="border-b border-border-soft last:border-0 hover:bg-bg-app/40 transition">
+              <!-- Módulo -->
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                    style="background:color-mix(in srgb,var(--color-primary,#16a34a) 10%,white)">
+                    <mat-icon style="color:var(--color-primary,#16a34a);font-size:16px">{{ row.icono }}</mat-icon>
+                  </div>
+                  <span class="font-medium text-text-main">{{ row.nombre }}</span>
+                </div>
+              </td>
+
+              <!-- Checkboxes Ver / Crear / Editar / Eliminar -->
+              @for (a of acciones; track a.key) {
+                <td class="px-4 py-3 text-center">
+                  <button (click)="toggle(row.moduloId, a.key)"
+                    class="inline-grid h-5 w-5 place-items-center rounded transition"
+                    [class]="row[a.key]
+                      ? 'text-white'
+                      : 'border-2 border-border-soft bg-white hover:border-secondary'"
+                    [style]="row[a.key] ? 'background:var(--color-primary,#16a34a)' : ''">
+                    @if (row[a.key]) {
+                      <mat-icon class="text-[14px]">check</mat-icon>
+                    }
+                  </button>
+                </td>
+              }
+
+              <!-- Toggle todos -->
+              <td class="px-4 py-3 text-center">
+                <button (click)="toggleFila(row.moduloId, !todosMarcados(row.moduloId))"
+                  class="inline-flex items-center gap-1 rounded-full px-3 py-0.5 text-xs font-medium transition"
+                  [class]="todosMarcados(row.moduloId)
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : 'border border-border-soft bg-white text-text-muted hover:bg-bg-app'">
+                  @if (todosMarcados(row.moduloId)) {
+                    <mat-icon class="text-[13px]">check_circle</mat-icon> Todo
+                  } @else {
+                    <mat-icon class="text-[13px]">radio_button_unchecked</mat-icon> Todo
+                  }
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Leyenda -->
+    <p class="text-xs text-text-muted/70 text-right">
+      Los cambios se aplican al guardar. El rol
+      <strong class="text-text-main">ADMIN</strong> tiene acceso total independientemente de esta configuración.
+    </p>
+  }
+</div>

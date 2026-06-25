@@ -1,0 +1,254 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Ventas'}, {label:'Gestión de Pedidos'}]" />
+
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Pedidos</h1>
+      <p class="text-sm text-text-muted">
+        <span class="font-medium text-text-main">{{ kpiActivos() }}</span> activos ·
+        <span class="font-medium text-text-main">{{ kpiHoy() }}</span> entregados hoy
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="relative flex items-center">
+        <mat-icon class="pointer-events-none absolute left-3 text-text-muted text-[18px]">search</mat-icon>
+        <input type="text" placeholder="Buscar pedido o cliente..."
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          class="h-10 rounded-input border border-border-soft bg-white pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-52" />
+      </div>
+      <button (click)="cargar()" title="Recargar"
+        class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-white text-text-muted hover:bg-bg-app">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">Pedidos activos</p>
+      <p class="text-2xl font-bold text-primary">{{ kpiActivos() }}</p>
+    </div>
+    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">Entregados hoy</p>
+      <p class="text-2xl font-bold text-green-600">{{ kpiHoy() }}</p>
+    </div>
+    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">Valor en tránsito</p>
+      <p class="text-2xl font-bold text-text-main">{{ formatMonto(kpiTotal()) }}</p>
+    </div>
+  </div>
+
+  @if (accionError()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon class="text-[18px]">error</mat-icon> {{ accionError() }}
+    </div>
+  }
+
+  <!-- Kanban -->
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-card bg-white p-8 text-center text-red-600">{{ error() }}</div>
+  } @else {
+    <div class="flex gap-4 overflow-x-auto pb-4">
+      @for (col of columnas; track col.estado) {
+        <div class="flex w-64 shrink-0 flex-col rounded-card border border-border-soft bg-[#FAFAFA]"
+          [class]="'border-t-4 ' + col.color">
+          <!-- Columna header -->
+          <div class="flex items-center gap-2 px-3 py-3 border-b border-border-soft">
+            <span class="h-2.5 w-2.5 rounded-full shrink-0" [class]="col.dot"></span>
+            <span class="text-sm font-semibold text-text-main flex-1">{{ col.label }}</span>
+            <span class="rounded-full bg-white border border-border-soft px-2 py-0.5 text-xs font-bold text-text-muted">
+              {{ (pedidosPorEstado().get(col.estado) ?? []).length }}
+            </span>
+          </div>
+
+          <!-- Cards -->
+          <div class="flex flex-col gap-3 p-3 min-h-[120px]">
+            @if ((pedidosPorEstado().get(col.estado) ?? []).length === 0) {
+              <div class="flex flex-col items-center justify-center py-8 text-text-muted/40">
+                <mat-icon class="text-3xl">inbox</mat-icon>
+              </div>
+            }
+            @for (p of (pedidosPorEstado().get(col.estado) ?? []); track p.id) {
+              <div class="rounded-xl bg-white border border-border-soft p-3 shadow-sm hover:shadow-md transition cursor-pointer"
+                (click)="detalleOpen.set(p)">
+                <!-- Número + canal -->
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-primary">{{ p.numeroPedido }}</span>
+                  <div class="flex items-center gap-1 text-xs text-text-muted">
+                    <mat-icon class="text-[13px]">{{ canalInfo(p.canal).icon }}</mat-icon>
+                    <span>{{ canalInfo(p.canal).label }}</span>
+                  </div>
+                </div>
+
+                <!-- Cliente -->
+                <p class="text-sm font-semibold text-text-main truncate mb-1">{{ p.nombreCliente }}</p>
+
+                <!-- Badges -->
+                <div class="flex flex-wrap items-center gap-1 mb-2">
+                  @if (p.prioridad !== 'NORMAL') {
+                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" [class]="prioridadInfo(p.prioridad).classes">
+                      {{ prioridadInfo(p.prioridad).label }}
+                    </span>
+                  }
+                  <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" [class]="pagadoInfo(p.estadoPago).classes">
+                    {{ pagadoInfo(p.estadoPago).label }}
+                  </span>
+                </div>
+
+                <!-- Total + fecha -->
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-text-main">{{ formatMonto(p.total) }}</span>
+                  <span class="text-[11px] text-text-muted">{{ p.fechaCreacion | fecha:'mini' }}</span>
+                </div>
+
+                <!-- Acción avanzar estado -->
+                @if (col.accionLabel) {
+                  <button
+                    (click)="avanzar(p); $event.stopPropagation()"
+                    [disabled]="accionando() === p.id"
+                    class="mt-2 flex w-full items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-semibold transition disabled:opacity-50"
+                    style="background:var(--color-primary,#16a34a);color:white">
+                    @if (accionando() === p.id) {
+                      <mat-icon class="animate-spin text-[14px]">refresh</mat-icon>
+                    } @else {
+                      <mat-icon class="text-[14px]">{{ col.accionIcon }}</mat-icon>
+                    }
+                    {{ col.accionLabel }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Cancelados (colapsable) -->
+    @if (cancelados().length > 0) {
+      <div>
+        <button (click)="mostraCancelados.set(!mostraCancelados())"
+          class="flex items-center gap-2 text-sm text-text-muted hover:text-text-main transition">
+          <mat-icon class="text-[18px]">{{ mostraCancelados() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          Pedidos cancelados / devueltos ({{ cancelados().length }})
+        </button>
+        @if (mostraCancelados()) {
+          <div class="mt-3 overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+                  <th class="px-4 py-2 font-semibold">Pedido</th>
+                  <th class="px-4 py-2 font-semibold">Cliente</th>
+                  <th class="px-4 py-2 text-right font-semibold">Total</th>
+                  <th class="px-4 py-2 text-center font-semibold">Estado</th>
+                  <th class="px-4 py-2 text-center font-semibold">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of cancelados(); track p.id) {
+                  <tr class="border-b border-border-soft last:border-0">
+                    <td class="px-4 py-2 font-semibold text-text-muted">{{ p.numeroPedido }}</td>
+                    <td class="px-4 py-2 text-text-muted">{{ p.nombreCliente }}</td>
+                    <td class="px-4 py-2 text-right text-text-muted">{{ formatMonto(p.total) }}</td>
+                    <td class="px-4 py-2 text-center">
+                      <span class="inline-flex rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-500">
+                        {{ p.estado }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-2 text-center text-xs text-text-muted">{{ p.fechaCreacion | fecha:'mini' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal detalle del pedido -->
+@if (detalleOpen(); as p) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="detalleOpen.set(null)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl overflow-hidden" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <div>
+          <h3 class="font-bold text-text-main">{{ p.numeroPedido }}</h3>
+          <p class="text-xs text-text-muted">{{ p.nombreCliente }}</p>
+        </div>
+        <button (click)="detalleOpen.set(null)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg bg-bg-app p-3">
+            <p class="text-[11px] text-text-muted mb-0.5">Canal</p>
+            <div class="flex items-center gap-1">
+              <mat-icon class="text-[16px] text-primary">{{ canalInfo(p.canal).icon }}</mat-icon>
+              <span class="text-sm font-medium text-text-main">{{ canalInfo(p.canal).label }}</span>
+            </div>
+          </div>
+          <div class="rounded-lg bg-bg-app p-3">
+            <p class="text-[11px] text-text-muted mb-0.5">Entrega</p>
+            <span class="text-sm font-medium text-text-main">{{ p.tipoEntrega }}</span>
+          </div>
+          <div class="rounded-lg bg-bg-app p-3">
+            <p class="text-[11px] text-text-muted mb-0.5">Pago</p>
+            <div class="flex items-center gap-1">
+              <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="pagadoInfo(p.estadoPago).classes">{{ pagadoInfo(p.estadoPago).label }}</span>
+            </div>
+          </div>
+          <div class="rounded-lg bg-bg-app p-3">
+            <p class="text-[11px] text-text-muted mb-0.5">Método de pago</p>
+            <span class="text-sm font-medium text-text-main">{{ p.metodoPagoNombre }}</span>
+          </div>
+        </div>
+
+        <!-- Totales -->
+        <div class="rounded-lg border border-border-soft p-3">
+          <div class="flex justify-between text-xs text-text-muted mb-1">
+            <span>Subtotal</span><span>{{ formatMonto(p.subTotal) }}</span>
+          </div>
+          <div class="flex justify-between text-xs text-text-muted mb-1">
+            <span>IGV</span><span>{{ formatMonto(p.igv) }}</span>
+          </div>
+          @if (p.costoEnvio > 0) {
+            <div class="flex justify-between text-xs text-text-muted mb-1">
+              <span>Envío</span><span>{{ formatMonto(p.costoEnvio) }}</span>
+            </div>
+          }
+          <div class="flex justify-between font-bold pt-1 border-t border-border-soft mt-1">
+            <span>TOTAL</span>
+            <span class="text-primary">{{ formatMonto(p.total) }}</span>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        @if (!['ENTREGADO','CANCELADO','DEVUELTO'].includes(p.estado)) {
+          <div class="flex gap-2">
+            <button (click)="avanzar(p); detalleOpen.set(null)"
+              [disabled]="accionando() === p.id || p.estado === 'ENTREGADO'"
+              class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              style="background:var(--color-primary,#16a34a)">
+              <mat-icon class="text-[18px]">arrow_forward</mat-icon>
+              {{ accionLabelPara(p.estado) }}
+            </button>
+            <button (click)="cancelar(p); detalleOpen.set(null)"
+              [disabled]="accionando() === p.id"
+              class="flex items-center gap-1 rounded-btn border border-red-200 px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50">
+              <mat-icon class="text-[18px]">cancel</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

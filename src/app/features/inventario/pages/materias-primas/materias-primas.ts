@@ -7,6 +7,7 @@ import {
   EstadoMateriaPrima,
   MateriaPrimaResponse,
 } from '../../models/materia-prima.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 @Component({
   selector: 'app-materias-primas',
@@ -23,10 +24,11 @@ export class MateriasPrimas implements OnInit {
   readonly error = signal<string | null>(null);
   readonly items = signal<MateriaPrimaResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
   readonly filtroEstado = signal<string>('TODOS');
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const estado = this.filtroEstado();
     return this.items().filter((m) => {
       const matchQ = !q || m.nombre.toLowerCase().includes(q) || m.unidadMedida.toLowerCase().includes(q);

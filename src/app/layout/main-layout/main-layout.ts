@@ -3,15 +3,12 @@ import { RouterOutlet } from '@angular/router';
 
 import { Sidebar } from '../sidebar/sidebar';
 import { Header } from '../header/header';
+import { ToastContainer } from '../../shared/components/toast-container/toast-container';
 
-/**
- * Cáscara principal de la app autenticada: sidebar fijo + topbar + contenido.
- * Las páginas protegidas se renderizan en el <router-outlet>.
- */
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, Sidebar, Header],
+  imports: [RouterOutlet, Sidebar, Header, ToastContainer],
   templateUrl: './main-layout.html',
 })
 export class MainLayout {}

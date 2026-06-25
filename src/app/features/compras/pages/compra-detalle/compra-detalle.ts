@@ -9,6 +9,7 @@ import { CompraResponse } from '../../models/compra.model';
 import { DetalleCompraResponse } from '../../models/detalle-compra.model';
 import { ProveedorService } from '../../../proveedores/services/proveedor.service';
 import { ProveedorProductoResponse } from '../../../proveedores/models/proveedor.model';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 
 interface LineaItem {
   item: ProveedorProductoResponse;
@@ -19,7 +20,7 @@ interface LineaItem {
 @Component({
   selector: 'app-compra-detalle',
   standalone: true,
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, MatIconModule, FechaPipe],
   templateUrl: './compra-detalle.html',
 })
 export class CompraDetalle implements OnInit {
@@ -295,11 +296,6 @@ export class CompraDetalle implements OnInit {
     return map[estado] ?? { label: estado, classes: 'bg-gray-100 text-gray-600' };
   }
 
-  formatFecha(fecha: string): string {
-    return new Date(fecha).toLocaleDateString('es-PE', {
-      day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-  }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }
 

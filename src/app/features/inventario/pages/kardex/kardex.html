@@ -1,12 +1,6 @@
 <div class="flex flex-col gap-5">
 
-  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
-    <span>Inicio</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span>Inventario</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span class="font-medium text-text-main">Kardex</span>
-  </nav>
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Inventario'}, {label:'Kardex'}]" />
 
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>

@@ -8,11 +8,12 @@ import { ProductoService } from '../../services/producto.service';
 import { CategoriaService } from '../../services/categoria.service';
 import { CategoriaResponse } from '../../models/categoria.model';
 import { UploadService } from '../../../../core/services/upload.service';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule],
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule, BreadcrumbComponent],
   templateUrl: './product-form.html',
 })
 export class ProductForm implements OnInit {
@@ -26,6 +27,13 @@ export class ProductForm implements OnInit {
   // Modo edición (si hay :id en la ruta)
   readonly editId = signal<string | null>(null);
   readonly loadingProducto = signal(false);
+
+  readonly breadcrumb = computed(() => [
+    {label: 'Inicio', ruta: '/dashboard'},
+    {label: 'Inventario'},
+    {label: 'Productos', ruta: '/productos'},
+    {label: this.editId() ? 'Editar producto' : 'Nuevo producto'},
+  ]);
 
   // Imagen
   readonly uploading = signal(false);
@@ -54,8 +62,8 @@ export class ProductForm implements OnInit {
     activo: [true],
     // Campos de UI (aún no modelados en el backend de Producto)
     unidad: ['UNIDAD'],
-    stockMinimo: [50],
-    stockCritico: [20],
+    stockMinimo: [50 as number | null],
+    stockCritico: [20 as number | null],
     stockInicial: [0],
     precioCompra: [null as number | null],
     precioVenta: [null as number | null],
@@ -155,11 +163,14 @@ export class ProductForm implements OnInit {
       next: (p) => {
         this.loadingProducto.set(false);
         this.form.patchValue({
-          nombre: p.nombre,
-          descripcion: p.descripcion ?? '',
-          categoriaId: p.categoriaId,
-          urlImagen: p.urlImagen ?? '',
-          activo: p.estado === 'ACTIVO',
+          nombre:       p.nombre,
+          descripcion:  p.descripcion   ?? '',
+          categoriaId:  p.categoriaId,
+          urlImagen:    p.urlImagen     ?? '',
+          precioCompra: p.precioCompra  ?? null,
+          stockMinimo:  p.stockMinimo   ?? null,
+          stockCritico: p.stockCritico  ?? null,
+          activo:       p.estado === 'ACTIVO',
         });
       },
       error: () => {
@@ -222,6 +233,9 @@ export class ProductForm implements OnInit {
       nombre: v.nombre,
       descripcion: v.descripcion || undefined,
       urlImagen: v.urlImagen || undefined,
+      precioCompra: v.precioCompra ?? null,
+      stockMinimo:  v.stockMinimo  ?? null,
+      stockCritico: v.stockCritico ?? null,
       estado: (v.activo ? 'ACTIVO' : 'INACTIVO') as 'ACTIVO' | 'INACTIVO',
     };
 

@@ -10,6 +10,9 @@ export interface ProductoResponse {
   descripcion?: string | null;
   urlImagen?: string | null;
   estado: EstadoProducto | string;
+  precioCompra?: number | null;
+  stockMinimo?: number | null;
+  stockCritico?: number | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }
@@ -20,8 +23,20 @@ export interface CreateProductoRequest {
   nombre: string;
   descripcion?: string;
   urlImagen?: string;
+  precioCompra?: number | null;
+  stockMinimo?: number | null;
+  stockCritico?: number | null;
   estado: EstadoProducto;
 }
 
-// PUT /api/productos/{id} -> request (mismos campos que crear)
-export type UpdateProductoRequest = CreateProductoRequest;
+// PUT /api/productos/{id} -> request
+export interface UpdateProductoRequest {
+  categoriaId?: string;
+  nombre?: string;
+  descripcion?: string;
+  urlImagen?: string;
+  precioCompra?: number | null;
+  stockMinimo?: number | null;
+  stockCritico?: number | null;
+  estado?: EstadoProducto;
+}

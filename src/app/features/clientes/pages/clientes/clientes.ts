@@ -8,11 +8,14 @@ import { ClienteResponse, EstadoCliente, TipoCliente } from '../../models/client
 import { PersonaService } from '../../../../core/services/persona.service';
 import { TipoDocumentoService } from '../../../../core/services/tipo-documento.service';
 import { TipoDocumentoResponse } from '../../../../core/models/tipo-documento.model';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatIconModule, BreadcrumbComponent, EmptyState],
   templateUrl: './clientes.html',
 })
 export class Clientes implements OnInit {
@@ -26,6 +29,7 @@ export class Clientes implements OnInit {
   readonly items = signal<ClienteResponse[]>([]);
   readonly tiposDoc = signal<TipoDocumentoResponse[]>([]);
   readonly search = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -57,7 +61,7 @@ export class Clientes implements OnInit {
   ] as const;
 
   readonly filtrados = computed(() => {
-    const q = this.search().toLowerCase().trim();
+    const q = this.searchDebounced().toLowerCase().trim();
     const list = this.items();
     if (!q) return list;
     return list.filter(

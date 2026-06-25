@@ -5,11 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ProduccionService } from '../../services/produccion.service';
 import { ProduccionResponse } from '../../models/produccion.model';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 
 @Component({
   selector: 'app-produccion-lista',
   standalone: true,
-  imports: [RouterLink, MatIconModule, NgTemplateOutlet],
+  imports: [RouterLink, MatIconModule, NgTemplateOutlet, FechaPipe],
   templateUrl: './produccion-lista.html',
 })
 export class ProduccionLista implements OnInit {
@@ -66,9 +67,6 @@ export class ProduccionLista implements OnInit {
 
   irDetalle(id: string): void { this.router.navigate(['/produccion', id]); }
 
-  formatFecha(f: string): string {
-    return new Date(f).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }
 

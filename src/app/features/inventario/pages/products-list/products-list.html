@@ -1,13 +1,6 @@
 <div class="flex flex-col gap-5">
 
-  <!-- Breadcrumb -->
-  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
-    <span>Inicio</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span>Inventario</span>
-    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">chevron_right</mat-icon>
-    <span class="font-medium text-text-main">Productos</span>
-  </nav>
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Inventario'}, {label:'Productos'}]" />
 
   <!-- Encabezado -->
   <div class="flex flex-wrap items-start justify-between gap-4">
@@ -141,12 +134,8 @@
 
           @if (filtrados().length === 0) {
             <tr>
-              <td colspan="6" class="px-5 py-14 text-center text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="mb-2 text-[40px]! h-10! w-10! opacity-40">inventory_2</mat-icon>
-                <p>No hay productos para mostrar.</p>
-                <button routerLink="/productos/nuevo" class="mt-3 text-sm font-semibold text-primary hover:underline">
-                  + Registrar el primero
-                </button>
+              <td colspan="6">
+                <app-empty-state icono="inventory_2" titulo="No hay productos" descripcion="Registra el primer producto para gestionar tu inventario." labelCta="Nuevo producto" (cta)="irNuevoProducto()" />
               </td>
             </tr>
           }
