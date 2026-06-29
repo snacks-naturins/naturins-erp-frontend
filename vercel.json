@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://sublime-beauty-production-652d.up.railway.app/api/$1" }
+  ]
+}
