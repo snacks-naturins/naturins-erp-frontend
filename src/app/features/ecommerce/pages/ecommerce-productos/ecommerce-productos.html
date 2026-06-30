@@ -1,0 +1,90 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'E-commerce', ruta:'/ecommerce'}, {label:'Catálogo Web'}]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Catálogo Web</h1>
+      <p class="text-sm text-text-muted">Activa los productos que se muestran en la tienda online</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="relative flex items-center">
+        <mat-icon class="pointer-events-none absolute left-3 text-text-muted text-[18px]">search</mat-icon>
+        <input type="text" placeholder="Buscar producto..."
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+          class="h-10 rounded-input border border-border-soft bg-white pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-52" />
+      </div>
+      <button (click)="cargar()" title="Recargar"
+        class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-white text-text-muted hover:bg-bg-app">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-card bg-white p-8 text-center text-red-600">{{ error() }}</div>
+  } @else {
+    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+            <th class="px-4 py-3 font-semibold">Producto</th>
+            <th class="px-4 py-3 font-semibold">Categoría</th>
+            <th class="px-4 py-3 font-semibold">Estado</th>
+            <th class="px-4 py-3 text-center font-semibold">Visible en tienda</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filtrados(); track p.id) {
+            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FAFAFA] transition">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  @if (p.urlImagen) {
+                    <img [src]="p.urlImagen" [alt]="p.nombre"
+                      class="h-10 w-10 rounded-lg object-cover border border-border-soft" />
+                  } @else {
+                    <div class="grid h-10 w-10 place-items-center rounded-lg bg-bg-app border border-border-soft">
+                      <mat-icon class="text-text-muted text-[18px]">image</mat-icon>
+                    </div>
+                  }
+                  <span class="font-medium text-text-main">{{ p.nombre }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-text-muted">{{ p.nombreCategoria ?? '—' }}</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2 py-0.5 text-xs font-medium"
+                  [class]="p.estado === 'ACTIVO' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                  {{ p.estado }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <button
+                  (click)="toggleVisible(p)"
+                  [disabled]="toggling() === p.id"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50"
+                  [class]="p.visibleEcommerce ? 'bg-primary' : 'bg-gray-300'"
+                  title="{{ p.visibleEcommerce ? 'Ocultar de la tienda' : 'Mostrar en la tienda' }}">
+                  <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                    [class]="p.visibleEcommerce ? 'translate-x-6' : 'translate-x-1'"></span>
+                </button>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="4" class="px-4 py-12 text-center text-text-muted">
+                <mat-icon class="text-5xl mb-2">inventory_2</mat-icon>
+                <p>No se encontraron productos</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

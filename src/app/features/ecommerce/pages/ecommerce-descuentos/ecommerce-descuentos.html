@@ -1,0 +1,186 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'E-commerce', ruta:'/ecommerce'}, {label:'Descuentos'}]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Descuentos de Productos</h1>
+      <p class="text-sm text-text-muted">
+        <span class="font-medium text-green-600">{{ activos() }} activos</span> ·
+        <span class="font-medium text-blue-600">{{ programados() }} programados</span>
+      </p>
+    </div>
+    <button (click)="abrirNuevo()"
+      class="flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition">
+      <mat-icon class="text-[18px]">add</mat-icon> Nuevo Descuento
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-card bg-white p-8 text-center text-red-600">{{ error() }}</div>
+  } @else {
+    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+            <th class="px-4 py-3 font-semibold">Campaña</th>
+            <th class="px-4 py-3 font-semibold">Producto / Presentación</th>
+            <th class="px-4 py-3 font-semibold">Descuento</th>
+            <th class="px-4 py-3 font-semibold">Precio</th>
+            <th class="px-4 py-3 font-semibold">Vigencia</th>
+            <th class="px-4 py-3 text-center font-semibold">Estado</th>
+            <th class="px-4 py-3 text-center font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of descuentos(); track d.id) {
+            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FAFAFA] transition">
+              <td class="px-4 py-3 font-medium text-text-main">{{ d.nombre }}</td>
+              <td class="px-4 py-3">
+                <p class="font-medium text-text-main">{{ d.productoNombre }}</p>
+                <p class="text-xs text-text-muted">{{ d.presentacionNombre }}</p>
+              </td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2 py-0.5 text-xs font-bold"
+                  [class]="d.tipo === 'PORCENTAJE' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'">
+                  {{ valorDisplay(d) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs text-text-muted line-through">S/ {{ d.precioOriginal | number:'1.2-2' }}</span>
+                <span class="ml-1.5 font-bold text-green-600">S/ {{ d.precioFinal | number:'1.2-2' }}</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-text-muted">
+                {{ d.fechaInicio | fecha:'corto' }}<br/>
+                <span class="text-[11px]">→ {{ d.fechaFin | fecha:'corto' }}</span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="estadoBadge(d.estado)">
+                  {{ d.estado }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <button (click)="eliminar(d.id)" [disabled]="deleting() === d.id"
+                  class="grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition disabled:opacity-50 mx-auto">
+                  <mat-icon class="text-[16px]">delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="7" class="px-4 py-14 text-center text-text-muted">
+                <mat-icon class="text-5xl mb-2">percent</mat-icon>
+                <p class="font-medium">No hay descuentos configurados.</p>
+                <p class="text-xs mt-1">Crea uno para que aparezca automáticamente en la tienda.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal nuevo descuento -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="modalOpen.set(false)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <h3 class="font-bold text-text-main">Nuevo Descuento</h3>
+        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="p-5 flex flex-col gap-4">
+
+        <!-- Nombre campaña -->
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-text-muted">Nombre de la campaña *</label>
+          <input [(ngModel)]="form.nombre" type="text" placeholder="Ej: Oferta de verano, Sale de fin de semana..."
+            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+        </div>
+
+        <!-- Presentación -->
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-text-muted">Presentación *</label>
+          <select [(ngModel)]="form.presentacionId"
+            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
+            <option value="">— Selecciona —</option>
+            @for (p of presentaciones(); track p.id) {
+              <option [value]="p.id">
+                {{ p.nombreProducto }} – {{ p.nombre }} (S/ {{ p.precioVenta | number:'1.2-2' }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Tipo + Valor -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Tipo *</label>
+            <select [(ngModel)]="form.tipo"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
+              @for (t of tipos; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">
+              {{ form.tipo === 'PORCENTAJE' ? 'Porcentaje (%)' : 'Precio final (S/)' }} *
+            </label>
+            <input [(ngModel)]="form.valor" type="number" min="0.01" step="0.01"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+        </div>
+
+        <!-- Preview precio -->
+        @if (form.presentacionId && form.valor > 0) {
+          <div class="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm">
+            <mat-icon class="text-green-600 text-[18px]">sell</mat-icon>
+            <span class="font-medium text-green-700">{{ precioPreview }}</span>
+          </div>
+        }
+
+        <!-- Fechas -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Desde *</label>
+            <input [(ngModel)]="form.fechaInicio" type="datetime-local"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Hasta *</label>
+            <input [(ngModel)]="form.fechaFin" type="datetime-local"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+        </div>
+
+        <!-- Error -->
+        @if (formError()) {
+          <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <mat-icon class="text-[16px]">error</mat-icon> {{ formError() }}
+          </div>
+        }
+
+        <div class="flex justify-end gap-2 pt-1">
+          <button (click)="modalOpen.set(false)"
+            class="rounded-btn border border-border-soft px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button (click)="guardar()" [disabled]="saving()"
+            class="rounded-btn bg-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+            {{ saving() ? 'Guardando...' : 'Crear descuento' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

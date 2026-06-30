@@ -1,0 +1,168 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'E-commerce', ruta:'/ecommerce'}, {label:'Cupones'}]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Cupones de Descuento</h1>
+      <p class="text-sm text-text-muted">
+        <span class="font-medium text-green-600">{{ activos() }} activos</span> ·
+        <span class="font-medium text-red-500">{{ vencidos() }} vencidos</span>
+      </p>
+    </div>
+    <button (click)="abrirNuevo()"
+      class="flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition">
+      <mat-icon class="text-[18px]">add</mat-icon> Nuevo Cupón
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-card bg-white p-8 text-center text-red-600">{{ error() }}</div>
+  } @else {
+    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+            <th class="px-4 py-3 font-semibold">Código</th>
+            <th class="px-4 py-3 font-semibold">Tipo / Valor</th>
+            <th class="px-4 py-3 font-semibold">Vigencia</th>
+            <th class="px-4 py-3 text-center font-semibold">Usos</th>
+            <th class="px-4 py-3 text-center font-semibold">Estado</th>
+            <th class="px-4 py-3 text-center font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cupones(); track c.id) {
+            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FAFAFA] transition">
+              <td class="px-4 py-3">
+                <span class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs font-bold tracking-wider text-text-main">
+                  {{ c.codigo }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="text-xs text-text-muted">{{ tipoLabel(c.tipo) }}</span>
+                <span class="ml-1 font-semibold text-text-main">{{ valorDisplay(c) }}</span>
+                @if (c.montoMinimo) {
+                  <p class="text-[11px] text-text-muted">Mín. S/ {{ c.montoMinimo }}</p>
+                }
+              </td>
+              <td class="px-4 py-3 text-text-muted text-xs">
+                {{ c.fechaInicio }} → {{ c.fechaFin }}
+              </td>
+              <td class="px-4 py-3 text-center text-text-muted">
+                {{ c.usosActuales }}{{ c.usosMaximos ? ' / ' + c.usosMaximos : '' }}
+              </td>
+              <td class="px-4 py-3 text-center">
+                <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="estadoColor(c.estado)">
+                  {{ c.estado }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <button (click)="abrirEditar(c)"
+                    class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition">
+                    <mat-icon class="text-[16px]">edit</mat-icon>
+                  </button>
+                  <button (click)="eliminar(c.id)" [disabled]="deleting() === c.id"
+                    class="grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition disabled:opacity-50">
+                    <mat-icon class="text-[16px]">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6" class="px-4 py-12 text-center text-text-muted">
+                <mat-icon class="text-5xl mb-2">discount</mat-icon>
+                <p>No hay cupones. Crea el primero.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal cupón -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="modalOpen.set(false)">
+    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <h3 class="font-bold text-text-main">{{ editando() ? 'Editar Cupón' : 'Nuevo Cupón' }}</h3>
+        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="p-5 flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Código *</label>
+            <input [(ngModel)]="form.codigo" type="text" [disabled]="!!editando()"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm font-mono uppercase outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30 disabled:bg-bg-app" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Tipo *</label>
+            <select [(ngModel)]="form.tipo"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
+              @for (t of tipos; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Valor *</label>
+            <input [(ngModel)]="form.valor" type="number" min="0" step="0.01"
+              [disabled]="form.tipo === 'ENVIO_GRATIS'"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary disabled:bg-bg-app" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Desde *</label>
+            <input [(ngModel)]="form.fechaInicio" type="date"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Hasta *</label>
+            <input [(ngModel)]="form.fechaFin" type="date"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Usos máximos</label>
+            <input [(ngModel)]="form.usosMaximos" type="number" min="1" placeholder="Sin límite"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-semibold text-text-muted">Monto mínimo (S/)</label>
+            <input [(ngModel)]="form.montoMinimo" type="number" min="0" step="0.01" placeholder="Sin mínimo"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+          </div>
+          @if (editando()) {
+            <div class="col-span-2">
+              <label class="mb-1 block text-xs font-semibold text-text-muted">Estado</label>
+              <select [(ngModel)]="form.estado"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
+                <option value="ACTIVO">Activo</option>
+                <option value="INACTIVO">Inactivo</option>
+              </select>
+            </div>
+          }
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button (click)="modalOpen.set(false)"
+            class="rounded-btn border border-border-soft px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app">
+            Cancelar
+          </button>
+          <button (click)="guardar()" [disabled]="saving() || !form.codigo || !form.fechaFin"
+            class="rounded-btn bg-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

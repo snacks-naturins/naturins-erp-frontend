@@ -1,0 +1,297 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[
+    {label:'Inicio', ruta:'/dashboard'},
+    {label:'E-commerce', ruta:'/ecommerce'},
+    {label:'Banners', ruta:'/ecommerce/banners'},
+    {label: bannerId ? 'Editar Banner' : 'Nuevo Banner'}
+  ]" />
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">
+        {{ bannerId ? 'Editar Banner' : 'Nuevo Banner' }}
+      </h1>
+      <p class="text-sm text-text-muted">Diseña visualmente el banner y publícalo en el carrusel</p>
+    </div>
+    <a routerLink="/ecommerce/banners"
+      class="flex items-center gap-1.5 rounded-btn border border-border-soft px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app transition">
+      <mat-icon class="text-[16px]">arrow_back</mat-icon> Cancelar
+    </a>
+  </div>
+
+  @if (errorMsg()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+      <mat-icon class="text-[18px]">error_outline</mat-icon> {{ errorMsg() }}
+    </div>
+  }
+
+  <div class="flex gap-4 items-start">
+
+    <!-- ─── LEFT SIDEBAR ──────────────────────────────────────────────── -->
+    <aside class="w-72 shrink-0 flex flex-col gap-3">
+
+      <!-- Formato de canvas -->
+      <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Formato</p>
+        <div class="flex gap-1.5">
+          @for (m of modes; track m.key) {
+            <button (click)="switchMode(m.key)"
+              class="flex-1 rounded-lg border py-2 text-xs font-semibold transition"
+              [class]="mode() === m.key
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border-soft text-text-muted hover:bg-bg-app'">
+              <mat-icon class="text-[14px] block mx-auto mb-0.5">
+                {{ m.key === 'desktop' ? 'desktop_windows' : 'phone_android' }}
+              </mat-icon>
+              {{ m.label }}<br>
+              <span class="text-[10px] opacity-70">{{ m.width }}×{{ m.height }}</span>
+            </button>
+          }
+        </div>
+
+        @if (mode() === 'mobile') {
+          <button (click)="copyDesktopToMobile()"
+            class="mt-2 w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-primary/60 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10 transition"
+            title="Copia el diseño escritorio escalado al canvas móvil">
+            <mat-icon class="text-[15px]">content_copy</mat-icon>
+            Copiar desde Escritorio
+          </button>
+        }
+      </div>
+
+      <!-- Herramientas -->
+      <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Herramientas</p>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button (click)="addText()"
+            class="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs font-medium text-text-main hover:bg-bg-app transition">
+            <mat-icon class="text-[16px]">title</mat-icon> Texto
+          </button>
+          <button (click)="addRect()"
+            class="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs font-medium text-text-main hover:bg-bg-app transition">
+            <mat-icon class="text-[16px]">rectangle</mat-icon> Forma
+          </button>
+          <button (click)="triggerImgFile()" [disabled]="uploadingImg()"
+            class="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs font-medium text-text-main hover:bg-bg-app transition disabled:opacity-50">
+            <mat-icon class="text-[16px]">{{ uploadingImg() ? 'progress_activity' : 'image' }}</mat-icon>
+            {{ uploadingImg() ? 'Subiendo…' : 'Imagen' }}
+          </button>
+          <button (click)="triggerBgFile()" [disabled]="uploadingBg()"
+            class="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs font-medium text-text-main hover:bg-bg-app transition disabled:opacity-50">
+            <mat-icon class="text-[16px]">{{ uploadingBg() ? 'progress_activity' : 'wallpaper' }}</mat-icon>
+            {{ uploadingBg() ? 'Subiendo…' : 'Fondo img' }}
+          </button>
+        </div>
+        <input #imgFileInput type="file" accept="image/*" class="hidden" (change)="onImgFileSelected($event)">
+        <input #bgFileInput type="file" accept="image/*" class="hidden" (change)="onBgFileSelected($event)">
+      </div>
+
+      <!-- Acciones de objeto + historial -->
+      <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Acciones</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button (click)="undo()" [disabled]="!canUndo()" title="Deshacer"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition disabled:opacity-40">
+            <mat-icon class="text-[18px]">undo</mat-icon>
+          </button>
+          <button (click)="redo()" [disabled]="!canRedo()" title="Rehacer"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition disabled:opacity-40">
+            <mat-icon class="text-[18px]">redo</mat-icon>
+          </button>
+          <button (click)="bringForward()" title="Traer al frente"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition">
+            <mat-icon class="text-[18px]">flip_to_front</mat-icon>
+          </button>
+          <button (click)="sendBackward()" title="Enviar atrás"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition">
+            <mat-icon class="text-[18px]">flip_to_back</mat-icon>
+          </button>
+          <button (click)="deleteSelected()" title="Eliminar seleccionado"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition">
+            <mat-icon class="text-[18px]">delete</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fondo del canvas -->
+      <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <p class="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Color de fondo</p>
+        <div class="flex items-center gap-2">
+          <label class="h-9 w-9 cursor-pointer overflow-hidden rounded-lg border border-border-soft shadow-sm">
+            <input type="color" [value]="bgColor()"
+              (input)="onBgColorInput($any($event.target).value)"
+              (change)="onBgColorChange()"
+              class="h-12 w-12 -translate-x-1 -translate-y-1 cursor-pointer border-0 p-0">
+          </label>
+          <span class="flex-1 font-mono text-xs text-text-muted">{{ bgColor() }}</span>
+          <button (click)="removeBgImage()" title="Quitar imagen de fondo"
+            class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted hover:bg-bg-app transition">
+            <mat-icon class="text-[16px]">hide_image</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Propiedades del objeto seleccionado -->
+      @if (objProps(); as props) {
+        <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+          <p class="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Propiedades</p>
+
+          <!-- Color de relleno -->
+          <div class="mb-3">
+            <label class="mb-1 block text-xs text-text-muted">Color</label>
+            <div class="flex items-center gap-2">
+              <label class="h-8 w-8 cursor-pointer overflow-hidden rounded-lg border border-border-soft">
+                <input type="color" [value]="props.fill"
+                  (input)="onFillColorInput($any($event.target).value)"
+                  (change)="onFillColorChange()"
+                  class="h-11 w-11 -translate-x-1 -translate-y-1 cursor-pointer border-0 p-0">
+              </label>
+              <span class="font-mono text-xs text-text-muted">{{ props.fill }}</span>
+            </div>
+          </div>
+
+          <!-- Opacidad -->
+          <div class="mb-3">
+            <label class="mb-1 flex justify-between text-xs text-text-muted">
+              <span>Opacidad</span><span class="font-semibold text-text-main">{{ props.opacity }}%</span>
+            </label>
+            <input type="range" min="0" max="100" [value]="props.opacity"
+              (input)="setPropOpacity(+$any($event.target).value)"
+              class="h-1.5 w-full cursor-pointer accent-primary">
+          </div>
+
+          <!-- Controles de texto -->
+          @if (props.type === 'itext') {
+            <div class="mb-3">
+              <label class="mb-1 block text-xs text-text-muted">Fuente</label>
+              <select [value]="props.fontFamily" (change)="setPropFontFamily($any($event.target).value)"
+                class="h-8 w-full rounded-input border border-border-soft px-2 text-xs outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+                @for (f of fonts; track f) {
+                  <option [value]="f">{{ f }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="mb-1 block text-xs text-text-muted">Tamaño (px)</label>
+              <input type="number" [value]="props.fontSize" min="8" max="200"
+                (change)="setPropFontSize(+$any($event.target).value)"
+                class="h-8 w-full rounded-input border border-border-soft px-2 text-xs outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+            </div>
+
+            <div class="flex gap-1.5">
+              <button (click)="toggleBold()"
+                class="flex h-8 flex-1 items-center justify-center rounded-lg border font-bold text-sm transition"
+                [class]="props.bold
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-soft text-text-muted hover:bg-bg-app'">
+                B
+              </button>
+              <button (click)="toggleItalic()"
+                class="flex h-8 flex-1 items-center justify-center rounded-lg border italic text-sm transition"
+                [class]="props.italic
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-soft text-text-muted hover:bg-bg-app'">
+                I
+              </button>
+              <button (click)="setTextAlign('left')" title="Alinear izquierda"
+                class="grid h-8 w-8 place-items-center rounded-lg border transition"
+                [class]="props.textAlign === 'left'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-soft text-text-muted hover:bg-bg-app'">
+                <mat-icon class="text-[16px]">format_align_left</mat-icon>
+              </button>
+              <button (click)="setTextAlign('center')" title="Centrar"
+                class="grid h-8 w-8 place-items-center rounded-lg border transition"
+                [class]="props.textAlign === 'center'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-soft text-text-muted hover:bg-bg-app'">
+                <mat-icon class="text-[16px]">format_align_center</mat-icon>
+              </button>
+              <button (click)="setTextAlign('right')" title="Alinear derecha"
+                class="grid h-8 w-8 place-items-center rounded-lg border transition"
+                [class]="props.textAlign === 'right'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border-soft text-text-muted hover:bg-bg-app'">
+                <mat-icon class="text-[16px]">format_align_right</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Datos del banner -->
+      <div class="rounded-card bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <p class="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted">Datos del banner</p>
+        <div class="flex flex-col gap-2.5">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-text-muted">Título *</label>
+            <input [(ngModel)]="titulo" type="text" placeholder="Ej: Snacks naturales"
+              class="h-9 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-text-muted">Subtítulo</label>
+            <input [(ngModel)]="subtitulo" type="text" placeholder="Descripción breve"
+              class="h-9 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-text-muted">URL de destino</label>
+            <input [(ngModel)]="urlDestino" type="url" placeholder="https://… o /productos"
+              class="h-9 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+          </div>
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <label class="mb-1 block text-xs font-medium text-text-muted">Orden</label>
+              <input [(ngModel)]="orden" type="number" min="0"
+                class="h-9 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/30">
+            </div>
+            <div class="flex flex-col items-center gap-1 pt-1">
+              <label class="mb-1 block text-xs font-medium text-text-muted">Activo</label>
+              <label class="flex cursor-pointer items-center">
+                <input type="checkbox" [(ngModel)]="activo" class="sr-only peer">
+                <div class="relative h-5 w-9 rounded-full bg-gray-200 peer-checked:bg-primary transition after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Publicar -->
+      <button (click)="publish()" [disabled]="publishing() || !titulo"
+        class="flex w-full items-center justify-center gap-2 rounded-btn bg-primary py-3 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition disabled:cursor-not-allowed disabled:opacity-50">
+        @if (publishing()) {
+          <mat-icon class="animate-spin text-[18px]">progress_activity</mat-icon> Publicando…
+        } @else {
+          <mat-icon class="text-[18px]">publish</mat-icon> Publicar Banner
+        }
+      </button>
+
+    </aside>
+
+    <!-- ─── CANVAS AREA ───────────────────────────────────────────────── -->
+    <div class="min-w-0 flex-1">
+      <div class="overflow-x-auto rounded-xl bg-[#121212] p-6">
+        <!-- Etiqueta de tamaño -->
+        <p class="mb-3 text-center text-xs font-medium text-white/40">
+          {{ mode() === 'desktop' ? '860 × 300 px — Escritorio' : '390 × 250 px — Móvil' }}
+        </p>
+
+        <!-- Canvas centrado en el área oscura -->
+        <div class="flex justify-center">
+          <div class="relative">
+            <!-- Sombra decorativa -->
+            <div class="absolute inset-0 rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.6)] pointer-events-none"></div>
+            <canvas #canvasEl class="block rounded-lg"></canvas>
+          </div>
+        </div>
+
+        <!-- Instrucciones -->
+        <p class="mt-4 text-center text-[11px] text-white/30">
+          Haz clic para seleccionar · Doble clic en texto para editar · Arrastra para mover · Usa las esquinas para escalar
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -35,10 +35,16 @@ export class ProductForm implements OnInit {
     {label: this.editId() ? 'Editar producto' : 'Nuevo producto'},
   ]);
 
-  // Imagen
+  // Imagen principal
   readonly uploading = signal(false);
   readonly uploadError = signal<string | null>(null);
   readonly dragging = signal(false);
+
+  // Galería de imágenes adicionales
+  readonly imagenesAdicionales = signal<string[]>([]);
+  readonly nuevaImagenUrl = signal('');
+  readonly uploadingAdicional = signal(false);
+  readonly uploadErrorAdicional = signal<string | null>(null);
 
   readonly categorias = signal<CategoriaResponse[]>([]);
   readonly saving = signal(false);
@@ -70,6 +76,17 @@ export class ProductForm implements OnInit {
     visibleEcommerce: [true],
     controlLotes: [true],
     permitirDescuentos: [false],
+    // Información nutricional
+    ingredientes: [''],
+    pesoNeto: [''],
+    porcionRecomendada: [''],
+    caloriasXPorcion: [null as number | null],
+    proteinasXPorcion: [null as number | null],
+    carbohidratosXPorcion: [null as number | null],
+    grasasXPorcion: [null as number | null],
+    fibrasXPorcion: [null as number | null],
+    alergenos: [''],
+    certificaciones: [''],
   });
 
   private readonly value = toSignal(this.form.valueChanges, {
@@ -113,6 +130,47 @@ export class ProductForm implements OnInit {
   quitarImagen(): void {
     this.form.controls.urlImagen.setValue('');
     this.uploadError.set(null);
+  }
+
+  agregarImagenAdicional(): void {
+    const url = this.nuevaImagenUrl().trim();
+    if (!url) return;
+    this.imagenesAdicionales.update(list => [...list, url]);
+    this.nuevaImagenUrl.set('');
+  }
+
+  quitarImagenAdicional(idx: number): void {
+    this.imagenesAdicionales.update(list => list.filter((_, i) => i !== idx));
+  }
+
+  onFileSelectedAdicional(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.subirImagenAdicional(file);
+    input.value = '';
+  }
+
+  private subirImagenAdicional(file: File): void {
+    this.uploadErrorAdicional.set(null);
+    if (!file.type.startsWith('image/')) {
+      this.uploadErrorAdicional.set('El archivo debe ser una imagen.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadErrorAdicional.set('La imagen no puede superar 5MB.');
+      return;
+    }
+    this.uploadingAdicional.set(true);
+    this.uploadService.subirImagen(file).subscribe({
+      next: (res) => {
+        this.uploadingAdicional.set(false);
+        this.imagenesAdicionales.update(list => [...list, res.url]);
+      },
+      error: (err) => {
+        this.uploadingAdicional.set(false);
+        this.uploadErrorAdicional.set(err?.error?.message ?? 'No se pudo subir la imagen.');
+      },
+    });
   }
 
   private subirImagen(file: File): void {
@@ -163,15 +221,27 @@ export class ProductForm implements OnInit {
       next: (p) => {
         this.loadingProducto.set(false);
         this.form.patchValue({
-          nombre:       p.nombre,
-          descripcion:  p.descripcion   ?? '',
-          categoriaId:  p.categoriaId,
-          urlImagen:    p.urlImagen     ?? '',
-          precioCompra: p.precioCompra  ?? null,
-          stockMinimo:  p.stockMinimo   ?? null,
-          stockCritico: p.stockCritico  ?? null,
-          activo:       p.estado === 'ACTIVO',
+          nombre:                p.nombre,
+          descripcion:           p.descripcion           ?? '',
+          categoriaId:           p.categoriaId,
+          urlImagen:             p.urlImagen             ?? '',
+          precioCompra:          p.precioCompra          ?? null,
+          stockMinimo:           p.stockMinimo           ?? null,
+          stockCritico:          p.stockCritico          ?? null,
+          activo:                p.estado === 'ACTIVO',
+          visibleEcommerce:      p.visibleEcommerce      ?? false,
+          ingredientes:          p.ingredientes          ?? '',
+          pesoNeto:              p.pesoNeto              ?? '',
+          porcionRecomendada:    p.porcionRecomendada    ?? '',
+          caloriasXPorcion:      p.caloriasXPorcion      ?? null,
+          proteinasXPorcion:     p.proteinasXPorcion     ?? null,
+          carbohidratosXPorcion: p.carbohidratosXPorcion ?? null,
+          grasasXPorcion:        p.grasasXPorcion        ?? null,
+          fibrasXPorcion:        p.fibrasXPorcion        ?? null,
+          alergenos:             p.alergenos             ?? '',
+          certificaciones:       p.certificaciones       ?? '',
         });
+        this.imagenesAdicionales.set(p.imagenesAdicionales ?? []);
       },
       error: () => {
         this.loadingProducto.set(false);
@@ -229,14 +299,26 @@ export class ProductForm implements OnInit {
 
     const v = this.form.getRawValue();
     const payload = {
-      categoriaId: v.categoriaId,
-      nombre: v.nombre,
-      descripcion: v.descripcion || undefined,
-      urlImagen: v.urlImagen || undefined,
-      precioCompra: v.precioCompra ?? null,
-      stockMinimo:  v.stockMinimo  ?? null,
-      stockCritico: v.stockCritico ?? null,
-      estado: (v.activo ? 'ACTIVO' : 'INACTIVO') as 'ACTIVO' | 'INACTIVO',
+      categoriaId:           v.categoriaId,
+      nombre:                v.nombre,
+      descripcion:           v.descripcion || undefined,
+      urlImagen:             v.urlImagen || undefined,
+      precioCompra:          v.precioCompra          ?? null,
+      stockMinimo:           v.stockMinimo           ?? null,
+      stockCritico:          v.stockCritico          ?? null,
+      estado:                (v.activo ? 'ACTIVO' : 'INACTIVO') as 'ACTIVO' | 'INACTIVO',
+      visibleEcommerce:      v.visibleEcommerce,
+      ingredientes:          v.ingredientes          || null,
+      pesoNeto:              v.pesoNeto              || null,
+      porcionRecomendada:    v.porcionRecomendada    || null,
+      caloriasXPorcion:      v.caloriasXPorcion      ?? null,
+      proteinasXPorcion:     v.proteinasXPorcion     ?? null,
+      carbohidratosXPorcion: v.carbohidratosXPorcion ?? null,
+      grasasXPorcion:        v.grasasXPorcion        ?? null,
+      fibrasXPorcion:        v.fibrasXPorcion        ?? null,
+      alergenos:             v.alergenos             || null,
+      certificaciones:       v.certificaciones       || null,
+      imagenesAdicionales:   this.imagenesAdicionales(),
     };
 
     this.saving.set(true);

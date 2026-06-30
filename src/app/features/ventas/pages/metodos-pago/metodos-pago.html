@@ -6,7 +6,7 @@
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-[28px] font-bold text-text-main">Métodos de Pago</h1>
-      <p class="text-sm text-text-muted">Configura los métodos aceptados en el POS y cotizaciones</p>
+      <p class="text-sm text-text-muted">Configura los datos que verá el cliente al seleccionar cada método en el ecommerce</p>
     </div>
     <button
       (click)="abrirCrear()"
@@ -25,7 +25,9 @@
   }
 
   @if (!loading() && metodos().length === 0) {
-    <app-empty-state icono="payments" titulo="Sin métodos configurados" descripcion="Agrega el primer método de pago para empezar a registrar ventas." labelCta="Nuevo método" (cta)="abrirCrear()" />
+    <app-empty-state icono="payments" titulo="Sin métodos configurados"
+      descripcion="Agrega el primer método de pago para empezar a registrar ventas."
+      labelCta="Nuevo método" (cta)="abrirCrear()" />
   }
 
   <!-- Lista -->
@@ -36,32 +38,60 @@
   } @else if (metodos().length > 0) {
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       @for (m of metodos(); track m.id) {
-        <div class="group flex items-center gap-4 rounded-xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-md"
+        <div class="group flex items-start gap-4 rounded-xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-md"
           [class.opacity-50]="m.estado === 'INACTIVO'">
+
           <!-- Icono -->
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl mt-0.5"
             style="background:color-mix(in srgb,var(--color-primary,#16a34a) 12%,white)">
-            <mat-icon style="color:var(--color-primary,#16a34a)">{{ metodoIcono(m.nombre) }}</mat-icon>
+            <mat-icon style="color:var(--color-primary,#16a34a)">{{ tipoIcono(m.tipo) }}</mat-icon>
           </div>
 
           <!-- Info -->
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-text-main truncate">{{ m.nombre }}</p>
-            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
-              [class]="m.estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'">
-              <span class="h-1.5 w-1.5 rounded-full"
-                [class]="m.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
-              {{ m.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
-            </span>
+
+            <div class="mt-1 flex flex-wrap items-center gap-1.5">
+              <!-- Badge tipo -->
+              @if (m.tipo) {
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium {{ tipoColorClass(m.tipo) }}">
+                  {{ tipoLabel(m.tipo) }}
+                </span>
+              }
+              <!-- Badge estado -->
+              <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                [class]="m.estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'">
+                <span class="h-1.5 w-1.5 rounded-full"
+                  [class]="m.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
+                {{ m.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+
+            <!-- Subtítulo: dato clave según tipo -->
+            @if (subtituloCard(m); as sub) {
+              <p class="mt-1 text-xs text-text-muted truncate">{{ sub }}</p>
+            }
+
+            <!-- Indicador QR configurado -->
+            @if ((m.tipo === 'YAPE' || m.tipo === 'PLIN') && m.urlQr) {
+              <p class="mt-0.5 flex items-center gap-1 text-xs text-green-600">
+                <mat-icon class="text-[13px]">qr_code</mat-icon> QR configurado
+              </p>
+            }
+            @if (m.tipo === 'TRANSFERENCIA' && m.numeroCuenta) {
+              <p class="mt-0.5 flex items-center gap-1 text-xs text-blue-600">
+                <mat-icon class="text-[13px]">receipt</mat-icon> Cuenta: {{ m.numeroCuenta }}
+              </p>
+            }
           </div>
 
           <!-- Acciones -->
-          <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition">
+          <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
             <button (click)="abrirEditar(m)" title="Editar"
               class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
               <mat-icon class="text-[16px]">edit</mat-icon>
             </button>
-            <button (click)="toggleEstado(m)" title="{{ m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}"
+            <button (click)="toggleEstado(m)" [title]="m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'"
               class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
               <mat-icon class="text-[16px]">{{ m.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off' }}</mat-icon>
             </button>
@@ -70,38 +100,144 @@
               <mat-icon class="text-[16px]">delete</mat-icon>
             </button>
           </div>
+
         </div>
       }
     </div>
   }
 </div>
 
-<!-- Modal crear / editar -->
+<!-- ── Modal crear / editar ── -->
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarModal()">
-    <div class="w-full max-w-sm rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+  <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 py-8"
+    (click)="cerrarModal()">
+    <div class="w-full max-w-lg rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+
+      <!-- Cabecera -->
       <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <h3 class="font-bold text-text-main">
-          {{ editandoId() ? 'Editar método' : 'Nuevo método de pago' }}
+          {{ editandoId() ? 'Editar método de pago' : 'Nuevo método de pago' }}
         </h3>
-        <button (click)="cerrarModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+        <button (click)="cerrarModal()"
+          class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="guardar()" class="p-5 flex flex-col gap-4">
-        <!-- Nombre -->
-        <div>
-          <label class="mb-1 block text-sm font-medium text-text-main">Nombre <span class="text-red-500">*</span></label>
-          <input formControlName="nombre" type="text" placeholder="Ej: Efectivo, Yape, Tarjeta Visa..."
-            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-            [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
-          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
-            <p class="mt-1 text-xs text-red-500">Nombre requerido (mínimo 2 caracteres)</p>
-          }
+
+        <!-- Nombre + Tipo -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2 sm:col-span-1">
+            <label class="mb-1 block text-sm font-medium text-text-main">
+              Nombre <span class="text-red-500">*</span>
+            </label>
+            <input formControlName="nombre" type="text" placeholder="Ej: Yape, Efectivo…"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
+            @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+              <p class="mt-1 text-xs text-red-500">Mínimo 2 caracteres</p>
+            }
+          </div>
+
+          <div class="col-span-2 sm:col-span-1">
+            <label class="mb-1 block text-sm font-medium text-text-main">Tipo</label>
+            <select formControlName="tipo" (change)="onTipoCambio($event)"
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              <option value="">— Sin tipo específico —</option>
+              <option value="YAPE">Yape</option>
+              <option value="PLIN">Plin</option>
+              <option value="TRANSFERENCIA">Transferencia bancaria</option>
+              <option value="TARJETA">Tarjeta de crédito/débito</option>
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
         </div>
 
-        <!-- Estado (solo al editar) -->
+        <!-- ── Campos YAPE / PLIN ── -->
+        @if (muestraQr()) {
+          <div class="rounded-lg border border-purple-100 bg-purple-50/40 p-4 flex flex-col gap-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-purple-600">
+              <mat-icon class="text-[14px] align-middle">phone_android</mat-icon>
+              Datos {{ tipoSel() === 'YAPE' ? 'Yape' : 'Plin' }}
+            </p>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text-main">Número de celular</label>
+              <input formControlName="numeroCelular" type="text" placeholder="Ej: 987654321"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text-main">URL del código QR</label>
+              <input formControlName="urlQr" type="url" placeholder="https://…/qr.png"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+              <p class="mt-1 text-xs text-text-muted">Imagen QR que verá el cliente al pagar</p>
+            </div>
+          </div>
+        }
+
+        <!-- ── Campos TRANSFERENCIA ── -->
+        @if (muestraTransferencia()) {
+          <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-4 flex flex-col gap-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
+              <mat-icon class="text-[14px] align-middle">account_balance</mat-icon>
+              Datos bancarios
+            </p>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-text-main">Nombre del banco</label>
+              <input formControlName="bancoNombre" type="text" placeholder="Ej: BCP, Interbank, Scotiabank…"
+                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text-main">Número de cuenta</label>
+                <input formControlName="numeroCuenta" type="text" placeholder="Ej: 1234567890123"
+                  class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-text-main">CCI (interbancario)</label>
+                <input formControlName="cuentaInterbancaria" type="text" placeholder="Ej: 00212340012345678912"
+                  class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ── Campos TARJETA ── -->
+        @if (tipoSel() === 'TARJETA') {
+          <div class="rounded-lg border border-amber-100 bg-amber-50/40 p-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-600">
+              <mat-icon class="text-[14px] align-middle">credit_card</mat-icon>
+              Tarjeta de crédito / débito
+            </p>
+            <div class="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
+              <mat-icon class="text-amber-500 text-[18px] mt-0.5 shrink-0">info</mat-icon>
+              <p class="text-xs text-amber-700">
+                El procesamiento de pagos con tarjeta vía API de Culqi se implementará próximamente.
+                Por ahora puedes agregar instrucciones manuales en el campo de descripción.
+              </p>
+            </div>
+          </div>
+        }
+
+        <!-- ── Descripción / Instrucciones (TARJETA, EFECTIVO, OTRO) ── -->
+        @if (muestraDescripcion()) {
+          <div>
+            <label class="mb-1 block text-sm font-medium text-text-main">
+              Instrucciones para el cliente
+              <span class="text-text-muted font-normal">(opcional)</span>
+            </label>
+            <textarea formControlName="descripcion" rows="3"
+              placeholder="Ej: Paga en caja al momento de recibir tu pedido..."
+              class="w-full rounded-input border border-border-soft px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"></textarea>
+          </div>
+        }
+
+        <!-- Estado (solo editar) -->
         @if (editandoId()) {
           <div>
             <label class="mb-1 block text-sm font-medium text-text-main">Estado</label>
@@ -130,12 +266,13 @@
             {{ saving() ? 'Guardando…' : 'Guardar' }}
           </button>
         </div>
+
       </form>
     </div>
   </div>
 }
 
-<!-- Confirm eliminar -->
+<!-- ── Confirmar eliminar ── -->
 @if (confirmDelete(); as m) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
     <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">

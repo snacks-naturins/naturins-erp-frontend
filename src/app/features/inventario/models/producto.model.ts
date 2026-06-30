@@ -13,8 +13,21 @@ export interface ProductoResponse {
   precioCompra?: number | null;
   stockMinimo?: number | null;
   stockCritico?: number | null;
+  visibleEcommerce?: boolean | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
+  // Info nutricional
+  ingredientes?: string | null;
+  pesoNeto?: string | null;
+  porcionRecomendada?: string | null;
+  caloriasXPorcion?: number | null;
+  proteinasXPorcion?: number | null;
+  carbohidratosXPorcion?: number | null;
+  grasasXPorcion?: number | null;
+  fibrasXPorcion?: number | null;
+  alergenos?: string | null;
+  certificaciones?: string | null;
+  imagenesAdicionales?: string[];
 }
 
 // POST /api/productos -> request
@@ -27,6 +40,7 @@ export interface CreateProductoRequest {
   stockMinimo?: number | null;
   stockCritico?: number | null;
   estado: EstadoProducto;
+  visibleEcommerce?: boolean;
 }
 
 // PUT /api/productos/{id} -> request
@@ -39,4 +53,17 @@ export interface UpdateProductoRequest {
   stockMinimo?: number | null;
   stockCritico?: number | null;
   estado?: EstadoProducto;
+  visibleEcommerce?: boolean;
+  // Info nutricional
+  ingredientes?: string | null;
+  pesoNeto?: string | null;
+  porcionRecomendada?: string | null;
+  caloriasXPorcion?: number | null;
+  proteinasXPorcion?: number | null;
+  carbohidratosXPorcion?: number | null;
+  grasasXPorcion?: number | null;
+  fibrasXPorcion?: number | null;
+  alergenos?: string | null;
+  certificaciones?: string | null;
+  imagenesAdicionales?: string[];
 }

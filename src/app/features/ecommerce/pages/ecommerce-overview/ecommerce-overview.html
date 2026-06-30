@@ -1,0 +1,102 @@
+<div class="flex flex-col gap-5">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'E-commerce'}]" />
+
+  <div>
+    <h1 class="text-[28px] font-bold text-text-main">E-commerce</h1>
+    <p class="text-sm text-text-muted">Panel de control de la tienda online</p>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    </div>
+  } @else {
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div class="rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="grid h-9 w-9 place-items-center rounded-lg bg-blue-100">
+            <mat-icon class="text-blue-600 text-[20px]">language</mat-icon>
+          </div>
+          <p class="text-xs text-text-muted">Pedidos web</p>
+        </div>
+        <p class="text-3xl font-bold text-text-main">{{ kpiPedidos() }}</p>
+      </div>
+
+      <div class="rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="grid h-9 w-9 place-items-center rounded-lg bg-green-100">
+            <mat-icon class="text-green-600 text-[20px]">payments</mat-icon>
+          </div>
+          <p class="text-xs text-text-muted">Ventas totales</p>
+        </div>
+        <p class="text-2xl font-bold text-text-main">{{ formatMonto(kpiVentas()) }}</p>
+      </div>
+
+      <div class="rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="grid h-9 w-9 place-items-center rounded-lg bg-orange-100">
+            <mat-icon class="text-orange-600 text-[20px]">discount</mat-icon>
+          </div>
+          <p class="text-xs text-text-muted">Cupones activos</p>
+        </div>
+        <p class="text-3xl font-bold text-text-main">{{ kpiCuponesActivos() }}</p>
+      </div>
+
+      <div class="rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="grid h-9 w-9 place-items-center rounded-lg bg-purple-100">
+            <mat-icon class="text-purple-600 text-[20px]">view_carousel</mat-icon>
+          </div>
+          <p class="text-xs text-text-muted">Banners activos</p>
+        </div>
+        <p class="text-3xl font-bold text-text-main">{{ kpiBannersActivos() }}</p>
+      </div>
+    </div>
+
+    <!-- Pedidos por estado -->
+    <div class="rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <h2 class="mb-4 text-sm font-semibold text-text-main">Pedidos por estado</h2>
+      <div class="flex flex-wrap gap-3">
+        @for (item of pedidosPorEstado(); track item.estado) {
+          <div class="flex flex-col items-center gap-1">
+            <span class="rounded-full px-3 py-1 text-xs font-semibold" [class]="estadoColor(item.estado)">
+              {{ estadoLabel(item.estado) }}
+            </span>
+            <span class="text-lg font-bold text-text-main">{{ item.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <a routerLink="/ecommerce/productos"
+        class="flex flex-col items-center gap-2 rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-center hover:shadow-md transition cursor-pointer">
+        <mat-icon class="text-4xl text-primary">grid_view</mat-icon>
+        <span class="text-sm font-semibold text-text-main">Catálogo Web</span>
+        <span class="text-xs text-text-muted">Gestionar visibilidad</span>
+      </a>
+      <a routerLink="/ecommerce/banners"
+        class="flex flex-col items-center gap-2 rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-center hover:shadow-md transition cursor-pointer">
+        <mat-icon class="text-4xl text-purple-500">view_carousel</mat-icon>
+        <span class="text-sm font-semibold text-text-main">Banners</span>
+        <span class="text-xs text-text-muted">Carrusel del home</span>
+      </a>
+      <a routerLink="/ecommerce/cupones"
+        class="flex flex-col items-center gap-2 rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-center hover:shadow-md transition cursor-pointer">
+        <mat-icon class="text-4xl text-orange-500">discount</mat-icon>
+        <span class="text-sm font-semibold text-text-main">Cupones</span>
+        <span class="text-xs text-text-muted">Descuentos y promos</span>
+      </a>
+      <a routerLink="/ecommerce/pedidos"
+        class="flex flex-col items-center gap-2 rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-center hover:shadow-md transition cursor-pointer">
+        <mat-icon class="text-4xl text-blue-500">language</mat-icon>
+        <span class="text-sm font-semibold text-text-main">Pedidos Web</span>
+        <span class="text-xs text-text-muted">Ver pedidos online</span>
+      </a>
+    </div>
+  }
+</div>
