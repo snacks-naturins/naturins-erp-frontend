@@ -4,10 +4,12 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from '../../core/services/auth.service';
 
-interface NavItem {
+export interface NavEntry {
+  kind: 'divider' | 'item';
   label: string;
-  icon: string;
-  route?: string; // si no tiene route => módulo aún no implementado
+  icon?: string;
+  route?: string;
+  soon?: boolean;
 }
 
 @Component({
@@ -20,34 +22,44 @@ export class Sidebar {
   private readonly auth = inject(AuthService);
   readonly user = this.auth.currentUser;
 
-  readonly nav: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Inventario', icon: 'inventory_2', route: '/productos' },
-    { label: 'Presentaciones', icon: 'label', route: '/presentaciones' },
-    { label: 'Lotes', icon: 'inventory', route: '/lotes' },
-    { label: 'Kardex', icon: 'swap_horiz', route: '/kardex' },
-    { label: 'Almacenes', icon: 'warehouse', route: '/almacenes' },
-    { label: 'Materia Prima', icon: 'grass', route: '/materia-prima' },
-    { label: 'Producción', icon: 'precision_manufacturing', route: '/produccion' },
-    { label: 'Compras', icon: 'shopping_cart', route: '/compras' },
-    { label: 'Proveedores', icon: 'local_shipping', route: '/proveedores' },
-    { label: 'POS / Ventas', icon: 'point_of_sale', route: '/pos' },
-    { label: 'Cotizaciones', icon: 'description', route: '/cotizaciones' },
-    { label: 'Pedidos', icon: 'inventory_2', route: '/pedidos' },
-    { label: 'Métodos de Pago', icon: 'payments', route: '/metodos-pago' },
-    { label: 'Clientes', icon: 'groups', route: '/clientes' },
-    { label: 'E-commerce', icon: 'storefront', route: '/ecommerce' },
-    { label: 'Catálogo Web', icon: 'grid_view', route: '/ecommerce/productos' },
-    { label: 'Banners', icon: 'view_carousel', route: '/ecommerce/banners' },
-    { label: 'Cupones', icon: 'discount', route: '/ecommerce/cupones' },
-    { label: 'Descuentos', icon: 'percent', route: '/ecommerce/descuentos' },
-    { label: 'Pedidos Web', icon: 'language', route: '/ecommerce/pedidos' },
-    { label: 'Facturación', icon: 'receipt_long' },
-    { label: 'Empleados', icon: 'badge', route: '/empleados' },
-    { label: 'Roles', icon: 'admin_panel_settings', route: '/roles' },
-    { label: 'Departamentos', icon: 'corporate_fare', route: '/departamentos' },
-    { label: 'Permisos RBAC', icon: 'security', route: '/permisos-rbac' },
-    { label: 'Reportes', icon: 'analytics' },
+  readonly nav: NavEntry[] = [
+    { kind: 'item',    label: 'Dashboard',       icon: 'dashboard',               route: '/dashboard' },
+
+    { kind: 'divider', label: 'Inventario' },
+    { kind: 'item',    label: 'Inventario',       icon: 'inventory_2',             route: '/productos' },
+    { kind: 'item',    label: 'Presentaciones',   icon: 'label',                   route: '/presentaciones' },
+    { kind: 'item',    label: 'Lotes',            icon: 'inventory',               route: '/lotes' },
+    { kind: 'item',    label: 'Kardex',           icon: 'swap_horiz',              route: '/kardex' },
+    { kind: 'item',    label: 'Almacenes',        icon: 'warehouse',               route: '/almacenes' },
+
+    { kind: 'divider', label: 'Producción' },
+    { kind: 'item',    label: 'Materia Prima',    icon: 'grass',                   route: '/materia-prima' },
+    { kind: 'item',    label: 'Producción',       icon: 'precision_manufacturing', route: '/produccion' },
+    { kind: 'item',    label: 'Compras',          icon: 'shopping_cart',           route: '/compras' },
+    { kind: 'item',    label: 'Proveedores',      icon: 'local_shipping',          route: '/proveedores' },
+
+    { kind: 'divider', label: 'Ventas' },
+    { kind: 'item',    label: 'POS / Ventas',     icon: 'point_of_sale',           route: '/pos' },
+    { kind: 'item',    label: 'Cotizaciones',     icon: 'description',             route: '/cotizaciones' },
+    { kind: 'item',    label: 'Pedidos',          icon: 'receipt_long',            route: '/pedidos' },
+    { kind: 'item',    label: 'Clientes',         icon: 'groups',                  route: '/clientes' },
+    { kind: 'item',    label: 'Métodos de Pago',  icon: 'payments',                route: '/metodos-pago' },
+    { kind: 'item',    label: 'Facturación',      icon: 'request_quote',           soon: true },
+
+    { kind: 'divider', label: 'E-commerce' },
+    { kind: 'item',    label: 'Resumen',          icon: 'storefront',              route: '/ecommerce' },
+    { kind: 'item',    label: 'Catálogo Web',     icon: 'grid_view',               route: '/ecommerce/productos' },
+    { kind: 'item',    label: 'Banners',          icon: 'view_carousel',           route: '/ecommerce/banners' },
+    { kind: 'item',    label: 'Cupones',          icon: 'discount',                route: '/ecommerce/cupones' },
+    { kind: 'item',    label: 'Descuentos',       icon: 'percent',                 route: '/ecommerce/descuentos' },
+    { kind: 'item',    label: 'Pedidos Web',      icon: 'language',                route: '/ecommerce/pedidos' },
+
+    { kind: 'divider', label: 'Administración' },
+    { kind: 'item',    label: 'Empleados',        icon: 'badge',                   route: '/empleados' },
+    { kind: 'item',    label: 'Roles',            icon: 'admin_panel_settings',    route: '/roles' },
+    { kind: 'item',    label: 'Departamentos',    icon: 'corporate_fare',          route: '/departamentos' },
+    { kind: 'item',    label: 'Permisos RBAC',    icon: 'security',                route: '/permisos-rbac' },
+    { kind: 'item',    label: 'Reportes',         icon: 'analytics',               soon: true },
   ];
 
   initials(): string {

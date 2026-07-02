@@ -10,6 +10,20 @@ import { AuthService } from '../../../../core/services/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, MatIconModule],
   templateUrl: './login.html',
+  styles: [`
+    @keyframes bubble-rise {
+      0%   { transform: translateY(0) scale(1);    opacity: var(--op-start); }
+      80%  { opacity: var(--op-start); }
+      100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+    }
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      animation: bubble-rise linear infinite;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+  `],
 })
 export class Login {
   private readonly fb = inject(FormBuilder);
