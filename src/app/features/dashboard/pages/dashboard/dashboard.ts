@@ -3,10 +3,16 @@ import {
   Component,
   ElementRef,
   OnDestroy,
+  OnInit,
+  inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Chart, registerables } from 'chart.js';
+
+import { DashboardService } from '../../services/dashboard.service';
+import { DashboardResumen } from '../../models/dashboard.model';
 
 Chart.register(...registerables);
 
@@ -32,13 +38,23 @@ interface Activity {
   tone: string;
 }
 
+const DEFAULT_KPIS: Kpi[] = [
+  { icon: 'payments', value: 'S/ 12,480', label: 'Ventas del día', delta: '12%', deltaUp: true, tone: 'secondary' },
+  { icon: 'trending_up', value: 'S/ 284,900', label: 'Ventas del mes', delta: '8%', deltaUp: true, tone: 'accent' },
+  { icon: 'inventory_2', value: '3,240 u', label: 'Productos vendidos', delta: '5%', deltaUp: true, tone: 'info' },
+  { icon: 'pending_actions', value: '18', label: 'Pedidos pendientes', delta: '4 hoy', deltaUp: true, tone: 'secondary' },
+  { icon: 'precision_manufacturing', value: '6 OP', label: 'Producción activa', delta: 'En curso', deltaUp: true, tone: 'info' },
+  { icon: 'warning_amber', value: '9 ítems', label: 'Stock crítico', delta: 'Atención', deltaUp: false, tone: 'danger' },
+];
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [MatIconModule],
   templateUrl: './dashboard.html',
 })
-export class Dashboard implements AfterViewInit, OnDestroy {
+export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
+  private readonly service = inject(DashboardService);
   private readonly salesRef =
     viewChild<ElementRef<HTMLCanvasElement>>('salesChart');
   private readonly invRef =
@@ -46,21 +62,14 @@ export class Dashboard implements AfterViewInit, OnDestroy {
 
   private charts: Chart[] = [];
 
+  readonly kpis = signal<Kpi[]>(DEFAULT_KPIS);
+
   readonly hoy = new Date().toLocaleDateString('es-PE', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
-
-  readonly kpis: Kpi[] = [
-    { icon: 'payments', value: 'S/ 12,480', label: 'Ventas del día', delta: '12%', deltaUp: true, tone: 'secondary' },
-    { icon: 'trending_up', value: 'S/ 284,900', label: 'Ventas del mes', delta: '8%', deltaUp: true, tone: 'accent' },
-    { icon: 'inventory_2', value: '3,240 u', label: 'Productos vendidos', delta: '5%', deltaUp: true, tone: 'info' },
-    { icon: 'pending_actions', value: '18', label: 'Pedidos pendientes', delta: '4 hoy', deltaUp: true, tone: 'secondary' },
-    { icon: 'precision_manufacturing', value: '6 OP', label: 'Producción activa', delta: 'En curso', deltaUp: true, tone: 'info' },
-    { icon: 'warning_amber', value: '9 ítems', label: 'Stock crítico', delta: 'Atención', deltaUp: false, tone: 'danger' },
-  ];
 
   readonly topProducts: TopProduct[] = [
     { name: 'Mix Frutos Secos 200g', pct: 92, color: '#9B4D00' },
@@ -87,6 +96,30 @@ export class Dashboard implements AfterViewInit, OnDestroy {
       danger: 'bg-[#FEE2E2] text-[#B91C1C]',
     };
     return map[tone];
+  }
+
+  ngOnInit(): void {
+    this.cargar();
+  }
+
+  private cargar(): void {
+    this.service.getResumen().subscribe({
+      next: (data) => this.kpis.set(this.mapearKpis(data)),
+    });
+  }
+
+  private mapearKpis(data: DashboardResumen): Kpi[] {
+    const moneda = new Intl.NumberFormat('es-PE', {
+      style: 'currency', currency: 'PEN', minimumFractionDigits: 0, maximumFractionDigits: 0,
+    });
+    return [
+      { icon: 'payments', value: 'S/ 12,480', label: 'Ventas del día', delta: '12%', deltaUp: true, tone: 'secondary' },
+      { icon: 'trending_up', value: moneda.format(data.ventasDelMes), label: 'Ventas del mes', delta: '8%', deltaUp: true, tone: 'accent' },
+      { icon: 'inventory_2', value: moneda.format(data.valorInventario), label: 'Valor inventario', delta: '5%', deltaUp: true, tone: 'info' },
+      { icon: 'pending_actions', value: `${data.pedidosPendientesProcesar + data.pedidosPendientesPago}`, label: 'Pedidos pendientes', delta: `${data.pedidosPendientesProcesar} por procesar`, deltaUp: true, tone: 'secondary' },
+      { icon: 'precision_manufacturing', value: `${data.produccionesCompletadasDelMes} OP`, label: 'Producción completada', delta: 'Este mes', deltaUp: true, tone: 'info' },
+      { icon: 'warning_amber', value: `${data.lotesProximosAVencer} ítems`, label: 'Stock crítico', delta: 'Por vencer', deltaUp: false, tone: 'danger' },
+    ];
   }
 
   ngAfterViewInit(): void {
