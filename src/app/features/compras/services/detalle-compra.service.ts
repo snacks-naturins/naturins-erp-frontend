@@ -22,6 +22,10 @@ export class DetalleCompraService {
     return this.http.post<DetalleCompraResponse>(this.API_URL, dto);
   }
 
+  crearBulk(dtos: CreateDetalleCompraRequest[]): Observable<DetalleCompraResponse[]> {
+    return this.http.post<DetalleCompraResponse[]>(`${this.API_URL}/bulk`, dtos);
+  }
+
   actualizar(id: string, dto: UpdateDetalleCompraRequest): Observable<DetalleCompraResponse> {
     return this.http.put<DetalleCompraResponse>(`${this.API_URL}/${id}`, dto);
   }

@@ -10,6 +10,7 @@ export interface ProduccionResponse {
   costoTotal: number;
   observacion?: string | null;
   estado: EstadoProduccion | string;
+  recetaId?: string | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }

@@ -144,7 +144,9 @@ export class Almacenes implements OnInit {
   private generarZonas(pct: number): Zona[] {
     const total = 40;
     const bloqueados = 3;
-    const ocupadosTotal = Math.round((pct / 100) * (total - bloqueados));
+    const maxOcupables = total - bloqueados;
+    // Clamp so overcapacity (pct > 100) never produces a negative libre count
+    const ocupadosTotal = Math.min(Math.round((pct / 100) * maxOcupables), maxOcupables);
     const llenos = Math.floor(ocupadosTotal * 0.35);
     const ocupados = ocupadosTotal - llenos;
 
@@ -152,7 +154,7 @@ export class Almacenes implements OnInit {
       ...Array<ZonaEstado>(bloqueados).fill('bloqueado'),
       ...Array<ZonaEstado>(llenos).fill('lleno'),
       ...Array<ZonaEstado>(ocupados).fill('ocupado'),
-      ...Array<ZonaEstado>(total - bloqueados - ocupadosTotal).fill('libre'),
+      ...Array<ZonaEstado>(maxOcupables - ocupadosTotal).fill('libre'),
     ];
     // distribución pseudo-aleatoria determinista
     const shuffled = estados.map((e, i) => ({ e, sort: (i * 2654435761) % total }))

@@ -336,16 +336,15 @@ export class Pos implements OnInit {
           ? { direccionEntrega: this.direccionEntrega().trim() } : {}),
     }).subscribe({
       next: (pedido) => {
-        forkJoin(this.carrito().map((item) =>
-          this.svcDetalle.crear({
-            pedidoId: pedido.id,
-            presentacionProductoId: item.presentacion.id,
-            loteId: item.lote.id,
-            precioUnitario: item.presentacion.precioVenta,
-            cantidad: item.cantidad,
-            descuento: 0,
-          })
-        )).subscribe({
+        const detalles = this.carrito().map((item) => ({
+          pedidoId: pedido.id,
+          presentacionProductoId: item.presentacion.id,
+          loteId: item.lote.id,
+          precioUnitario: item.presentacion.precioVenta,
+          cantidad: item.cantidad,
+          descuento: 0,
+        }));
+        this.svcDetalle.crearBulk(detalles).subscribe({
           next: () => {
             this.svcPedido.confirmar(pedido.id).subscribe({
               next: () => {

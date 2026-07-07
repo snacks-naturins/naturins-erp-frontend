@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MateriaPrimaService } from '../../services/materia-prima.service';
@@ -16,19 +17,20 @@ import { debouncedSignal } from '../../../../shared/utils/debounce';
   templateUrl: './materias-primas.html',
 })
 export class MateriasPrimas implements OnInit {
-  private readonly fb = inject(FormBuilder);
+  private readonly fb      = inject(FormBuilder);
   private readonly service = inject(MateriaPrimaService);
+  private readonly router  = inject(Router);
 
   // ── Lista ──────────────────────────────────────────────────
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly items = signal<MateriaPrimaResponse[]>([]);
-  readonly search = signal('');
+  readonly error   = signal<string | null>(null);
+  readonly items   = signal<MateriaPrimaResponse[]>([]);
+  readonly search  = signal('');
   readonly searchDebounced = debouncedSignal(this.search);
-  readonly filtroEstado = signal<string>('TODOS');
+  readonly filtroEstado    = signal<string>('TODOS');
 
   readonly filtrados = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
+    const q      = this.searchDebounced().toLowerCase().trim();
     const estado = this.filtroEstado();
     return this.items().filter((m) => {
       const matchQ = !q || m.nombre.toLowerCase().includes(q) || m.unidadMedida.toLowerCase().includes(q);
@@ -38,32 +40,36 @@ export class MateriasPrimas implements OnInit {
   });
 
   // ── Stats ──────────────────────────────────────────────────
-  readonly totalActivas = computed(() => this.items().filter((m) => m.estado === 'ACTIVO').length);
+  readonly totalActivas   = computed(() => this.items().filter((m) => m.estado === 'ACTIVO').length);
   readonly totalInactivas = computed(() => this.items().filter((m) => m.estado === 'INACTIVO').length);
-  readonly stockTotalLabel = computed(() => {
-    const total = this.items().reduce((s, m) => s + (m.stock ?? 0), 0);
-    return total.toFixed(2);
-  });
+  readonly totalAgotadas  = computed(() => this.items().filter((m) => m.estado === 'AGOTADO').length);
+  readonly bajoMinimo     = computed(() =>
+    this.items().filter((m) =>
+      m.estado === 'ACTIVO' && m.stockMinimo != null && m.stock <= m.stockMinimo
+    ).length
+  );
 
   // ── Modal crear/editar ─────────────────────────────────────
-  readonly modalOpen = signal(false);
-  readonly saving = signal(false);
-  readonly formError = signal<string | null>(null);
-  readonly editId = signal<string | null>(null);
+  readonly modalOpen  = signal(false);
+  readonly saving     = signal(false);
+  readonly formError  = signal<string | null>(null);
+  readonly editId     = signal<string | null>(null);
   readonly editNombre = signal('');
 
   readonly form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.maxLength(120)]],
+    nombre:       ['', [Validators.required, Validators.maxLength(120)]],
     unidadMedida: ['', [Validators.required, Validators.maxLength(20)]],
-    stock: [0 as number, [Validators.required, Validators.min(0)]],
-    costoUnitario: [0 as number, [Validators.required, Validators.min(0)]],
-    estado: ['ACTIVO' as EstadoMateriaPrima, [Validators.required]],
+    stock:        [0 as number, [Validators.required, Validators.min(0)]],
+    costoUnitario:[0 as number, [Validators.required, Validators.min(0)]],
+    estado:       ['ACTIVO' as EstadoMateriaPrima, [Validators.required]],
+    stockMinimo:  [null as number | null],
+    stockCritico: [null as number | null],
   });
 
   // ── Modal eliminar ─────────────────────────────────────────
   readonly deleteTarget = signal<MateriaPrimaResponse | null>(null);
-  readonly deleting = signal(false);
-  readonly deleteError = signal<string | null>(null);
+  readonly deleting     = signal(false);
+  readonly deleteError  = signal<string | null>(null);
 
   // ── Lifecycle ──────────────────────────────────────────────
   ngOnInit(): void { this.cargar(); }
@@ -72,8 +78,8 @@ export class MateriasPrimas implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.service.listar().subscribe({
-      next: (d) => { this.items.set(d); this.loading.set(false); },
-      error: () => { this.error.set('No se pudieron cargar las materias primas.'); this.loading.set(false); },
+      next:  (d) => { this.items.set(d); this.loading.set(false); },
+      error: ()  => { this.error.set('No se pudieron cargar las materias primas.'); this.loading.set(false); },
     });
   }
 
@@ -85,9 +91,9 @@ export class MateriasPrimas implements OnInit {
 
   // ── Helpers visuales ───────────────────────────────────────
   estadoBadge(e: string): { label: string; classes: string } {
-    return e === 'ACTIVO'
-      ? { label: 'Activo',   classes: 'bg-green-100 text-green-700' }
-      : { label: 'Inactivo', classes: 'bg-gray-100 text-gray-500' };
+    if (e === 'ACTIVO')   return { label: 'Activo',   classes: 'bg-green-100 text-green-700' };
+    if (e === 'AGOTADO')  return { label: 'Agotado',  classes: 'bg-red-100 text-red-700' };
+    return { label: 'Inactivo', classes: 'bg-gray-100 text-gray-500' };
   }
 
   stockLabel(v: number): string {
@@ -98,10 +104,25 @@ export class MateriasPrimas implements OnInit {
     return `S/ ${v.toFixed(2)}`;
   }
 
-  stockClass(v: number): string {
-    if (v === 0) return 'text-red-600 font-semibold';
-    if (v < 10)  return 'text-amber-600 font-semibold';
+  nivelStock(m: MateriaPrimaResponse): 'critico' | 'bajo' | 'normal' {
+    if (m.stock <= 0) return 'critico';
+    if (m.stockCritico != null && m.stock <= m.stockCritico) return 'critico';
+    if (m.stockMinimo  != null && m.stock <= m.stockMinimo)  return 'bajo';
+    return 'normal';
+  }
+
+  stockClass(m: MateriaPrimaResponse): string {
+    const nivel = this.nivelStock(m);
+    if (nivel === 'critico') return 'text-red-600 font-semibold';
+    if (nivel === 'bajo')    return 'text-amber-600 font-semibold';
     return 'text-text-main';
+  }
+
+  readonly Math = Math;
+
+  // ── Navegación ─────────────────────────────────────────────
+  verKardex(m: MateriaPrimaResponse): void {
+    this.router.navigate(['/materia-prima', m.id, 'kardex']);
   }
 
   // ── CRUD ───────────────────────────────────────────────────
@@ -109,7 +130,7 @@ export class MateriasPrimas implements OnInit {
     this.editId.set(null);
     this.editNombre.set('');
     this.formError.set(null);
-    this.form.reset({ nombre: '', unidadMedida: '', stock: 0, costoUnitario: 0, estado: 'ACTIVO' });
+    this.form.reset({ nombre: '', unidadMedida: '', stock: 0, costoUnitario: 0, estado: 'ACTIVO', stockMinimo: null, stockCritico: null });
     this.form.controls.nombre.enable();
     this.form.controls.stock.enable();
     this.modalOpen.set(true);
@@ -120,11 +141,13 @@ export class MateriasPrimas implements OnInit {
     this.editNombre.set(m.nombre);
     this.formError.set(null);
     this.form.reset({
-      nombre: m.nombre,
+      nombre:       m.nombre,
       unidadMedida: m.unidadMedida,
-      stock: m.stock,
-      costoUnitario: m.costoUnitario,
-      estado: (m.estado as EstadoMateriaPrima) ?? 'ACTIVO',
+      stock:        m.stock,
+      costoUnitario:m.costoUnitario,
+      estado:       (m.estado as EstadoMateriaPrima) ?? 'ACTIVO',
+      stockMinimo:  m.stockMinimo ?? null,
+      stockCritico: m.stockCritico ?? null,
     });
     this.form.controls.nombre.disable();
     this.form.controls.stock.disable();
@@ -137,25 +160,29 @@ export class MateriasPrimas implements OnInit {
     this.formError.set(null);
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
-    const v = this.form.getRawValue();
+    const v  = this.form.getRawValue();
     const id = this.editId();
 
     const req$ = id
       ? this.service.actualizar(id, {
-          unidadMedida: v.unidadMedida,
+          unidadMedida:  v.unidadMedida,
           costoUnitario: v.costoUnitario,
-          estado: v.estado,
+          estado:        v.estado,
+          stockMinimo:   v.stockMinimo,
+          stockCritico:  v.stockCritico,
         })
       : this.service.crear({
-          nombre: v.nombre,
-          unidadMedida: v.unidadMedida,
-          stock: v.stock,
+          nombre:        v.nombre,
+          unidadMedida:  v.unidadMedida,
+          stock:         v.stock,
           costoUnitario: v.costoUnitario,
-          estado: v.estado,
+          estado:        v.estado,
+          stockMinimo:   v.stockMinimo,
+          stockCritico:  v.stockCritico,
         });
 
     req$.subscribe({
-      next: () => { this.saving.set(false); this.modalOpen.set(false); this.cargar(); },
+      next:  () => { this.saving.set(false); this.modalOpen.set(false); this.cargar(); },
       error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo guardar.'); },
     });
   }

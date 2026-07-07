@@ -1,0 +1,208 @@
+<div class="flex flex-col gap-6">
+
+  <!-- ── Breadcrumb ─────────────────────────────────────────── -->
+  <nav class="flex items-center gap-1.5 text-xs text-text-muted">
+    <a routerLink="/dashboard" class="hover:text-primary">Inicio</a>
+    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">chevron_right</mat-icon>
+    <a routerLink="/materia-prima" class="hover:text-primary">Materia Prima</a>
+    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">chevron_right</mat-icon>
+    <span class="text-text-main font-medium">{{ mp()?.nombre ?? '...' }}</span>
+    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">chevron_right</mat-icon>
+    <span class="text-text-main font-medium">Kardex</span>
+  </nav>
+
+  <!-- ── Header con info de la materia prima ────────────────── -->
+  @if (loadingMp()) {
+    <div class="flex h-24 items-center justify-center gap-2 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+    </div>
+  } @else if (errorMp()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMp() }}</div>
+  } @else if (mp(); as m) {
+    <div class="flex flex-wrap items-center gap-5 rounded-2xl bg-white p-5 shadow-sm">
+
+      <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+        [class]="nivelStock(m) === 'critico' ? 'bg-red-100' : nivelStock(m) === 'bajo' ? 'bg-amber-100' : 'bg-green-100'">
+        <mat-icon fontSet="material-icons-outlined" class="text-[24px]! h-6! w-6!"
+          [class]="nivelStock(m) === 'critico' ? 'text-red-600' : nivelStock(m) === 'bajo' ? 'text-amber-600' : 'text-green-700'">grass</mat-icon>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-xl font-bold text-text-main">{{ m.nombre }}</h1>
+          <span class="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+            [class]="m.estado === 'ACTIVO' ? 'bg-green-100 text-green-700' : m.estado === 'AGOTADO' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'">
+            {{ m.estado === 'ACTIVO' ? 'Activo' : m.estado === 'AGOTADO' ? 'Agotado' : 'Inactivo' }}
+          </span>
+        </div>
+        <p class="text-sm text-text-muted mt-0.5">Unidad: {{ m.unidadMedida }} · Costo: S/ {{ m.costoUnitario.toFixed(2) }}</p>
+      </div>
+
+      <!-- Stock cards -->
+      <div class="flex flex-wrap gap-4">
+        <div class="flex flex-col items-center rounded-xl px-5 py-3"
+          [class]="nivelStock(m) === 'critico' ? 'bg-red-50 ring-1 ring-red-200' : nivelStock(m) === 'bajo' ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-green-50 ring-1 ring-green-200'">
+          <span class="text-2xl font-bold"
+            [class]="nivelStock(m) === 'critico' ? 'text-red-600' : nivelStock(m) === 'bajo' ? 'text-amber-600' : 'text-green-700'">
+            {{ m.stock.toFixed(3).replace(/\.?0+$/, '') }}
+          </span>
+          <span class="text-xs text-text-muted">{{ m.unidadMedida }} en stock</span>
+        </div>
+
+        @if (m.stockMinimo != null) {
+          <div class="flex flex-col items-center rounded-xl bg-amber-50 px-5 py-3 ring-1 ring-amber-200">
+            <span class="text-2xl font-bold text-amber-600">
+              {{ m.stockMinimo.toFixed(3).replace(/\.?0+$/, '') }}
+            </span>
+            <span class="text-xs text-text-muted">mínimo</span>
+          </div>
+        }
+
+        @if (m.stockCritico != null) {
+          <div class="flex flex-col items-center rounded-xl bg-red-50 px-5 py-3 ring-1 ring-red-200">
+            <span class="text-2xl font-bold text-red-500">
+              {{ m.stockCritico.toFixed(3).replace(/\.?0+$/, '') }}
+            </span>
+            <span class="text-xs text-text-muted">crítico</span>
+          </div>
+        }
+      </div>
+
+      <button (click)="volver()"
+        class="flex items-center gap-1.5 rounded-lg border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-muted transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">arrow_back</mat-icon>
+        Volver
+      </button>
+    </div>
+  }
+
+  <!-- ── Filtro por fecha ────────────────────────────────────── -->
+  <div class="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm">
+    <div>
+      <label class="mb-1 block text-xs font-semibold text-text-main">Desde</label>
+      <input type="date" [value]="desde()" (input)="onDesde($event)"
+        class="h-10 rounded-lg border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+    </div>
+    <div>
+      <label class="mb-1 block text-xs font-semibold text-text-main">Hasta</label>
+      <input type="date" [value]="hasta()" (input)="onHasta($event)"
+        class="h-10 rounded-lg border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+    </div>
+    <button (click)="filtrarPorFecha()" [disabled]="!desde() || !hasta() || filtrando()"
+      class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50">
+      @if (filtrando()) {
+        <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">refresh</mat-icon>
+      } @else {
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">filter_list</mat-icon>
+      }
+      Filtrar
+    </button>
+    @if (desde() || hasta()) {
+      <button (click)="limpiarFiltro()"
+        class="flex h-10 items-center gap-1.5 rounded-lg border border-border-soft px-4 text-sm text-text-muted transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">close</mat-icon>
+        Limpiar
+      </button>
+    }
+    <span class="ml-auto text-xs text-text-muted self-end pb-2">
+      {{ movimientos().length }} movimiento{{ movimientos().length !== 1 ? 's' : '' }}
+    </span>
+  </div>
+
+  <!-- ── Tabla de movimientos ────────────────────────────────── -->
+  @if (loadingMov()) {
+    <div class="flex h-40 items-center justify-center gap-2 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+      Cargando movimientos...
+    </div>
+  } @else if (errorMov()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMov() }}</div>
+  } @else {
+    <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+      @if (movimientos().length === 0) {
+        <div class="flex flex-col items-center gap-3 py-20 text-center text-text-muted">
+          <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">receipt_long</mat-icon>
+          <p class="text-sm">No hay movimientos registrados para este período.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border-soft bg-bg-app text-left text-xs text-text-muted">
+                <th class="px-5 py-3 font-semibold">Fecha</th>
+                <th class="px-5 py-3 font-semibold">Tipo</th>
+                <th class="px-5 py-3 font-semibold text-right">Cantidad</th>
+                <th class="px-5 py-3 font-semibold text-right">Stock tras mvto.</th>
+                <th class="px-5 py-3 font-semibold">Origen</th>
+                <th class="px-5 py-3 font-semibold">Observación</th>
+                <th class="px-5 py-3 font-semibold">Usuario</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mov of movimientos(); track mov.id) {
+                <tr class="border-b border-border-soft transition last:border-0 hover:bg-bg-app/50">
+
+                  <!-- Fecha -->
+                  <td class="px-5 py-3.5 text-xs text-text-muted whitespace-nowrap">
+                    {{ fechaLabel(mov.fechaCreacion) }}
+                  </td>
+
+                  <!-- Tipo -->
+                  <td class="px-5 py-3.5">
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                      [class]="tipoBadge(mov.tipo).classes">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[12px]! h-3! w-3!">{{ tipoBadge(mov.tipo).icon }}</mat-icon>
+                      {{ tipoBadge(mov.tipo).label }}
+                    </span>
+                  </td>
+
+                  <!-- Cantidad -->
+                  <td class="px-5 py-3.5 text-right font-mono" [class]="cantidadClass(mov)">
+                    {{ cantidadLabel(mov) }}
+                    <span class="ml-0.5 text-xs text-text-muted font-sans">{{ mp()?.unidadMedida }}</span>
+                  </td>
+
+                  <!-- Stock resultante -->
+                  <td class="px-5 py-3.5 text-right font-mono text-text-main">
+                    @if (mov.stockResultante != null) {
+                      {{ mov.stockResultante.toFixed(3).replace(/\.?0+$/, '') }}
+                      <span class="ml-0.5 text-xs text-text-muted font-sans">{{ mp()?.unidadMedida }}</span>
+                    } @else {
+                      <span class="text-text-muted">—</span>
+                    }
+                  </td>
+
+                  <!-- Origen -->
+                  <td class="px-5 py-3.5">
+                    @if (mov.tipoReferencia) {
+                      <span class="inline-flex items-center gap-1 rounded-md bg-bg-app px-2 py-0.5 text-xs text-text-muted">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[12px]! h-3! w-3!">
+                          {{ mov.tipoReferencia === 'COMPRA' ? 'shopping_cart' : 'precision_manufacturing' }}
+                        </mat-icon>
+                        {{ origenLabel(mov) }}
+                      </span>
+                    } @else {
+                      <span class="text-xs text-text-muted">Manual</span>
+                    }
+                  </td>
+
+                  <!-- Observación -->
+                  <td class="px-5 py-3.5 text-xs text-text-muted max-w-[180px] truncate">
+                    {{ mov.observacion ?? '—' }}
+                  </td>
+
+                  <!-- Usuario -->
+                  <td class="px-5 py-3.5 text-xs text-text-muted">
+                    {{ mov.nombreUsuario }}
+                  </td>
+
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+</div>

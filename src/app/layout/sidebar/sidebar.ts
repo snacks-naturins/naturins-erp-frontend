@@ -35,6 +35,7 @@ export class Sidebar {
     { kind: 'divider', label: 'Producción' },
     { kind: 'item',    label: 'Materia Prima',    icon: 'grass',                   route: '/materia-prima' },
     { kind: 'item',    label: 'Producción',       icon: 'precision_manufacturing', route: '/produccion' },
+    { kind: 'item',    label: 'Recetas',          icon: 'menu_book',               route: '/recetas' },
     { kind: 'item',    label: 'Compras',          icon: 'shopping_cart',           route: '/compras' },
     { kind: 'item',    label: 'Proveedores',      icon: 'local_shipping',          route: '/proveedores' },
 

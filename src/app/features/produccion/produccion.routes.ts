@@ -14,4 +14,10 @@ export const PRODUCCION_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/produccion-detalle/produccion-detalle').then((m) => m.ProduccionDetalle),
   },
+  {
+    path: 'recetas',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/recetas/recetas').then((m) => m.Recetas),
+  },
 ];

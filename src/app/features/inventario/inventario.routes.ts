@@ -51,4 +51,10 @@ export const INVENTARIO_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/materias-primas/materias-primas').then((m) => m.MateriasPrimas),
   },
+  {
+    path: 'materia-prima/:id/kardex',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/materia-prima-kardex/materia-prima-kardex').then((m) => m.MateriaPrimaKardex),
+  },
 ];

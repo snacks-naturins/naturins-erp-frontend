@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { forkJoin } from 'rxjs';
 
 import { CompraService } from '../../services/compra.service';
 import { DetalleCompraService } from '../../services/detalle-compra.service';
@@ -186,16 +185,14 @@ export class CompraDetalle implements OnInit {
     this.savingAgregar.set(true);
     this.errorAgregar.set(null);
 
-    forkJoin(
-      validas.map((l) =>
-        this.detalleService.crear({
-          compraId: compra.id,
-          materiaPrimaId: l.item.materiaPrimaId,
-          cantidad: parseFloat(l.cantidad),
-          precioCompra: parseFloat(l.precioCompra),
-        }),
-      ),
-    ).subscribe({
+    const payload = validas.map((l) => ({
+      compraId: compra.id,
+      materiaPrimaId: l.item.materiaPrimaId,
+      cantidad: parseFloat(l.cantidad),
+      precioCompra: parseFloat(l.precioCompra),
+    }));
+
+    this.detalleService.crearBulk(payload).subscribe({
       next: () => {
         this.savingAgregar.set(false);
         this.modalAgregar.set(false);

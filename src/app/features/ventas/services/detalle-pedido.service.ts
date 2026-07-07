@@ -14,6 +14,10 @@ export class DetallePedidoService {
     return this.http.post<DetallePedidoResponse>(this.API_URL, dto);
   }
 
+  crearBulk(dtos: CreateDetallePedidoRequest[]): Observable<DetallePedidoResponse[]> {
+    return this.http.post<DetallePedidoResponse[]>(`${this.API_URL}/bulk`, dtos);
+  }
+
   porPedido(pedidoId: string): Observable<DetallePedidoResponse[]> {
     return this.http.get<DetallePedidoResponse[]>(`${this.API_URL}/por-pedido/${pedidoId}`);
   }
