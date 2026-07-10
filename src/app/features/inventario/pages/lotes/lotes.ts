@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +10,7 @@ import { LoteResponse } from '../../models/lote.model';
 import { PresentacionResponse } from '../../models/presentacion.model';
 import { AlmacenResponse } from '../../models/almacen.model';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { exportToCsv } from '../../../../shared/utils/export-csv';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
 
@@ -45,7 +46,7 @@ export class Lotes implements OnInit {
     fechaFabricacion: [''],
     fechaIngreso: [''],
     fechaVencimiento: [''],
-    stockLote: [0, [Validators.required, Validators.min(0)]],
+    stockLote: [0, [Validators.required, Validators.min(0.001)]],
     costoUnitario: [0, [Validators.required, Validators.min(0)]],
   });
 
@@ -68,6 +69,21 @@ export class Lotes implements OnInit {
         (l.nombreAlmacen ?? '').toLowerCase().includes(q),
     );
   });
+
+  readonly PAGE_SIZE    = 25;
+  readonly pagina       = signal(0);
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtrados().length / this.PAGE_SIZE)));
+  readonly paginados    = computed(() => {
+    const p = this.pagina();
+    return this.filtrados().slice(p * this.PAGE_SIZE, (p + 1) * this.PAGE_SIZE);
+  });
+
+  constructor() {
+    effect(() => {
+      this.searchDebounced();
+      this.pagina.set(0);
+    }, { allowSignalWrites: true });
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -269,4 +285,17 @@ export class Lotes implements OnInit {
     if (v >= 1000) return `S/ ${(v / 1000).toFixed(1)}K`;
     return `S/ ${v.toFixed(2)}`;
   });
+
+  exportar(): void {
+    exportToCsv('lotes.csv', this.filtrados(), [
+      { header: 'Código lote',        value: (l) => l.codigoLote },
+      { header: 'Producto',           value: (l) => l.nombreProducto },
+      { header: 'Almacén',            value: (l) => l.nombreAlmacen },
+      { header: 'Stock',              value: (l) => l.stockLote },
+      { header: 'Costo unitario',     value: (l) => l.costoUnitario },
+      { header: 'Estado',             value: (l) => l.estado },
+      { header: 'Fecha ingreso',      value: (l) => l.fechaIngreso ?? '' },
+      { header: 'Fecha vencimiento',  value: (l) => l.fechaVencimiento ?? '' },
+    ]);
+  }
 }

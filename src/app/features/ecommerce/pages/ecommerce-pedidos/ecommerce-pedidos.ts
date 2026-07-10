@@ -64,7 +64,7 @@ export class EcommercePedidos implements OnInit {
     }
     req$.subscribe({
       next: () => { this.accionando.set(null); this.detalleOpen.set(null); this.cargar(); },
-      error: () => this.accionando.set(null),
+      error: () => { this.accionando.set(null); this.error.set('No se pudo avanzar el pedido.'); },
     });
   }
 
@@ -72,7 +72,7 @@ export class EcommercePedidos implements OnInit {
     this.accionando.set(p.id);
     this.svc.cancelar(p.id).subscribe({
       next: () => { this.accionando.set(null); this.detalleOpen.set(null); this.cargar(); },
-      error: () => this.accionando.set(null),
+      error: () => { this.accionando.set(null); this.error.set('No se pudo cancelar el pedido.'); },
     });
   }
 

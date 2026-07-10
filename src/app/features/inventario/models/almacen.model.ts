@@ -30,5 +30,5 @@ export interface CreateAlmacenRequest {
 
 export type UpdateAlmacenRequest = Partial<CreateAlmacenRequest>;
 
-export type ZonaEstado = 'libre' | 'ocupado' | 'lleno' | 'bloqueado';
+export type ZonaEstado = 'libre' | 'ocupado' | 'lleno';
 export interface Zona { id: string; estado: ZonaEstado; }

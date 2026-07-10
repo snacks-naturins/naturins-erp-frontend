@@ -7,10 +7,12 @@
       <h1 class="text-[28px] font-bold text-text-main">Clientes</h1>
       <p class="text-sm text-text-muted">{{ items().length }} clientes registrados</p>
     </div>
-    <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon fontSet="material-icons-outlined">person_add</mat-icon>
-      Nuevo cliente
-    </button>
+    @if ('Clientes' | rbac:'crear') {
+      <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon fontSet="material-icons-outlined">person_add</mat-icon>
+        Nuevo cliente
+      </button>
+    }
   </div>
 
   <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
@@ -73,6 +75,9 @@
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-center gap-1">
+                  <button (click)="abrirHistorial(c)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-secondary" title="Ver pedidos">
+                    <mat-icon fontSet="material-icons-outlined">receipt_long</mat-icon>
+                  </button>
                   <button (click)="abrirEditar(c)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
                     <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
                   </button>
@@ -222,6 +227,81 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+<!-- Modal historial de pedidos -->
+@if (fichaPedidos(); as c) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarHistorial()">
+    <div class="max-h-[85vh] w-full max-w-[700px] overflow-hidden flex flex-col rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <div>
+          <h3 class="text-lg font-semibold text-text-main">Historial de pedidos</h3>
+          <p class="text-xs text-text-muted">{{ c.razonSocial || c.nombreCompleto }}</p>
+        </div>
+        <button (click)="cerrarHistorial()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto">
+        @if (loadingPedidos()) {
+          <div class="flex items-center justify-center py-16 gap-3 text-text-muted">
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+            <span class="text-sm">Cargando pedidos...</span>
+          </div>
+        } @else if (errorPedidos()) {
+          <p class="px-6 py-10 text-center text-sm text-[#B91C1C]">{{ errorPedidos() }}</p>
+        } @else if (pedidosCliente().length === 0) {
+          <div class="flex flex-col items-center justify-center gap-3 py-16 text-text-muted">
+            <mat-icon fontSet="material-icons-outlined" class="text-[40px] opacity-40">receipt</mat-icon>
+            <p class="text-sm">Este cliente no tiene pedidos registrados.</p>
+          </div>
+        } @else {
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
+                <th class="px-5 py-2.5 font-semibold">N° Pedido</th>
+                <th class="px-5 py-2.5 font-semibold">Fecha</th>
+                <th class="px-5 py-2.5 font-semibold">Estado</th>
+                <th class="px-5 py-2.5 font-semibold">Pago</th>
+                <th class="px-5 py-2.5 text-right font-semibold">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of pedidosCliente(); track p.id) {
+                <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE]">
+                  <td class="px-5 py-2.5 font-medium text-primary">{{ p.numeroPedido }}</td>
+                  <td class="px-5 py-2.5 text-text-muted">{{ p.fechaCreacion | fecha:'corto' }}</td>
+                  <td class="px-5 py-2.5">
+                    <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                      [class]="{
+                        'NUEVO': 'bg-blue-100 text-blue-700',
+                        'CONFIRMADO': 'bg-indigo-100 text-indigo-700',
+                        'EN_PREPARACION': 'bg-orange-100 text-orange-700',
+                        'LISTO_DESPACHO': 'bg-amber-100 text-amber-700',
+                        'ENTREGADO': 'bg-green-100 text-green-700',
+                        'CANCELADO': 'bg-red-100 text-red-600'
+                      }[p.estado] ?? 'bg-gray-100 text-gray-600'">
+                      {{ p.estado.replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-2.5">
+                    <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                      [class]="p.estadoPago === 'PAGADO' ? 'bg-green-100 text-green-700' : p.estadoPago === 'PARCIAL' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'">
+                      {{ p.estadoPago }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-2.5 text-right font-semibold text-text-main">S/ {{ p.total | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+      <div class="border-t border-border-soft px-6 py-3 text-xs text-text-muted">
+        {{ pedidosCliente().length }} pedido(s) en total
+      </div>
     </div>
   </div>
 }

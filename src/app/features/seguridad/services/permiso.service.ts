@@ -18,6 +18,10 @@ export class PermisoService {
     return this.http.get<RolModuloResponse[]>(`${this.ROL_MOD_URL}/por-rol/${rolId}`);
   }
 
+  misPermisos(): Observable<RolModuloResponse[]> {
+    return this.http.get<RolModuloResponse[]>(`${this.ROL_MOD_URL}/mis-permisos`);
+  }
+
   actualizarBulk(rolId: string, body: BulkActualizarPermisosRequest): Observable<RolModuloResponse[]> {
     return this.http.put<RolModuloResponse[]>(`${this.ROL_MOD_URL}/por-rol/${rolId}`, body);
   }

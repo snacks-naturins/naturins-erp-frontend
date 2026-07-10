@@ -20,7 +20,7 @@
   } @else if (op()) {
 
     <!-- ── Header ── -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm p-6">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -51,21 +51,21 @@
           <div class="flex gap-2 flex-wrap justify-end">
             @if (canCancel()) {
               <button (click)="abrirCancelar()"
-                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-500 border border-red-200 rounded-btn hover:bg-red-50 transition-colors">
                 <mat-icon class="text-[14px] leading-none">cancel</mat-icon>
                 Cancelar OP
               </button>
             }
             @if (isPlanificada()) {
               <button (click)="abrirIniciar()"
-                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-600 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors">
+                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-600 border border-amber-200 rounded-btn hover:bg-amber-50 transition-colors">
                 <mat-icon class="text-[14px] leading-none">play_arrow</mat-icon>
                 Iniciar
               </button>
             }
             @if (canComplete()) {
               <button (click)="abrirCompletar()"
-                class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors">
                 <mat-icon class="text-[14px] leading-none">check_circle</mat-icon>
                 Completar OP
               </button>
@@ -76,17 +76,17 @@
     </div>
 
     <!-- ── Tabs ── -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm overflow-hidden">
 
       <!-- Tab bar -->
-      <div class="flex border-b border-gray-100">
+      <div class="flex border-b border-border-soft">
         <button (click)="setTab('insumos')"
           [class]="activeTab() === 'insumos'
             ? 'flex-1 py-3 text-sm font-semibold text-primary border-b-2 border-primary -mb-px'
             : 'flex-1 py-3 text-sm text-text-muted hover:text-text-main transition-colors'">
           <div class="flex items-center justify-center gap-2">
             <mat-icon class="text-[16px]">input</mat-icon>
-            Insumos ({{ insumos().length }})
+            Insumos
           </div>
         </button>
         <button (click)="setTab('salidas')"
@@ -95,7 +95,7 @@
             : 'flex-1 py-3 text-sm text-text-muted hover:text-text-main transition-colors'">
           <div class="flex items-center justify-center gap-2">
             <mat-icon class="text-[16px]">output</mat-icon>
-            Salidas ({{ salidas().length }})
+            Salidas
           </div>
         </button>
         @if (showMermas()) {
@@ -105,381 +105,32 @@
               : 'flex-1 py-3 text-sm text-text-muted hover:text-text-main transition-colors'">
             <div class="flex items-center justify-center gap-2">
               <mat-icon class="text-[16px]">delete_sweep</mat-icon>
-              Mermas ({{ mermas().length }})
+              Mermas
             </div>
           </button>
         }
       </div>
 
-      <!-- ─────── TAB INSUMOS ─────── -->
+      <!-- Tab content via subcomponents -->
       @if (activeTab() === 'insumos') {
-        <div>
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-            <p class="text-sm text-text-muted">Materias primas que se consumen en esta producción</p>
-            @if (canEdit()) {
-              <button (click)="abrirModalInsumos()"
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-                <mat-icon class="text-[14px] leading-none">add</mat-icon>
-                Agregar insumos
-              </button>
-            }
-          </div>
-
-          @if (loadingInsumos()) {
-            <div class="flex items-center justify-center py-12 gap-2 text-text-muted">
-              <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
-              <span class="text-sm">Cargando...</span>
-            </div>
-          } @else if (insumos().length === 0) {
-            <div class="flex flex-col items-center justify-center py-14 gap-2 text-text-muted">
-              <mat-icon class="text-[40px] text-gray-200">grass</mat-icon>
-              <p class="text-sm font-medium">Sin insumos definidos</p>
-              @if (canEdit()) { <p class="text-xs">Agrega las materias primas que se usarán</p> }
-            </div>
-          } @else {
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Materia Prima</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Costo unitario</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Subtotal</th>
-                  @if (canEdit()) {
-                    <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
-                  }
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-50">
-                @for (ins of insumos(); track ins.id) {
-                  <tr class="hover:bg-gray-50/40 transition-colors">
-                    <td class="px-4 py-3 font-medium text-text-main">{{ ins.nombreMateriaPrima }}</td>
-                    <td class="px-4 py-3 text-right text-text-main">{{ formatNum(ins.cantidadUsada) }}</td>
-                    <td class="px-4 py-3 text-right text-text-muted">{{ formatMonto(ins.costoUnitario) }}</td>
-                    <td class="px-4 py-3 text-right font-semibold text-text-main">{{ costoInsumoSubtotal(ins) }}</td>
-                    @if (canEdit()) {
-                      <td class="px-4 py-3 text-right">
-                        <div class="flex items-center justify-end gap-1">
-                          <button (click)="abrirEditInsumo(ins)" class="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                            <mat-icon class="text-[16px]">edit</mat-icon>
-                          </button>
-                          <button (click)="pedirEliminarInsumo(ins)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <mat-icon class="text-[16px]">delete_outline</mat-icon>
-                          </button>
-                        </div>
-                      </td>
-                    }
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </div>
+        <app-insumo-tab [opId]="op()!.id" [canEdit]="canEdit()" (refresh)="refrescarOP()" />
       }
-
-      <!-- ─────── TAB SALIDAS ─────── -->
       @if (activeTab() === 'salidas') {
-        <div>
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-            <p class="text-sm text-text-muted">Productos terminados que genera esta producción</p>
-            @if (canEdit()) {
-              <button (click)="abrirModalSalidas()"
-                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-                <mat-icon class="text-[14px] leading-none">add</mat-icon>
-                Agregar salidas
-              </button>
-            }
-          </div>
-
-          @if (loadingSalidas()) {
-            <div class="flex items-center justify-center py-12 gap-2 text-text-muted">
-              <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
-              <span class="text-sm">Cargando...</span>
-            </div>
-          } @else if (salidas().length === 0) {
-            <div class="flex flex-col items-center justify-center py-14 gap-2 text-text-muted">
-              <mat-icon class="text-[40px] text-gray-200">inventory_2</mat-icon>
-              <p class="text-sm font-medium">Sin salidas definidas</p>
-              @if (canEdit()) { <p class="text-xs">Agrega los productos que se van a fabricar</p> }
-            </div>
-          } @else {
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Producto / Presentación</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad a producir</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Costo unitario</th>
-                  @if (canEdit()) {
-                    <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
-                  }
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-50">
-                @for (sal of salidas(); track sal.id) {
-                  <tr class="hover:bg-gray-50/40 transition-colors">
-                    <td class="px-4 py-3 font-medium text-text-main">{{ sal.nombrePresentacionProducto }}</td>
-                    <td class="px-4 py-3 text-right text-text-main font-semibold">{{ formatNum(sal.cantidadProducida) }}</td>
-                    <td class="px-4 py-3 text-right text-text-muted">
-                      {{ sal.costoUnitario != null ? formatMonto(sal.costoUnitario) : '— (se calcula al completar)' }}
-                    </td>
-                    @if (canEdit()) {
-                      <td class="px-4 py-3 text-right">
-                        <div class="flex items-center justify-end gap-1">
-                          <button (click)="abrirEditSalida(sal)" class="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                            <mat-icon class="text-[16px]">edit</mat-icon>
-                          </button>
-                          <button (click)="pedirEliminarSalida(sal)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <mat-icon class="text-[16px]">delete_outline</mat-icon>
-                          </button>
-                        </div>
-                      </td>
-                    }
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </div>
+        <app-salida-tab [opId]="op()!.id" [canEdit]="canEdit()" />
       }
-
-      <!-- ─────── TAB MERMAS ─────── -->
       @if (activeTab() === 'mermas' && showMermas()) {
-        <div>
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-            <p class="text-sm text-text-muted">Mermas registradas sobre los lotes generados</p>
-            <button (click)="abrirModalMerma()"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-              <mat-icon class="text-[14px] leading-none">add</mat-icon>
-              Registrar merma
-            </button>
-          </div>
-
-          @if (loadingMermas()) {
-            <div class="flex items-center justify-center py-12 gap-2 text-text-muted">
-              <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
-              <span class="text-sm">Cargando...</span>
-            </div>
-          } @else if (mermas().length === 0) {
-            <div class="flex flex-col items-center justify-center py-14 gap-2 text-text-muted">
-              <mat-icon class="text-[40px] text-gray-200">delete_sweep</mat-icon>
-              <p class="text-sm font-medium">Sin mermas registradas</p>
-            </div>
-          } @else {
-            <table class="w-full text-sm">
-              <thead class="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Lote</th>
-                  <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Tipo</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad</th>
-                  <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Observación</th>
-                  <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-50">
-                @for (m of mermas(); track m.id) {
-                  <tr class="hover:bg-gray-50/40">
-                    <td class="px-4 py-3 font-mono text-xs text-text-main">{{ m.codigoLote }}</td>
-                    <td class="px-4 py-3">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">{{ m.tipo }}</span>
-                    </td>
-                    <td class="px-4 py-3 text-right font-semibold text-red-500">{{ formatNum(m.cantidad) }}</td>
-                    <td class="px-4 py-3 text-text-muted text-xs">{{ m.observacion || '—' }}</td>
-                    <td class="px-4 py-3 text-right">
-                      <button (click)="pedirEliminarMerma(m)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <mat-icon class="text-[16px]">delete_outline</mat-icon>
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-        </div>
+        <app-merma-tab [opId]="op()!.id" />
       }
 
     </div>
   }
 </div>
 
-<!-- ═══════════ MODAL AGREGAR INSUMOS (cards) ═══════════ -->
-@if (modalInsumos()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-        <div>
-          <h2 class="text-base font-semibold text-text-main">Agregar insumos</h2>
-          <p class="text-xs text-text-muted mt-0.5">Selecciona las materias primas que se consumirán</p>
-        </div>
-        <button (click)="cerrarModalInsumos()" class="text-gray-400 hover:text-gray-600 transition-colors"><mat-icon>close</mat-icon></button>
-      </div>
-      @if (errorInsumos()) {
-        <div class="mx-6 mt-4 bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2 shrink-0">
-          <mat-icon class="text-[16px]">error_outline</mat-icon>{{ errorInsumos() }}
-        </div>
-      }
-      <div class="flex-1 overflow-y-auto px-6 py-4">
-        <div class="grid grid-cols-2 gap-3">
-          @for (mp of materiasPrimas(); track mp.id) {
-            @if (isInsumoSelected(mp.id)) {
-              <div class="border-2 border-primary rounded-xl bg-primary/[0.03] p-3">
-                <div class="flex items-start justify-between mb-2">
-                  <div>
-                    <p class="text-sm font-semibold text-text-main">{{ mp.nombre }}</p>
-                    <p class="text-xs text-text-muted">{{ mp.unidadMedida }} · Stock: {{ formatNum(mp.stock) }}</p>
-                  </div>
-                  <button (click)="toggleInsumo(mp)" class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-red-100 hover:text-red-500 transition-colors shrink-0">
-                    <mat-icon class="text-[12px]">close</mat-icon>
-                  </button>
-                </div>
-                <p class="text-xs text-blue-600 mb-2">Costo ref: <strong>{{ formatMonto(mp.costoUnitario) }}</strong></p>
-                <div class="grid grid-cols-2 gap-2" (click)="$event.stopPropagation()">
-                  <div>
-                    <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Cantidad *</label>
-                    <input type="number" step="0.001" min="0.001" placeholder="0.000"
-                      [value]="getLineaInsumo(mp.id)?.cantidad ?? ''"
-                      (input)="setInsumoQty(mp.id, $event)"
-                      class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Costo S/ *</label>
-                    <input type="number" step="0.01" min="0.01" placeholder="0.00"
-                      [value]="getLineaInsumo(mp.id)?.costo ?? ''"
-                      (input)="setInsumoCosto(mp.id, $event)"
-                      class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
-                  </div>
-                </div>
-              </div>
-            } @else {
-              <div (click)="toggleInsumo(mp)"
-                class="border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors group">
-                <p class="text-sm font-medium text-text-main">{{ mp.nombre }}</p>
-                <p class="text-xs text-text-muted mb-1.5">{{ mp.unidadMedida }}</p>
-                <div class="flex items-center justify-between">
-                  <span class="text-xs text-text-muted">Stock: {{ formatNum(mp.stock) }} · S/ {{ mp.costoUnitario?.toFixed(2) }}</span>
-                  <span class="text-[10px] text-gray-300 group-hover:text-primary transition-colors font-medium">+ Agregar</span>
-                </div>
-              </div>
-            }
-          }
-        </div>
-      </div>
-      <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50/50 rounded-b-2xl">
-        <p class="text-sm text-text-muted">
-          @if (lineasInsumos().length === 0) { Ninguno seleccionado }
-          @else {
-            <span class="font-semibold text-primary">{{ lineasInsumos().length }}</span> seleccionado{{ lineasInsumos().length > 1 ? 's' : '' }}
-            &nbsp;·&nbsp;
-            <span [class]="lineasInsumosValidas().length < lineasInsumos().length ? 'text-amber-500' : 'text-green-600'">
-              {{ lineasInsumosValidas().length }} listo{{ lineasInsumosValidas().length !== 1 ? 's' : '' }}
-            </span>
-          }
-        </p>
-        <div class="flex gap-3">
-          <button (click)="cerrarModalInsumos()" class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-white transition-colors">Cancelar</button>
-          <button (click)="guardarInsumos()" [disabled]="savingInsumos() || lineasInsumosValidas().length === 0"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
-            @if (savingInsumos()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Guardando... }
-            @else { <mat-icon class="text-[16px]">add</mat-icon> Agregar ({{ lineasInsumosValidas().length }}) }
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- ═══════════ MODAL AGREGAR SALIDAS (cards) ═══════════ -->
-@if (modalSalidas()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-        <div>
-          <h2 class="text-base font-semibold text-text-main">Agregar salidas</h2>
-          <p class="text-xs text-text-muted mt-0.5">Selecciona los productos que se van a fabricar</p>
-        </div>
-        <button (click)="cerrarModalSalidas()" class="text-gray-400 hover:text-gray-600"><mat-icon>close</mat-icon></button>
-      </div>
-      @if (errorSalidas()) {
-        <div class="mx-6 mt-4 bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2 shrink-0">
-          <mat-icon class="text-[16px]">error_outline</mat-icon>{{ errorSalidas() }}
-        </div>
-      }
-      <div class="flex-1 overflow-y-auto px-6 py-4">
-        @if (loadingPresentaciones()) {
-          <div class="flex items-center justify-center py-8 gap-2 text-text-muted">
-            <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
-            <span class="text-sm">Cargando presentaciones...</span>
-          </div>
-        } @else if (presentaciones().length === 0) {
-          <div class="flex flex-col items-center justify-center py-10 gap-3 text-text-muted">
-            <mat-icon class="text-[40px] text-gray-200">inventory_2</mat-icon>
-            <p class="text-sm font-medium">No hay presentaciones disponibles</p>
-            <p class="text-xs text-center max-w-[240px]">Primero crea productos en <strong>Inventario</strong> y luego agrégales presentaciones en la sección <strong>Presentaciones</strong> del menú.</p>
-          </div>
-        } @else {
-          <div class="grid grid-cols-2 gap-3">
-            @for (pres of presentaciones(); track pres.id) {
-              @if (isSalidaSelected(pres.id)) {
-                <div class="border-2 border-primary rounded-xl bg-primary/[0.03] p-3">
-                  <div class="flex items-start justify-between mb-2">
-                    <div>
-                      <p class="text-sm font-semibold text-text-main">{{ pres.nombre }}</p>
-                      <p class="text-xs text-text-muted">{{ pres.nombreProducto }}</p>
-                    </div>
-                    <button (click)="toggleSalida(pres)" class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-red-100 hover:text-red-500 transition-colors shrink-0">
-                      <mat-icon class="text-[12px]">close</mat-icon>
-                    </button>
-                  </div>
-                  <div (click)="$event.stopPropagation()">
-                    <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Cantidad *</label>
-                    <input type="number" step="0.001" min="0.001" placeholder="0.000"
-                      [value]="getLineaSalida(pres.id)?.cantidad ?? ''"
-                      (input)="setSalidaQty(pres.id, $event)"
-                      class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
-                  </div>
-                </div>
-              } @else {
-                <div (click)="toggleSalida(pres)"
-                  class="border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors group">
-                  <p class="text-sm font-medium text-text-main">{{ pres.nombre }}</p>
-                  <p class="text-xs text-text-muted mb-1.5">{{ pres.nombreProducto }}</p>
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs text-text-muted">S/ {{ pres.precioVenta?.toFixed(2) }}</span>
-                    <span class="text-[10px] text-gray-300 group-hover:text-primary transition-colors font-medium">+ Agregar</span>
-                  </div>
-                </div>
-              }
-            }
-          </div>
-        }
-      </div>
-      <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50/50 rounded-b-2xl">
-        <p class="text-sm text-text-muted">
-          @if (lineasSalidas().length === 0) { Ninguna seleccionada }
-          @else {
-            <span class="font-semibold text-primary">{{ lineasSalidas().length }}</span> seleccionada{{ lineasSalidas().length > 1 ? 's' : '' }}
-            &nbsp;·&nbsp;
-            <span [class]="lineasSalidasValidas().length < lineasSalidas().length ? 'text-amber-500' : 'text-green-600'">
-              {{ lineasSalidasValidas().length }} lista{{ lineasSalidasValidas().length !== 1 ? 's' : '' }}
-            </span>
-          }
-        </p>
-        <div class="flex gap-3">
-          <button (click)="cerrarModalSalidas()" class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-white transition-colors">Cancelar</button>
-          <button (click)="guardarSalidas()" [disabled]="savingSalidas() || lineasSalidasValidas().length === 0"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
-            @if (savingSalidas()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Guardando... }
-            @else { <mat-icon class="text-[16px]">add</mat-icon> Agregar ({{ lineasSalidasValidas().length }}) }
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
 <!-- ═══════════ MODAL COMPLETAR OP ═══════════ -->
 @if (modalCompletar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-md">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
             <mat-icon class="text-green-600 text-[18px]">check_circle</mat-icon>
@@ -496,8 +147,8 @@
         }
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-text-main">Almacén destino <span class="text-red-500">*</span></label>
-          <select (change)="onAlmacen($event)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+          <select (change)="completarAlmacenId.set($any($event.target).value)"
+            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
             <option value="">Selecciona un almacén</option>
             @for (a of almacenes(); track a.id) {
               <option [value]="a.id">{{ a.nombre }}</option>
@@ -506,8 +157,8 @@
         </div>
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-text-main">Fecha de vencimiento</label>
-          <input type="date" (change)="onFechaVen($event)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+          <input type="date" (change)="completarFechaVen.set($any($event.target).value)"
+            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
           <p class="text-xs text-text-muted">Opcional para productos sin vencimiento</p>
         </div>
         <div class="bg-green-50 rounded-lg px-4 py-3 text-xs text-green-700">
@@ -519,9 +170,9 @@
           </ul>
         </div>
         <div class="flex justify-end gap-3 pt-1">
-          <button (click)="cerrarCompletar()" class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
+          <button (click)="cerrarCompletar()" class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">Cancelar</button>
           <button (click)="ejecutarCompletar()" [disabled]="savingCompletar()"
-            class="px-5 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors flex items-center gap-2">
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors flex items-center gap-2">
             @if (savingCompletar()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Procesando... }
             @else { <mat-icon class="text-[16px]">check_circle</mat-icon> Confirmar y completar }
           </button>
@@ -531,150 +182,10 @@
   </div>
 }
 
-<!-- ═══════════ MODAL REGISTRAR MERMA ═══════════ -->
-@if (modalMerma()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-            <mat-icon class="text-amber-500 text-[18px]">delete_sweep</mat-icon>
-          </div>
-          <h2 class="text-base font-semibold text-text-main">Registrar merma</h2>
-        </div>
-        <button (click)="cerrarModalMerma()" class="text-gray-400 hover:text-gray-600"><mat-icon>close</mat-icon></button>
-      </div>
-      <div class="px-6 py-5 space-y-4">
-        @if (errorMerma()) {
-          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
-            <mat-icon class="text-[16px]">error_outline</mat-icon>{{ errorMerma() }}
-          </div>
-        }
-        <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-main">Lote afectado <span class="text-red-500">*</span></label>
-          <select (change)="onMermaLote($event)" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
-            <option value="">Selecciona un lote</option>
-            @for (l of lotesOP(); track l.id) {
-              <option [value]="l.id">{{ l.codigoLote }} — {{ l.nombreProducto }} (stock: {{ formatNum(l.stockLote) }})</option>
-            }
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <label class="block text-sm font-medium text-text-main">Tipo <span class="text-red-500">*</span></label>
-            <select (change)="onMermaTipo($event)" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
-              @for (t of tiposMerma; track t.value) {
-                <option [value]="t.value" [selected]="mermaTipo() === t.value">{{ t.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-sm font-medium text-text-main">Cantidad <span class="text-red-500">*</span></label>
-            <input type="number" step="0.001" min="0.001" placeholder="0.000" (input)="onMermaCantidad($event)"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-          </div>
-        </div>
-        <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-main">Observación</label>
-          <textarea rows="2" (input)="onMermaObs($event)" placeholder="Descripción del motivo (opcional)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"></textarea>
-        </div>
-        <div class="flex justify-end gap-3 pt-1">
-          <button (click)="cerrarModalMerma()" class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
-          <button (click)="guardarMerma()" [disabled]="savingMerma()"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors flex items-center gap-2">
-            @if (savingMerma()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Guardando... }
-            @else { Registrar merma }
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Pequeños modales de edición/confirmación -->
-@if (modalEditInsumo()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-      <h3 class="font-semibold text-text-main">Editar insumo — {{ editInsumoNombre() }}</h3>
-      @if (errorEditInsumo()) { <p class="text-sm text-red-500">{{ errorEditInsumo() }}</p> }
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-text-main block">Cantidad *</label>
-          <input type="number" step="0.001" [value]="editInsumoCant()" (input)="editInsumoCant.set($any($event.target).value)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-        </div>
-        <div class="space-y-1">
-          <label class="text-sm font-medium text-text-main block">Costo S/ *</label>
-          <input type="number" step="0.01" [value]="editInsumoCosto()" (input)="editInsumoCosto.set($any($event.target).value)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-        </div>
-      </div>
-      <div class="flex justify-end gap-3">
-        <button (click)="cerrarEditInsumo()" class="px-4 py-2 text-sm text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
-        <button (click)="guardarEditInsumo()" [disabled]="savingEditInsumo()"
-          class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors">
-          @if (savingEditInsumo()) { Guardando... } @else { Guardar }
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (modalEditSalida()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-      <h3 class="font-semibold text-text-main">Editar salida — {{ editSalidaNombre() }}</h3>
-      @if (errorEditSalida()) { <p class="text-sm text-red-500">{{ errorEditSalida() }}</p> }
-      <div class="space-y-1">
-        <label class="text-sm font-medium text-text-main block">Cantidad a producir *</label>
-        <input type="number" step="0.001" [value]="editSalidaCant()" (input)="editSalidaCant.set($any($event.target).value)"
-          class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
-      </div>
-      <div class="flex justify-end gap-3">
-        <button (click)="cerrarEditSalida()" class="px-4 py-2 text-sm text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
-        <button (click)="guardarEditSalida()" [disabled]="savingEditSalida()"
-          class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors">
-          @if (savingEditSalida()) { Guardando... } @else { Guardar }
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-@for (conf of [
-  { show: insumoToDelete() !== null, nombre: insumoToDelete()?.nombreMateriaPrima, tipo: 'insumo', deleting: deletingInsumo(), err: errorDeleteInsumo(), cancel: cancelarEliminarInsumo.bind(this), confirm: confirmarEliminarInsumo.bind(this) },
-  { show: salidaToDelete() !== null, nombre: salidaToDelete()?.nombrePresentacionProducto, tipo: 'salida', deleting: deletingSalida(), err: errorDeleteSalida(), cancel: cancelarEliminarSalida.bind(this), confirm: confirmarEliminarSalida.bind(this) },
-  { show: mermaToDelete() !== null, nombre: mermaToDelete()?.codigoLote, tipo: 'merma', deleting: deletingMerma(), err: null, cancel: cancelarEliminarMerma.bind(this), confirm: confirmarEliminarMerma.bind(this) }
-]; track conf.tipo) {
-  @if (conf.show) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <mat-icon class="text-red-500">delete_outline</mat-icon>
-          </div>
-          <div>
-            <h3 class="font-semibold text-text-main">Eliminar {{ conf.tipo }}</h3>
-            <p class="text-sm text-text-muted">{{ conf.nombre }}</p>
-          </div>
-        </div>
-        @if (conf.err) { <p class="text-sm text-red-500">{{ conf.err }}</p> }
-        <div class="flex justify-end gap-3">
-          <button (click)="conf.cancel()" class="px-4 py-2 text-sm text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
-          <button (click)="conf.confirm()" [disabled]="conf.deleting"
-            class="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-60 transition-colors flex items-center gap-2">
-            @if (conf.deleting) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> } Eliminar
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-}
-
+<!-- ═══════════ MODAL INICIAR OP ═══════════ -->
 @if (confirmIniciar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
           <mat-icon class="text-amber-500">play_arrow</mat-icon>
@@ -684,7 +195,7 @@
       <p class="text-sm text-text-muted">La orden pasará a estado <strong class="text-amber-700">En Proceso</strong>. Los insumos y salidas ya no se podrán editar.</p>
       @if (errorIniciar()) { <p class="text-sm text-red-500">{{ errorIniciar() }}</p> }
       <div class="flex justify-end gap-3">
-        <button (click)="cerrarIniciar()" class="px-4 py-2 text-sm text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
+        <button (click)="cerrarIniciar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Cancelar</button>
         <button (click)="ejecutarIniciar()" [disabled]="savingIniciar()"
           class="px-5 py-2 text-sm font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-60 transition-colors flex items-center gap-2">
           @if (savingIniciar()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> } <mat-icon class="text-[16px]">play_arrow</mat-icon> Iniciar
@@ -694,9 +205,10 @@
   </div>
 }
 
+<!-- ═══════════ MODAL CANCELAR OP ═══════════ -->
 @if (confirmCancelar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
           <mat-icon class="text-red-500">cancel</mat-icon>
@@ -709,7 +221,7 @@
       <p class="text-sm text-text-muted">La orden quedará <strong class="text-red-600">Cancelada</strong> permanentemente.</p>
       @if (errorCancelar()) { <p class="text-sm text-red-500">{{ errorCancelar() }}</p> }
       <div class="flex justify-end gap-3">
-        <button (click)="cerrarCancelar()" class="px-4 py-2 text-sm text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50">Volver</button>
+        <button (click)="cerrarCancelar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Volver</button>
         <button (click)="ejecutarCancelar()" [disabled]="savingCancelar()"
           class="px-5 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-60 transition-colors flex items-center gap-2">
           @if (savingCancelar()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Cancelando... }

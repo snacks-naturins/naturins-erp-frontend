@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,9 +8,11 @@ import { LoteService } from '../../services/lote.service';
 import {
   MovimientoInventarioResponse,
   TipoMovimientoInventario,
+  TipoReferencia,
 } from '../../models/movimiento.model';
 import { LoteResponse } from '../../models/lote.model';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { exportToCsv } from '../../../../shared/utils/export-csv';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 
 @Component({
@@ -39,7 +41,7 @@ export class Kardex implements OnInit {
     tipoMovimiento: ['ENTRADA' as TipoMovimientoInventario, [Validators.required]],
     cantidad: [0, [Validators.required, Validators.min(0.001)]],
     costoUnitario: [null as number | null],
-    tipoReferencia: [''],
+    tipoReferencia: ['' as TipoReferencia | ''],
     observacion: [''],
   });
 
@@ -58,18 +60,41 @@ export class Kardex implements OnInit {
     return m;
   });
 
+  readonly fechaDesde = signal('');
+  readonly fechaHasta = signal('');
+
   readonly filtrados = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
-    const list = this.items();
-    if (!q) return list;
-    return list.filter((mv) => {
+    const q      = this.searchDebounced().toLowerCase().trim();
+    const desde  = this.fechaDesde();
+    const hasta  = this.fechaHasta();
+    return this.items().filter((mv) => {
       const l = this.loteMap().get(mv.loteId);
-      return (
+      const matchQ = !q ||
         (mv.codigoLote ?? '').toLowerCase().includes(q) ||
-        (l?.nombreProducto ?? '').toLowerCase().includes(q)
-      );
+        (l?.nombreProducto ?? '').toLowerCase().includes(q);
+      const fecha = (mv.fechaCreacion ?? '').slice(0, 10);
+      const matchDesde = !desde || fecha >= desde;
+      const matchHasta = !hasta || fecha <= hasta;
+      return matchQ && matchDesde && matchHasta;
     });
   });
+
+  readonly PAGE_SIZE    = 30;
+  readonly pagina       = signal(0);
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtrados().length / this.PAGE_SIZE)));
+  readonly paginados    = computed(() => {
+    const p = this.pagina();
+    return this.filtrados().slice(p * this.PAGE_SIZE, (p + 1) * this.PAGE_SIZE);
+  });
+
+  constructor() {
+    effect(() => {
+      this.searchDebounced();
+      this.fechaDesde();
+      this.fechaHasta();
+      this.pagina.set(0);
+    }, { allowSignalWrites: true });
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -130,7 +155,7 @@ export class Kardex implements OnInit {
         tipoMovimiento: v.tipoMovimiento,
         cantidad: v.cantidad,
         costoUnitario: v.costoUnitario,
-        tipoReferencia: (v.tipoReferencia || null) as any,
+        tipoReferencia: (v.tipoReferencia as TipoReferencia) || null,
         observacion: v.observacion || null,
       })
       .subscribe({
@@ -139,7 +164,7 @@ export class Kardex implements OnInit {
           this.modalOpen.set(false);
           this.cargar();
           // refresca el stock de los lotes para el select
-          this.loteService.listar().subscribe({ next: (l) => this.lotes.set(l) });
+          this.loteService.listar().subscribe({ next: (l) => this.lotes.set(l), error: () => {} });
         },
         error: (err) => {
           this.saving.set(false);
@@ -169,5 +194,19 @@ export class Kardex implements OnInit {
       icon: 'north_east',
       classes: 'bg-[#FEE2E2] text-[#B91C1C]',
     };
+  }
+
+  exportar(): void {
+    exportToCsv('kardex.csv', this.filtrados(), [
+      { header: 'Fecha',             value: (m) => (m.fechaCreacion ?? '').slice(0, 10) },
+      { header: 'Código lote',       value: (m) => m.codigoLote },
+      { header: 'Producto',          value: (m) => this.loteMap().get(m.loteId)?.nombreProducto ?? '' },
+      { header: 'Tipo movimiento',   value: (m) => m.tipoMovimiento },
+      { header: 'Cantidad',          value: (m) => m.cantidad },
+      { header: 'Stock resultante',  value: (m) => m.stockResultante ?? '' },
+      { header: 'Costo unitario',    value: (m) => m.costoUnitario ?? '' },
+      { header: 'Tipo referencia',   value: (m) => m.tipoReferencia ?? '' },
+      { header: 'Observación',       value: (m) => m.observacion ?? '' },
+    ]);
   }
 }

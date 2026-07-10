@@ -70,7 +70,7 @@
 
   <!-- ===== Panel derecho: formulario ===== -->
   <main class="flex items-center justify-center bg-[#f2ece1] p-8">
-    <div class="w-full max-w-[380px] rounded-2xl bg-white p-9 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
+    <div class="w-full max-w-[380px] rounded-card bg-white p-9 shadow-[0_18px_50px_rgba(0,0,0,0.12)]">
 
       <header class="mb-7">
         <h2 class="mb-1 text-[26px] font-extrabold text-[#2b2b2b]">Bienvenido de nuevo</h2>
@@ -105,7 +105,7 @@
               formControlName="username"
               placeholder="jrodriguez@naturins.pe"
               autocomplete="username"
-              class="h-11 w-full rounded-[10px] border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+              class="h-11 w-full rounded-input border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
             />
           </div>
           @if (form.controls.username.touched && form.controls.username.invalid) {
@@ -131,7 +131,7 @@
               formControlName="password"
               placeholder="••••••••••"
               autocomplete="current-password"
-              class="h-11 w-full rounded-[10px] border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+              class="h-11 w-full rounded-input border border-[#e0d8cb] bg-[#faf7f2] pl-11 pr-4 text-[15px] outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-secondary/30"
             />
           </div>
           @if (form.controls.password.touched && form.controls.password.invalid) {
@@ -156,7 +156,7 @@
         <button
           type="submit"
           [disabled]="loading()"
-          class="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-primary font-bold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+          class="flex h-11 w-full items-center justify-center gap-2 rounded-btn bg-primary font-bold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <mat-icon fontSet="material-icons-outlined" class="text-[18px] leading-none">login</mat-icon>
           {{ loading() ? 'Ingresando...' : 'Ingresar' }}

@@ -19,7 +19,7 @@
   } @else if (errorMp()) {
     <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMp() }}</div>
   } @else if (mp(); as m) {
-    <div class="flex flex-wrap items-center gap-5 rounded-2xl bg-white p-5 shadow-sm">
+    <div class="flex flex-wrap items-center gap-5 rounded-card bg-white p-5 shadow-sm">
 
       <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
         [class]="nivelStock(m) === 'critico' ? 'bg-red-100' : nivelStock(m) === 'bajo' ? 'bg-amber-100' : 'bg-green-100'">
@@ -69,7 +69,7 @@
       </div>
 
       <button (click)="volver()"
-        class="flex items-center gap-1.5 rounded-lg border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-muted transition hover:bg-bg-app">
+        class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 py-2 text-sm font-medium text-text-muted transition hover:bg-bg-app">
         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">arrow_back</mat-icon>
         Volver
       </button>
@@ -77,19 +77,19 @@
   }
 
   <!-- ── Filtro por fecha ────────────────────────────────────── -->
-  <div class="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm">
+  <div class="flex flex-wrap items-end gap-3 rounded-card bg-white p-4 shadow-sm">
     <div>
       <label class="mb-1 block text-xs font-semibold text-text-main">Desde</label>
       <input type="date" [value]="desde()" (input)="onDesde($event)"
-        class="h-10 rounded-lg border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        class="h-10 rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
     </div>
     <div>
       <label class="mb-1 block text-xs font-semibold text-text-main">Hasta</label>
       <input type="date" [value]="hasta()" (input)="onHasta($event)"
-        class="h-10 rounded-lg border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        class="h-10 rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
     </div>
     <button (click)="filtrarPorFecha()" [disabled]="!desde() || !hasta() || filtrando()"
-      class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50">
+      class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50">
       @if (filtrando()) {
         <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">refresh</mat-icon>
       } @else {
@@ -99,7 +99,7 @@
     </button>
     @if (desde() || hasta()) {
       <button (click)="limpiarFiltro()"
-        class="flex h-10 items-center gap-1.5 rounded-lg border border-border-soft px-4 text-sm text-text-muted transition hover:bg-bg-app">
+        class="flex h-10 items-center gap-1.5 rounded-btn border border-border-soft px-4 text-sm text-text-muted transition hover:bg-bg-app">
         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">close</mat-icon>
         Limpiar
       </button>
@@ -118,7 +118,7 @@
   } @else if (errorMov()) {
     <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMov() }}</div>
   } @else {
-    <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+    <div class="overflow-hidden rounded-table bg-white shadow-sm">
       @if (movimientos().length === 0) {
         <div class="flex flex-col items-center gap-3 py-20 text-center text-text-muted">
           <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">receipt_long</mat-icon>

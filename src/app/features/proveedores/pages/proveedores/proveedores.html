@@ -12,7 +12,7 @@
         Proveedores <span class="text-text-muted">({{ items().length }})</span>
       </span>
       <button (click)="abrirCrear()"
-        class="flex h-8 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
+        class="flex h-8 items-center gap-1 rounded-btn bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
         <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
         Nuevo
       </button>
@@ -24,7 +24,7 @@
         <mat-icon fontSet="material-icons-outlined"
           class="pointer-events-none absolute left-2.5 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
         <input type="text" (input)="onSearch($event)" placeholder="Buscar proveedor..."
-          class="h-9 w-full rounded-lg border border-border-soft bg-bg-app pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:bg-white" />
+          class="h-9 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:bg-white" />
       </div>
     </div>
 
@@ -82,7 +82,7 @@
       <div class="flex flex-col gap-5 p-6">
 
         <!-- ─── Tarjeta ficha ──────────────────────────────── -->
-        <div class="rounded-2xl bg-white p-6 shadow-sm">
+        <div class="rounded-card bg-white p-6 shadow-sm">
 
           <!-- Header: avatar + info + editar -->
           <div class="flex items-start gap-4">
@@ -110,7 +110,7 @@
 
             <div class="flex shrink-0 gap-2">
               <button (click)="abrirEditar(sel)"
-                class="flex h-9 items-center gap-1.5 rounded-lg border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+                class="flex h-9 items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
                 <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">edit</mat-icon>
                 Editar
               </button>
@@ -204,7 +204,7 @@
         </div>
 
         <!-- ─── Tabs ───────────────────────────────────────── -->
-        <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+        <div class="overflow-hidden rounded-card bg-white shadow-sm">
 
           <!-- Barra de tabs -->
           <div class="flex border-b border-border-soft px-4">
@@ -231,11 +231,50 @@
 
           <!-- ── Tab: Compras ────────────────────────────── -->
           @if (tabActiva() === 'compras') {
-            <div class="flex flex-col items-center gap-3 py-14 text-center text-text-muted">
-              <mat-icon fontSet="material-icons-outlined" class="text-[40px]! h-10! w-10! opacity-30">shopping_cart</mat-icon>
-              <p class="text-sm">Las órdenes de compra aparecerán aquí</p>
-              <p class="text-xs">Este módulo estará disponible próximamente.</p>
-            </div>
+            @if (loadingCompras()) {
+              <div class="flex h-24 items-center justify-center gap-2 text-text-muted text-sm">
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]!">progress_activity</mat-icon>
+                Cargando órdenes...
+              </div>
+            } @else if (comprasProveedor().length === 0) {
+              <div class="flex flex-col items-center gap-3 py-12 text-center text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="text-[40px]! h-10! w-10! opacity-30">shopping_cart</mat-icon>
+                <p class="text-sm">Sin órdenes de compra para este proveedor.</p>
+              </div>
+            } @else {
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-border-soft bg-bg-app text-left text-xs font-semibold text-text-muted uppercase tracking-wide">
+                      <th class="px-4 py-2.5">N° Orden</th>
+                      <th class="px-4 py-2.5">Fecha</th>
+                      <th class="px-4 py-2.5 text-right">Total</th>
+                      <th class="px-4 py-2.5 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (c of comprasProveedor(); track c.id) {
+                      <tr class="border-b border-border-soft last:border-0 hover:bg-bg-app transition">
+                        <td class="px-4 py-2.5 font-mono font-semibold text-primary text-xs">{{ c.numeroOrden }}</td>
+                        <td class="px-4 py-2.5 text-text-muted text-xs">{{ c.fechaCompra | slice:0:10 }}</td>
+                        <td class="px-4 py-2.5 text-right font-semibold text-text-main">S/ {{ c.total.toFixed(2) }}</td>
+                        <td class="px-4 py-2.5 text-center">
+                          <span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold"
+                            [class]="c.estado === 'COMPLETADA' ? 'bg-green-50 text-green-700' :
+                                     c.estado === 'PENDIENTE'  ? 'bg-amber-50 text-amber-700' :
+                                     c.estado === 'CANCELADA'  ? 'bg-red-50 text-red-600'    :
+                                                                  'bg-blue-50 text-blue-700'">
+                            {{ c.estado === 'COMPLETADA' ? 'Completada' :
+                               c.estado === 'PENDIENTE'  ? 'Pendiente'  :
+                               c.estado === 'CANCELADA'  ? 'Cancelada'  : 'Parcial' }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
           }
 
           <!-- ── Tab: Catálogo ──────────────────────────── -->
@@ -248,7 +287,7 @@
                   {{ catalogo().length }} {{ catalogo().length === 1 ? 'producto' : 'productos' }} en catálogo
                 </span>
                 <button (click)="abrirAgregarCatalogo()"
-                  class="flex h-8 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
+                  class="flex h-8 items-center gap-1 rounded-btn bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
                   <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
                   Agregar producto
                 </button>
@@ -353,7 +392,7 @@
         <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">local_shipping</mat-icon>
         <p class="text-sm">Selecciona un proveedor para ver su ficha</p>
         <button (click)="abrirCrear()"
-          class="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
+          class="flex h-9 items-center gap-1.5 rounded-btn bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
           <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
           Nuevo proveedor
         </button>
@@ -369,7 +408,7 @@
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     (click)="cerrarModal()">
-    <div class="max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-2xl bg-white shadow-2xl"
+    <div class="max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
       <div class="sticky top-0 flex items-center justify-between border-b border-border-soft bg-white px-6 py-4">
@@ -396,7 +435,7 @@
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo de documento</label>
                 <select formControlName="tipoDocumentoId"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
                   <option value="" disabled>Selecciona</option>
                   @for (t of tiposDoc(); track t.id) {
                     <option [value]="t.id">{{ t.nombre }}</option>
@@ -406,37 +445,37 @@
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">N° de documento</label>
                 <input type="text" formControlName="numeroDocumento" placeholder="20512345678"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombres <span class="text-red-500">*</span></label>
                 <input type="text" formControlName="nombres"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Apellidos <span class="text-red-500">*</span></label>
                 <input type="text" formControlName="apellidos"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Teléfono</label>
                 <input type="text" formControlName="telefono"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Correo</label>
                 <input type="email" formControlName="correo"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Dirección</label>
               <input type="text" formControlName="direccion"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           }
 
@@ -445,35 +484,35 @@
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">RUC</label>
               <input type="text" formControlName="ruc" placeholder="20512345678"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Rubro</label>
               <input type="text" formControlName="rubro" placeholder="Insumos, empaques..."
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Razón social</label>
             <input type="text" formControlName="razonSocial" placeholder="Distribuidora ... S.A.C."
-              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Persona de contacto</label>
               <input type="text" formControlName="contacto"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Días de crédito</label>
               <input type="number" formControlName="diasCredito" placeholder="30"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
               <option value="SUSPENDIDO">Suspendido</option>
@@ -484,11 +523,11 @@
 
         <div class="sticky bottom-0 flex justify-end gap-3 border-t border-border-soft bg-white px-6 py-4">
           <button type="button" (click)="cerrarModal()"
-            class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="saving()"
-            class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+            class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
             {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar' : 'Crear proveedor') }}
           </button>
         </div>
@@ -503,7 +542,7 @@
 @if (modalCatalogo()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     (click)="cerrarModalCatalogo()">
-    <div class="w-full max-w-[500px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+    <div class="w-full max-w-[500px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
@@ -537,7 +576,7 @@
                 Materia prima <span class="text-red-500">*</span>
               </label>
               <select formControlName="materiaPrimaId"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
                 <option value="" disabled>Selecciona una materia prima</option>
                 @for (mp of materiasPrimas(); track mp.id) {
                   <option [value]="mp.id">{{ mp.nombre }} ({{ mp.unidadMedida }})</option>
@@ -597,13 +636,13 @@
                 Precio referencial (S/)
               </label>
               <input type="number" step="0.01" formControlName="precioCompra" placeholder="Dejar vacío si no aplica"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               <p class="mt-1 text-[11px] text-text-muted">El precio final se define en cada orden de compra.</p>
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Cantidad mínima</label>
               <input type="number" step="0.001" formControlName="cantidadMinimaCompra" placeholder="Sin mínimo"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
 
@@ -611,12 +650,12 @@
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Tiempo entrega (días)</label>
               <input type="number" formControlName="tiempoEntregaDias" placeholder="Ej. 5"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
               <select formControlName="estado"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
                 <option value="ACTIVO">Activo</option>
                 <option value="INACTIVO">Inactivo</option>
               </select>
@@ -637,23 +676,23 @@
               </label>
               <input type="text" formControlName="motivo"
                 [placeholder]="editCatalogoId() ? 'Ej. Renegociación anual' : 'Ej. Cotización inicial'"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Observación</label>
               <input type="text" formControlName="observacion" placeholder="Notas adicionales..."
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
         </div>
 
         <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
           <button type="button" (click)="cerrarModalCatalogo()"
-            class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="savingCatalogo()"
-            class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+            class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
             {{ savingCatalogo() ? 'Guardando...' : (editCatalogoId() ? 'Actualizar' : 'Agregar') }}
           </button>
         </div>
@@ -668,7 +707,7 @@
 @if (deleteTarget(); as t) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     (click)="cancelarEliminar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
       <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
         <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
@@ -685,11 +724,11 @@
       </div>
       <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarEliminar()"
-          class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-10 items-center rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
           {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
         </button>
       </div>

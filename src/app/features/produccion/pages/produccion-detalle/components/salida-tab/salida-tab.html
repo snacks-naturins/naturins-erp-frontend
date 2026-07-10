@@ -1,0 +1,196 @@
+<div>
+  <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
+    <p class="text-sm text-text-muted">Productos terminados que genera esta producción</p>
+    @if (canEdit) {
+      <button (click)="abrirAgregar()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors">
+        <mat-icon class="text-[14px] leading-none">add</mat-icon>
+        Agregar salidas
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12 gap-2 text-text-muted">
+      <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
+      <span class="text-sm">Cargando...</span>
+    </div>
+  } @else if (salidas().length === 0) {
+    <div class="flex flex-col items-center justify-center py-14 gap-2 text-text-muted">
+      <mat-icon class="text-[40px] text-gray-200">inventory_2</mat-icon>
+      <p class="text-sm font-medium">Sin salidas definidas</p>
+      @if (canEdit) { <p class="text-xs">Agrega los productos que se van a fabricar</p> }
+    </div>
+  } @else {
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-border-soft">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Producto / Presentación</th>
+          <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad a producir</th>
+          <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Costo unitario</th>
+          @if (canEdit) {
+            <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (sal of salidas(); track sal.id) {
+          <tr class="hover:bg-[#FFF8EE]/40 transition-colors">
+            <td class="px-4 py-3 font-medium text-text-main">{{ sal.nombrePresentacionProducto }}</td>
+            <td class="px-4 py-3 text-right text-text-main font-semibold">{{ fmt(sal.cantidadProducida) }}</td>
+            <td class="px-4 py-3 text-right text-text-muted">
+              {{ sal.costoUnitario != null ? fmtMonto(sal.costoUnitario) : '— (se calcula al completar)' }}
+            </td>
+            @if (canEdit) {
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button (click)="abrirEdit(sal)" class="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
+                    <mat-icon class="text-[16px]">edit</mat-icon>
+                  </button>
+                  <button (click)="pedirEliminar(sal)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                    <mat-icon class="text-[16px]">delete_outline</mat-icon>
+                  </button>
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- Modal agregar salidas -->
+@if (modalAgregar()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft shrink-0">
+        <div>
+          <h2 class="text-base font-semibold text-text-main">Agregar salidas</h2>
+          <p class="text-xs text-text-muted mt-0.5">Selecciona los productos que se van a fabricar</p>
+        </div>
+        <button (click)="cerrarAgregar()" class="text-gray-400 hover:text-gray-600"><mat-icon>close</mat-icon></button>
+      </div>
+      @if (error()) {
+        <div class="mx-6 mt-4 bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2 shrink-0">
+          <mat-icon class="text-[16px]">error_outline</mat-icon>{{ error() }}
+        </div>
+      }
+      <div class="flex-1 overflow-y-auto px-6 py-4">
+        @if (loadingPres()) {
+          <div class="flex items-center justify-center py-8 gap-2 text-text-muted">
+            <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
+            <span class="text-sm">Cargando presentaciones...</span>
+          </div>
+        } @else if (presentaciones().length === 0) {
+          <div class="flex flex-col items-center justify-center py-10 gap-3 text-text-muted">
+            <mat-icon class="text-[40px] text-gray-200">inventory_2</mat-icon>
+            <p class="text-sm font-medium">No hay presentaciones disponibles</p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 gap-3">
+            @for (pres of presentaciones(); track pres.id) {
+              @if (isSelected(pres.id)) {
+                <div class="border-2 border-primary rounded-xl bg-primary/[0.03] p-3">
+                  <div class="flex items-start justify-between mb-2">
+                    <div>
+                      <p class="text-sm font-semibold text-text-main">{{ pres.nombre }}</p>
+                      <p class="text-xs text-text-muted">{{ pres.nombreProducto }}</p>
+                    </div>
+                    <button (click)="toggle(pres)" class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-red-100 hover:text-red-500 transition-colors shrink-0">
+                      <mat-icon class="text-[12px]">close</mat-icon>
+                    </button>
+                  </div>
+                  <div (click)="$event.stopPropagation()">
+                    <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Cantidad *</label>
+                    <input type="number" step="0.001" min="0.001" placeholder="0.000"
+                      [value]="getLinea(pres.id)?.cantidad ?? ''"
+                      (input)="setQty(pres.id, $event)"
+                      class="w-full px-2 py-1.5 text-xs border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
+                  </div>
+                </div>
+              } @else {
+                <div (click)="toggle(pres)"
+                  class="border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors group">
+                  <p class="text-sm font-medium text-text-main">{{ pres.nombre }}</p>
+                  <p class="text-xs text-text-muted mb-1.5">{{ pres.nombreProducto }}</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-text-muted">S/ {{ pres.precioVenta?.toFixed(2) }}</span>
+                    <span class="text-[10px] text-gray-300 group-hover:text-primary transition-colors font-medium">+ Agregar</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+      <div class="flex items-center justify-between px-6 py-4 border-t border-border-soft shrink-0 bg-gray-50/50 rounded-b-modal">
+        <p class="text-sm text-text-muted">
+          @if (lineas().length === 0) { Ninguna seleccionada }
+          @else {
+            <span class="font-semibold text-primary">{{ lineas().length }}</span> seleccionada{{ lineas().length > 1 ? 's' : '' }}
+            &nbsp;·&nbsp;
+            <span [class]="lineasValidas().length < lineas().length ? 'text-amber-500' : 'text-green-600'">
+              {{ lineasValidas().length }} lista{{ lineasValidas().length !== 1 ? 's' : '' }}
+            </span>
+          }
+        </p>
+        <div class="flex gap-3">
+          <button (click)="cerrarAgregar()" class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-white transition-colors">Cancelar</button>
+          <button (click)="guardar()" [disabled]="saving() || lineasValidas().length === 0"
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+            @if (saving()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Guardando... }
+            @else { <mat-icon class="text-[16px]">add</mat-icon> Agregar ({{ lineasValidas().length }}) }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal editar salida -->
+@if (modalEdit()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
+      <h3 class="font-semibold text-text-main">Editar salida — {{ editNombre() }}</h3>
+      @if (errorEdit()) { <p class="text-sm text-red-500">{{ errorEdit() }}</p> }
+      <div class="space-y-1">
+        <label class="text-sm font-medium text-text-main block">Cantidad a producir *</label>
+        <input type="number" step="0.001" [value]="editCant()" (input)="editCant.set($any($event.target).value)"
+          class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+      </div>
+      <div class="flex justify-end gap-3">
+        <button (click)="cerrarEdit()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Cancelar</button>
+        <button (click)="guardarEdit()" [disabled]="savingEdit()"
+          class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors">
+          @if (savingEdit()) { Guardando... } @else { Guardar }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal confirmar eliminar salida -->
+@if (deleteTarget()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+          <mat-icon class="text-red-500">delete_outline</mat-icon>
+        </div>
+        <div>
+          <h3 class="font-semibold text-text-main">Eliminar salida</h3>
+          <p class="text-sm text-text-muted">{{ deleteTarget()?.nombrePresentacionProducto }}</p>
+        </div>
+      </div>
+      @if (errorDelete()) { <p class="text-sm text-red-500">{{ errorDelete() }}</p> }
+      <div class="flex justify-end gap-3">
+        <button (click)="cancelarEliminar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Cancelar</button>
+        <button (click)="confirmarEliminar()" [disabled]="deleting()"
+          class="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-60 transition-colors flex items-center gap-2">
+          @if (deleting()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> } Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}

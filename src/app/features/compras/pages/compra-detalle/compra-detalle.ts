@@ -83,6 +83,43 @@ export class CompraDetalle implements OnInit {
   readonly procesandoCancelar = signal(false);
   readonly errorCancelar = signal<string | null>(null);
 
+  // ── Editar info OC (fecha entrega + nro factura) ───────────
+  readonly editOcOpen     = signal(false);
+  readonly editFechaEnt   = signal('');
+  readonly editNroFact    = signal('');
+  readonly savingOcEdit   = signal(false);
+  readonly errorOcEdit    = signal<string | null>(null);
+
+  abrirEditOc(): void {
+    const c = this.compra();
+    if (!c) return;
+    this.editFechaEnt.set(c.fechaEntregaEsperada ?? '');
+    this.editNroFact.set(c.nroFacturaProveedor ?? '');
+    this.errorOcEdit.set(null);
+    this.editOcOpen.set(true);
+  }
+
+  guardarEditOc(): void {
+    const c = this.compra();
+    if (!c || this.savingOcEdit()) return;
+    this.savingOcEdit.set(true);
+    this.errorOcEdit.set(null);
+    this.compraService.actualizar(c.id, {
+      fechaEntregaEsperada: this.editFechaEnt() || null,
+      nroFacturaProveedor: this.editNroFact() || null,
+    }).subscribe({
+      next: (updated) => {
+        this.compra.set(updated);
+        this.savingOcEdit.set(false);
+        this.editOcOpen.set(false);
+      },
+      error: (err) => {
+        this.savingOcEdit.set(false);
+        this.errorOcEdit.set(err?.error?.message ?? 'No se pudo actualizar.');
+      },
+    });
+  }
+
   // ── Lifecycle ──────────────────────────────────────────────
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -108,7 +145,7 @@ export class CompraDetalle implements OnInit {
     this.loadingDetalles.set(true);
     this.detalleService.porCompra(compraId).subscribe({
       next: (d) => { this.detalles.set(d); this.loadingDetalles.set(false); },
-      error: () => this.loadingDetalles.set(false),
+      error: () => { this.loadingDetalles.set(false); this.error.set('Error al cargar los detalles.'); },
     });
   }
 
@@ -117,14 +154,17 @@ export class CompraDetalle implements OnInit {
     this.loadingCatalogo.set(true);
     this.proveedorService.listarCatalogo(proveedorId).subscribe({
       next: (d) => { this.catalogo.set(d.filter((c) => c.estado === 'ACTIVO')); this.loadingCatalogo.set(false); },
-      error: () => this.loadingCatalogo.set(false),
+      error: () => { this.loadingCatalogo.set(false); this.error.set('Error al cargar el catálogo.'); },
     });
   }
 
   private refrescarTodo(): void {
     const c = this.compra();
     if (!c) return;
-    this.compraService.buscarPorId(c.id).subscribe({ next: (u) => this.compra.set(u) });
+    this.compraService.buscarPorId(c.id).subscribe({
+      next: (u) => this.compra.set(u),
+      error: () => { this.error.set('Error al recargar la orden.'); },
+    });
     this.cargarDetalles(c.id);
   }
 
@@ -276,7 +316,7 @@ export class CompraDetalle implements OnInit {
       next: () => {
         this.procesandoCancelar.set(false);
         this.confirmCancelar.set(false);
-        this.compraService.buscarPorId(c.id).subscribe({ next: (u) => this.compra.set(u) });
+        this.compraService.buscarPorId(c.id).subscribe({ next: (u) => this.compra.set(u), error: () => {} });
       },
       error: (err) => { this.procesandoCancelar.set(false); this.errorCancelar.set(err?.error?.message ?? 'No se pudo cancelar.'); },
     });

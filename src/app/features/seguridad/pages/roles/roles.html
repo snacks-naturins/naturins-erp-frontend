@@ -8,8 +8,7 @@
       <p class="text-sm text-text-muted">Permisos y niveles de acceso al sistema</p>
     </div>
     <button (click)="abrirCrear()"
-      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
-      style="background:var(--color-primary,#16a34a)">
+      class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover transition-colors">
       <mat-icon>add</mat-icon> Nuevo rol
     </button>
   </div>
@@ -29,15 +28,14 @@
       <h3 class="mt-3 font-semibold text-text-main">Sin roles</h3>
       <p class="mt-1 text-sm text-text-muted">Crea los roles para asignar permisos a los empleados</p>
       <button (click)="abrirCrear()"
-        class="mt-4 inline-flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white"
-        style="background:var(--color-primary,#16a34a)">
+        class="mt-4 inline-flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover transition-colors">
         <mat-icon>add</mat-icon> Crear primero
       </button>
     </div>
   } @else {
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       @for (r of items(); track r.id) {
-        <div class="group relative flex flex-col gap-3 rounded-xl bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
+        <div class="group relative flex flex-col gap-3 rounded-card bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
           [class.opacity-60]="r.estado !== 'ACTIVO'">
 
           <div class="flex items-start justify-between">
@@ -111,8 +109,7 @@
             Cancelar
           </button>
           <button type="submit" [disabled]="form.invalid || saving()"
-            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-            style="background:var(--color-primary,#16a34a)">
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
             @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> }
             {{ saving() ? 'Guardando…' : 'Guardar' }}
           </button>

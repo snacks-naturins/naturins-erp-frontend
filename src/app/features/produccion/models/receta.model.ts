@@ -19,6 +19,8 @@ export interface RecetaResponse {
   rendimientoPorLote: number;
   estado: EstadoReceta | string;
   ingredientes: RecetaIngredienteResponse[];
+  version?: number | null;
+  recetaPadreId?: string | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }
@@ -34,6 +36,7 @@ export interface CreateRecetaRequest {
   presentacionId: string;
   rendimientoPorLote: number;
   ingredientes: CreateRecetaIngredienteRequest[];
+  recetaPadreId?: string;
 }
 
 export interface UpdateRecetaRequest {

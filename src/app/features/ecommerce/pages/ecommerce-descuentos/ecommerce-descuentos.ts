@@ -25,7 +25,9 @@ export class EcommerceDescuentos implements OnInit {
   readonly descuentos    = signal<DescuentoResponse[]>([]);
   readonly presentaciones = signal<PresentacionResponse[]>([]);
   readonly saving        = signal(false);
-  readonly deleting      = signal<string | null>(null);
+  readonly deleteTarget  = signal<DescuentoResponse | null>(null);
+  readonly deleting      = signal(false);
+  readonly deleteError   = signal<string | null>(null);
   readonly modalOpen     = signal(false);
   readonly formError     = signal<string | null>(null);
 
@@ -92,12 +94,16 @@ export class EcommerceDescuentos implements OnInit {
     });
   }
 
-  eliminar(id: string): void {
-    if (!confirm('¿Eliminar este descuento? Se dejará de aplicar en la tienda.')) return;
-    this.deleting.set(id);
-    this.svc.eliminar(id).subscribe({
-      next: () => { this.deleting.set(null); this.cargar(); },
-      error: () => this.deleting.set(null),
+  pedirEliminar(d: DescuentoResponse): void { this.deleteError.set(null); this.deleteTarget.set(d); }
+  cancelarEliminar(): void { this.deleteTarget.set(null); }
+
+  confirmarEliminar(): void {
+    const t = this.deleteTarget();
+    if (!t) return;
+    this.deleting.set(true);
+    this.svc.eliminar(t.id).subscribe({
+      next: () => { this.deleting.set(false); this.deleteTarget.set(null); this.cargar(); },
+      error: (err) => { this.deleting.set(false); this.deleteError.set(err?.error?.message ?? 'No se pudo eliminar.'); },
     });
   }
 

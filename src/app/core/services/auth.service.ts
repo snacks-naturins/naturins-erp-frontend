@@ -6,6 +6,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, AuthUser, LoginRequest } from '../models/auth.model';
 import { TokenStorageService } from './token-storage.service';
+import { RbacService } from './rbac.service';
 
 /**
  * Servicio central de autenticación.
@@ -16,6 +17,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly storage = inject(TokenStorageService);
   private readonly router = inject(Router);
+  private readonly rbac = inject(RbacService);
 
   private readonly API_URL = `${environment.apiUrl}/auth`;
 
@@ -23,6 +25,12 @@ export class AuthService {
   private readonly _currentUser = signal<AuthUser | null>(this.storage.getUser());
   readonly currentUser = this._currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this._currentUser() !== null);
+
+  constructor() {
+    if (this.storage.getUser()) {
+      this.rbac.cargar();
+    }
+  }
 
   /** Inicia sesión, guarda el token + usuario y actualiza el estado. */
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -34,6 +42,7 @@ export class AuthService {
           this.storage.setToken(res.token);
           this.storage.setUser(user);
           this._currentUser.set(user);
+          this.rbac.cargar();
         }),
       );
   }
@@ -42,6 +51,7 @@ export class AuthService {
   logout(): void {
     this.storage.clear();
     this._currentUser.set(null);
+    this.rbac.limpiar();
     this.router.navigate(['/login']);
   }
 

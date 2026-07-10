@@ -11,6 +11,7 @@ import {
   RecetaResponse,
   RecetaCalculoResponse,
   CrearProduccionDesdeRecetaRequest,
+  UpdateRecetaRequest,
 } from '../../models/receta.model';
 import { PresentacionResponse } from '../../../inventario/models/presentacion.model';
 import { MateriaPrimaResponse } from '../../../inventario/models/materia-prima.model';
@@ -42,16 +43,25 @@ export class Recetas implements OnInit {
   readonly presentaciones = signal<PresentacionResponse[]>([]);
   readonly materiasPrimas = signal<MateriaPrimaResponse[]>([]);
 
-  // ── modal crear ─────────────────────────────────────────────────
-  readonly modalCrear = signal(false);
-  readonly saving = signal(false);
-  readonly formError = signal<string | null>(null);
+  // ── modal crear/editar ───────────────────────────────────────────
+  readonly modalCrear       = signal(false);
+  readonly editRecetaId     = signal<string | null>(null);
+  readonly isNuevaVersion   = signal(false);
+  readonly versionSourceId  = signal<string | null>(null);
+  readonly saving           = signal(false);
+  readonly formError        = signal<string | null>(null);
 
   readonly formNombre = signal('');
   readonly formDescripcion = signal('');
   readonly formPresentacionId = signal('');
   readonly formRendimiento = signal<number | null>(null);
   readonly formIngredientes = signal<IngredienteForm[]>([{ materiaPrimaId: '', cantidadPorLote: null }]);
+
+  // ── modal archivar ───────────────────────────────────────────────
+  readonly recetaArchivar = signal<RecetaResponse | null>(null);
+  readonly archivando = signal(false);
+  readonly errorArchivar = signal<string | null>(null);
+  readonly errorActivar = signal<string | null>(null);
 
   // ── modal calcular/producir ──────────────────────────────────────
   readonly modalCalculo = signal(false);
@@ -73,8 +83,14 @@ export class Recetas implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
-    this.presentacionService.listar().subscribe({ next: (d) => this.presentaciones.set(d) });
-    this.mpService.listar().subscribe({ next: (d) => this.materiasPrimas.set(d) });
+    this.presentacionService.listar().subscribe({
+      next: (d) => this.presentaciones.set(d),
+      error: () => { this.presentaciones.set([]); },
+    });
+    this.mpService.listar().subscribe({
+      next: (d) => this.materiasPrimas.set(d),
+      error: () => { this.materiasPrimas.set([]); },
+    });
   }
 
   cargar(): void {
@@ -86,8 +102,11 @@ export class Recetas implements OnInit {
     });
   }
 
-  // ── modal crear ──────────────────────────────────────────────────
+  // ── modal crear/editar ───────────────────────────────────────────
   abrirCrear(): void {
+    this.editRecetaId.set(null);
+    this.isNuevaVersion.set(false);
+    this.versionSourceId.set(null);
     this.formNombre.set('');
     this.formDescripcion.set('');
     this.formPresentacionId.set('');
@@ -97,7 +116,36 @@ export class Recetas implements OnInit {
     this.modalCrear.set(true);
   }
 
-  cerrarCrear(): void { this.modalCrear.set(false); }
+  abrirNuevaVersion(r: RecetaResponse): void {
+    this.editRecetaId.set(null);
+    this.isNuevaVersion.set(true);
+    this.versionSourceId.set(r.id);
+    this.formNombre.set(r.nombre);
+    this.formDescripcion.set(r.descripcion ?? '');
+    this.formPresentacionId.set(r.presentacionId);
+    this.formRendimiento.set(r.rendimientoPorLote);
+    this.formIngredientes.set(r.ingredientes.map((i) => ({ materiaPrimaId: i.materiaPrimaId, cantidadPorLote: i.cantidadPorLote })));
+    this.formError.set(null);
+    this.modalCrear.set(true);
+  }
+
+  abrirEditar(r: RecetaResponse): void {
+    this.editRecetaId.set(r.id);
+    this.formNombre.set(r.nombre);
+    this.formDescripcion.set(r.descripcion ?? '');
+    this.formPresentacionId.set(r.presentacionId);
+    this.formRendimiento.set(r.rendimientoPorLote);
+    this.formIngredientes.set(r.ingredientes.map((i) => ({ materiaPrimaId: i.materiaPrimaId, cantidadPorLote: i.cantidadPorLote })));
+    this.formError.set(null);
+    this.modalCrear.set(true);
+  }
+
+  cerrarCrear(): void {
+    this.modalCrear.set(false);
+    this.editRecetaId.set(null);
+    this.isNuevaVersion.set(false);
+    this.versionSourceId.set(null);
+  }
 
   agregarIngrediente(): void {
     this.formIngredientes.update((list) => [...list, { materiaPrimaId: '', cantidadPorLote: null }]);
@@ -137,25 +185,65 @@ export class Recetas implements OnInit {
 
     this.saving.set(true);
     this.formError.set(null);
-    this.recetaService.crear({ nombre, descripcion: this.formDescripcion() || undefined, presentacionId, rendimientoPorLote: rendimiento, ingredientes }).subscribe({
-      next: (r) => { this.saving.set(false); this.modalCrear.set(false); this.recetas.update((list) => [r, ...list]); },
+    const editId  = this.editRecetaId();
+    const padreId = this.versionSourceId();
+
+    if (editId) {
+      const dto: UpdateRecetaRequest = { nombre, descripcion: this.formDescripcion() || undefined, rendimientoPorLote: rendimiento, ingredientes };
+      this.recetaService.actualizar(editId, dto).subscribe({
+        next: (r) => { this.saving.set(false); this.modalCrear.set(false); this.editRecetaId.set(null); this.recetas.update((list) => list.map((x) => x.id === r.id ? r : x)); },
+        error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo actualizar la receta.'); },
+      });
+      return;
+    }
+
+    const payload = {
+      nombre,
+      descripcion: this.formDescripcion() || undefined,
+      presentacionId,
+      rendimientoPorLote: rendimiento,
+      ingredientes,
+      ...(padreId ? { recetaPadreId: padreId } : {}),
+    };
+
+    this.recetaService.crear(payload).subscribe({
+      next: (r) => {
+        if (padreId) {
+          this.recetaService.archivar(padreId).subscribe({ error: () => {} });
+        }
+        this.saving.set(false);
+        this.modalCrear.set(false);
+        this.isNuevaVersion.set(false);
+        this.versionSourceId.set(null);
+        if (padreId) {
+          this.cargar();
+        } else {
+          this.recetas.update((list) => [r, ...list]);
+        }
+      },
       error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo crear la receta.'); },
     });
   }
 
   // ── acciones de lista ────────────────────────────────────────────
   activar(r: RecetaResponse): void {
+    this.errorActivar.set(null);
     this.recetaService.activar(r.id).subscribe({
       next: () => this.cargar(),
-      error: (err) => alert(err?.error?.message ?? 'No se pudo activar.'),
+      error: (err) => this.errorActivar.set(err?.error?.message ?? 'No se pudo activar la receta.'),
     });
   }
 
-  archivar(r: RecetaResponse): void {
-    if (!confirm(`¿Archivar la receta "${r.nombre}"?`)) return;
+  pedirArchivar(r: RecetaResponse): void { this.errorArchivar.set(null); this.recetaArchivar.set(r); }
+  cancelarArchivar(): void { this.recetaArchivar.set(null); }
+
+  confirmarArchivar(): void {
+    const r = this.recetaArchivar();
+    if (!r) return;
+    this.archivando.set(true);
     this.recetaService.archivar(r.id).subscribe({
-      next: () => this.cargar(),
-      error: (err) => alert(err?.error?.message ?? 'No se pudo archivar.'),
+      next: () => { this.archivando.set(false); this.recetaArchivar.set(null); this.cargar(); },
+      error: (err) => { this.archivando.set(false); this.errorArchivar.set(err?.error?.message ?? 'No se pudo archivar.'); },
     });
   }
 

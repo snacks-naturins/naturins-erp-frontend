@@ -64,7 +64,7 @@
         </thead>
         <tbody>
           @for (p of pedidos(); track p.id) {
-            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FAFAFA] transition cursor-pointer"
+            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition cursor-pointer"
               (click)="detalleOpen.set(p)">
               <td class="px-4 py-3 font-semibold text-primary">{{ p.numeroPedido }}</td>
               <td class="px-4 py-3 font-medium text-text-main">{{ p.nombreCliente }}</td>

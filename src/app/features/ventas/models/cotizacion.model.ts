@@ -14,6 +14,8 @@ export interface CotizacionResponse {
   igv: number;
   total: number;
   estado: EstadoCotizacion | string;
+  fechaVencimiento?: string | null;
+  observacion?: string | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }

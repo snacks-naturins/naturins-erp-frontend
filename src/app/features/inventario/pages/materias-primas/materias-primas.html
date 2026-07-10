@@ -6,18 +6,20 @@
       <h1 class="text-2xl font-bold text-text-main">Materias Primas</h1>
       <p class="mt-0.5 text-sm text-text-muted">Insumos y materiales usados en producción</p>
     </div>
-    <button (click)="abrirCrear()"
-      class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
-      Nueva materia prima
-    </button>
+    @if ('Materia Prima' | rbac:'crear') {
+      <button (click)="abrirCrear()"
+        class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
+        Nueva materia prima
+      </button>
+    }
   </div>
 
   <!-- ── Stat cards ──────────────────────────────────────────── -->
   @if (!loading() && !error()) {
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 
-      <div class="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">grass</mat-icon>
         </div>
@@ -27,7 +29,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-gray-500">block</mat-icon>
         </div>
@@ -37,7 +39,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-red-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-red-500">remove_shopping_cart</mat-icon>
         </div>
@@ -47,7 +49,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-4 rounded-2xl p-5 shadow-sm"
+      <div class="flex items-center gap-4 rounded-card p-5 shadow-sm"
         [class]="bajoMinimo() > 0 ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-white'">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
           [class]="bajoMinimo() > 0 ? 'bg-amber-100' : 'bg-bg-app'">
@@ -73,7 +75,7 @@
         <mat-icon fontSet="material-icons-outlined"
           class="pointer-events-none absolute left-3 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
         <input type="text" (input)="onSearch($event)" placeholder="Buscar materia prima..."
-          class="h-10 w-full rounded-lg border border-border-soft bg-white pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          class="h-10 w-full rounded-input border border-border-soft bg-white pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
       </div>
 
       <div class="flex gap-1 rounded-lg border border-border-soft bg-white p-1">
@@ -105,7 +107,7 @@
   } @else {
 
     <!-- ── Tabla ────────────────────────────────────────────── -->
-    <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+    <div class="overflow-hidden rounded-table bg-white shadow-sm">
       @if (filtrados().length === 0) {
         <div class="flex flex-col items-center gap-3 py-20 text-center text-text-muted">
           <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">grass</mat-icon>
@@ -114,7 +116,7 @@
           </p>
           @if (items().length === 0) {
             <button (click)="abrirCrear()"
-              class="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
+              class="flex h-9 items-center gap-1.5 rounded-btn bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
               <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
               Nueva materia prima
             </button>
@@ -197,6 +199,11 @@
                   <!-- Acciones -->
                   <td class="px-5 py-3.5">
                     <div class="flex items-center justify-center gap-1">
+                      <button (click)="abrirAjustarStock(m)"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-amber-50 hover:text-amber-600"
+                        title="Ajustar stock">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">tune</mat-icon>
+                      </button>
                       <button (click)="verKardex(m)"
                         class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-blue-50 hover:text-blue-600"
                         title="Ver Kardex">
@@ -233,7 +240,7 @@
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 py-8"
     (click)="cerrarModal()">
-    <div class="w-full max-w-[480px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+    <div class="w-full max-w-[480px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
@@ -268,7 +275,7 @@
                 Nombre <span class="text-red-500">*</span>
               </label>
               <input type="text" formControlName="nombre" placeholder="Ej. Avena en hojuelas"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
               @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
                 <small class="mt-1 block text-xs text-red-600">El nombre es requerido.</small>
               }
@@ -281,7 +288,7 @@
               Unidad de medida <span class="text-red-500">*</span>
             </label>
             <select formControlName="unidadMedida"
-              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
               <option value="" disabled>Selecciona</option>
               @for (u of ['kg','g','L','mL','unidad']; track u) {
                 <option [value]="u">{{ u }}</option>
@@ -298,7 +305,7 @@
                   Stock inicial <span class="text-red-500">*</span>
                 </label>
                 <input type="number" step="0.001" min="0" formControlName="stock" placeholder="0"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
                 <p class="mt-1 text-[11px] text-text-muted">Ajusta el stock con movimientos.</p>
               </div>
             }
@@ -309,7 +316,7 @@
                 Costo unitario (S/) <span class="text-red-500">*</span>
               </label>
               <input type="number" step="0.01" min="0" formControlName="costoUnitario" placeholder="0.00"
-                class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
             </div>
 
           </div>
@@ -324,13 +331,13 @@
               <div>
                 <label class="mb-1.5 block text-xs font-medium text-text-main">Stock mínimo</label>
                 <input type="number" step="0.001" min="0" formControlName="stockMinimo" placeholder="Ej. 10"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
                 <p class="mt-1 text-[11px] text-text-muted">Alerta amarilla</p>
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-medium text-text-main">Stock crítico</label>
                 <input type="number" step="0.001" min="0" formControlName="stockCritico" placeholder="Ej. 3"
-                  class="h-10 w-full rounded-lg border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-200" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-200" />
                 <p class="mt-1 text-[11px] text-text-muted">Alerta roja</p>
               </div>
             </div>
@@ -340,7 +347,7 @@
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-10 w-full rounded-lg border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
             </select>
@@ -350,11 +357,11 @@
 
         <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
           <button type="button" (click)="cerrarModal()"
-            class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="saving()"
-            class="flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+            class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
             {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar' : 'Crear') }}
           </button>
         </div>
@@ -370,7 +377,7 @@
 @if (deleteTarget(); as t) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     (click)="cancelarEliminar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
       <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
         <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
@@ -387,12 +394,67 @@
       </div>
       <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarEliminar()"
-          class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-10 items-center rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
           {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal ajustar stock -->
+@if (ajusteTarget(); as m) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarAjuste()">
+    <div class="w-full max-w-[400px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <div>
+          <h3 class="text-base font-semibold text-text-main">Ajustar stock</h3>
+          <p class="text-xs text-text-muted">{{ m.nombre }} · Stock actual: <span class="font-medium text-text-main">{{ stockLabel(m.stock) }} {{ m.unidadMedida }}</span></p>
+        </div>
+        <button (click)="cerrarAjuste()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+        </button>
+      </div>
+      <div class="flex flex-col gap-4 p-6">
+        @if (errorAjuste()) {
+          <div class="rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2 text-sm text-[#b71c1c]">{{ errorAjuste() }}</div>
+        }
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo de ajuste</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button (click)="ajusteTipo.set('AJUSTE_POSITIVO')"
+              class="flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition"
+              [class]="ajusteTipo() === 'AJUSTE_POSITIVO' ? 'border-[#15803D] bg-[#DCFCE7] text-[#15803D]' : 'border-border-soft text-text-muted hover:bg-bg-app'">
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]">add_circle</mat-icon> Entrada (+)
+            </button>
+            <button (click)="ajusteTipo.set('AJUSTE_NEGATIVO')"
+              class="flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition"
+              [class]="ajusteTipo() === 'AJUSTE_NEGATIVO' ? 'border-[#B91C1C] bg-[#FEE2E2] text-[#B91C1C]' : 'border-border-soft text-text-muted hover:bg-bg-app'">
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]">remove_circle</mat-icon> Salida (−)
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Cantidad</label>
+          <input type="number" step="0.001" min="0.001"
+            [value]="ajusteCantidad()" (input)="ajusteCantidad.set(+$any($event.target).value)"
+            class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Observación <span class="font-normal text-text-muted">(opcional)</span></label>
+          <input type="text" [value]="ajusteObs()" (input)="ajusteObs.set($any($event.target).value)" placeholder="Motivo del ajuste"
+            class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
+        <button (click)="cerrarAjuste()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main hover:bg-bg-app">Cancelar</button>
+        <button (click)="guardarAjuste()" [disabled]="savingAjuste() || ajusteCantidad() <= 0"
+          class="flex h-11 items-center rounded-btn bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60">
+          {{ savingAjuste() ? 'Registrando...' : 'Registrar ajuste' }}
         </button>
       </div>
     </div>

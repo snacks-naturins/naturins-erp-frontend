@@ -7,7 +7,7 @@
       <p class="text-sm text-text-muted mt-0.5">Tablero de órdenes de producción</p>
     </div>
     <button (click)="abrirNuevaOP()"
-      class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium">
+      class="flex items-center gap-2 bg-primary text-white px-4 h-11 rounded-btn hover:bg-primary-hover transition-colors text-sm font-medium">
       <mat-icon class="text-[18px] leading-none">add</mat-icon>
       Nueva orden
     </button>
@@ -105,7 +105,7 @@
 <!-- Card template -->
 <ng-template #cardTpl let-op="op">
   <div (click)="irDetalle(op.id)"
-    class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all group">
+    class="bg-white rounded-card border border-border-soft shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all group">
     <div class="flex items-center justify-between mb-2">
       <span class="text-xs font-mono font-bold text-primary">{{ op.numeroOrden }}</span>
       <span class="text-xs text-text-muted">{{ op.fechaProduccion | fecha }}</span>
@@ -115,7 +115,7 @@
     } @else {
       <p class="text-sm text-gray-300 italic mb-3">Sin descripción</p>
     }
-    <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+    <div class="flex items-center justify-between pt-3 border-t border-border-soft">
       <div class="flex items-center gap-1.5 text-xs text-text-muted">
         <mat-icon class="text-[13px]">person_outline</mat-icon>
         <span class="truncate max-w-[90px]">{{ op.nombreCompleto || op.nombreUsuario || 'Sin asignar' }}</span>
@@ -133,8 +133,8 @@
 <!-- ═══════════════ MODAL NUEVA OP ═══════════════ -->
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-md">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
             <mat-icon class="text-primary text-[18px]">precision_manufacturing</mat-icon>
@@ -159,7 +159,7 @@
             (input)="onObservacion($event)"
             rows="3"
             placeholder="Ej: Producción semanal de Granola Natural 500g (opcional)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
+            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
           </textarea>
         </div>
         <p class="text-xs text-text-muted bg-gray-50 rounded-lg px-3 py-2 flex items-start gap-2">
@@ -168,11 +168,11 @@
         </p>
         <div class="flex justify-end gap-3 pt-1">
           <button (click)="cerrarModal()"
-            class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
             Cancelar
           </button>
           <button (click)="crearOP()" [disabled]="saving()"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 transition-colors flex items-center gap-2">
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors flex items-center gap-2">
             @if (saving()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Creando... }
             @else { <mat-icon class="text-[16px]">add</mat-icon> Crear OP }
           </button>

@@ -7,10 +7,16 @@
       <h1 class="text-[28px] font-bold text-text-main">Kardex de Inventario</h1>
       <p class="text-sm text-text-muted">Movimientos de entrada y salida con saldo por lote</p>
     </div>
-    <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon fontSet="material-icons-outlined">swap_vert</mat-icon>
-      Registrar movimiento
-    </button>
+    <div class="flex items-center gap-3">
+      <button (click)="exportar()" class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined">file_download</mat-icon>
+        Exportar CSV
+      </button>
+      <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon fontSet="material-icons-outlined">swap_vert</mat-icon>
+        Registrar movimiento
+      </button>
+    </div>
   </div>
 
   <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
@@ -19,7 +25,23 @@
       <input type="text" (input)="onSearch($event)" placeholder="Buscar por lote o producto..."
         class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
     </div>
+    <div class="flex items-center gap-2">
+      <mat-icon fontSet="material-icons-outlined" class="text-text-muted text-[18px]">date_range</mat-icon>
+      <input type="date" [value]="fechaDesde()" (change)="fechaDesde.set($any($event.target).value)"
+        class="h-10 rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary" />
+      <span class="text-xs text-text-muted">—</span>
+      <input type="date" [value]="fechaHasta()" (change)="fechaHasta.set($any($event.target).value)"
+        class="h-10 rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary" />
+      @if (fechaDesde() || fechaHasta()) {
+        <button (click)="fechaDesde.set(''); fechaHasta.set('')" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app" title="Limpiar fechas">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]">close</mat-icon>
+        </button>
+      }
+    </div>
     <span class="ml-auto text-xs text-text-muted">{{ filtrados().length }} movimientos</span>
+    @if (totalPaginas() > 1) {
+      <span class="text-xs text-text-muted">· Pág. {{ pagina() + 1 }}/{{ totalPaginas() }}</span>
+    }
   </div>
 
   <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
@@ -43,7 +65,7 @@
         } @else if (error()) {
           <tr><td colspan="7" class="px-5 py-12 text-center text-[#B91C1C]">{{ error() }}</td></tr>
         } @else {
-          @for (mv of filtrados(); track mv.id) {
+          @for (mv of paginados(); track mv.id) {
             <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
               <td class="px-5 py-3 text-text-muted">{{ mv.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
               <td class="px-5 py-3 font-semibold text-primary">{{ mv.codigoLote }}</td>
@@ -70,6 +92,34 @@
         }
       </tbody>
     </table>
+
+    <!-- Paginación -->
+    @if (totalPaginas() > 1) {
+      <div class="flex items-center justify-between border-t border-border-soft px-5 py-3">
+        <span class="text-xs text-text-muted">
+          {{ pagina() * PAGE_SIZE + 1 }}–{{ pagina() * PAGE_SIZE + paginados().length }} de {{ filtrados().length }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button (click)="pagina.set(0)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">first_page</mat-icon>
+          </button>
+          <button (click)="pagina.set(pagina() - 1)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">chevron_left</mat-icon>
+          </button>
+          <span class="px-2 text-xs font-medium text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
+          <button (click)="pagina.set(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">chevron_right</mat-icon>
+          </button>
+          <button (click)="pagina.set(totalPaginas() - 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">last_page</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 

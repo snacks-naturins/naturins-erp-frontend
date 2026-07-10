@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { switchMap } from 'rxjs';
 
@@ -8,6 +9,10 @@ import { ClienteResponse, EstadoCliente, TipoCliente } from '../../models/client
 import { PersonaService } from '../../../../core/services/persona.service';
 import { TipoDocumentoService } from '../../../../core/services/tipo-documento.service';
 import { TipoDocumentoResponse } from '../../../../core/models/tipo-documento.model';
+import { PedidoService } from '../../../ventas/services/pedido.service';
+import { PedidoResponse } from '../../../ventas/models/pedido.model';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
+import { RbacPipe } from '../../../../shared/pipes/rbac.pipe';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
@@ -15,7 +20,7 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule, BreadcrumbComponent, EmptyState],
+  imports: [ReactiveFormsModule, MatIconModule, DecimalPipe, FechaPipe, RbacPipe, BreadcrumbComponent, EmptyState],
   templateUrl: './clientes.html',
 })
 export class Clientes implements OnInit {
@@ -23,6 +28,7 @@ export class Clientes implements OnInit {
   private readonly service = inject(ClienteService);
   private readonly personaService = inject(PersonaService);
   private readonly tipoDocService = inject(TipoDocumentoService);
+  private readonly pedidoService = inject(PedidoService);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -44,15 +50,15 @@ export class Clientes implements OnInit {
     nombres: ['', [Validators.required, Validators.maxLength(100)]],
     apellidos: ['', [Validators.required, Validators.maxLength(100)]],
     telefono: [''],
-    correo: [''],
+    correo: ['', [Validators.email]],
     direccion: [''],
     // Cliente
     tipoCliente: ['PERSONA' as TipoCliente, [Validators.required]],
     razonSocial: [''],
     ruc: [''],
     aplicaIgv: [false],
-    limiteCredito: [null as number | null],
-    descuentoPreferencial: [null as number | null],
+    limiteCredito: [null as number | null, [Validators.min(0)]],
+    descuentoPreferencial: [null as number | null, [Validators.min(0), Validators.max(100)]],
     estado: ['ACTIVO' as EstadoCliente, [Validators.required]],
   });
 
@@ -76,6 +82,12 @@ export class Clientes implements OnInit {
   readonly deleteTarget = signal<ClienteResponse | null>(null);
   readonly deleting = signal(false);
   readonly deleteError = signal<string | null>(null);
+
+  // Historial de pedidos
+  readonly fichaPedidos      = signal<ClienteResponse | null>(null);
+  readonly pedidosCliente    = signal<PedidoResponse[]>([]);
+  readonly loadingPedidos    = signal(false);
+  readonly errorPedidos      = signal<string | null>(null);
 
   ngOnInit(): void {
     this.cargar();
@@ -236,6 +248,27 @@ export class Clientes implements OnInit {
         this.deleteError.set(err?.error?.message ?? 'No se pudo eliminar el cliente.');
       },
     });
+  }
+
+  abrirHistorial(c: ClienteResponse): void {
+    this.fichaPedidos.set(c);
+    this.pedidosCliente.set([]);
+    this.errorPedidos.set(null);
+    this.loadingPedidos.set(true);
+    this.pedidoService.listarPorCliente(c.id).subscribe({
+      next: (d) => {
+        this.pedidosCliente.set(d.sort((a, b) => (b.fechaCreacion ?? '').localeCompare(a.fechaCreacion ?? '')));
+        this.loadingPedidos.set(false);
+      },
+      error: () => {
+        this.errorPedidos.set('No se pudieron cargar los pedidos.');
+        this.loadingPedidos.set(false);
+      },
+    });
+  }
+
+  cerrarHistorial(): void {
+    this.fichaPedidos.set(null);
   }
 
   tipoLabel(t?: string | null): string {

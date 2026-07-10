@@ -32,19 +32,29 @@ export class Pedidos implements OnInit {
   readonly search           = signal('');
   readonly searchDebounced  = debouncedSignal(this.search);
   readonly mostraCancelados = signal(false);
+  readonly fechaDesde       = signal('');
+  readonly fechaHasta       = signal('');
 
   readonly columnas: Columna[] = [
     { estado: 'NUEVO',           label: 'Nuevo',       color: 'border-t-blue-400',   dot: 'bg-blue-400',   accionLabel: 'Confirmar',  accionIcon: 'check_circle' },
     { estado: 'CONFIRMADO',      label: 'Confirmado',  color: 'border-t-primary',    dot: 'bg-primary',    accionLabel: 'Preparar',   accionIcon: 'inventory_2' },
     { estado: 'EN_PREPARACION',  label: 'Preparación', color: 'border-t-orange-400', dot: 'bg-orange-400', accionLabel: 'Despachar',  accionIcon: 'local_shipping' },
     { estado: 'LISTO_DESPACHO',  label: 'Despacho',    color: 'border-t-amber-400',  dot: 'bg-amber-400',  accionLabel: 'Entregar',   accionIcon: 'done_all' },
+    { estado: 'EN_CAMINO',       label: 'En camino',   color: 'border-t-purple-400', dot: 'bg-purple-400', accionLabel: 'Entregar',   accionIcon: 'done_all' },
     { estado: 'ENTREGADO',       label: 'Entregado',   color: 'border-t-green-500',  dot: 'bg-green-500',  accionLabel: '',           accionIcon: '' },
   ];
 
   readonly pedidosPorEstado = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
-    const todos = this.pedidos().filter((p) =>
-      !q || p.numeroPedido.toLowerCase().includes(q) || p.nombreCliente.toLowerCase().includes(q));
+    const q     = this.searchDebounced().toLowerCase().trim();
+    const desde = this.fechaDesde();
+    const hasta = this.fechaHasta();
+    const todos = this.pedidos().filter((p) => {
+      const matchQ = !q || p.numeroPedido.toLowerCase().includes(q) || p.nombreCliente.toLowerCase().includes(q);
+      const fecha = (p.fechaCreacion ?? '').slice(0, 10);
+      const matchDesde = !desde || fecha >= desde;
+      const matchHasta = !hasta || fecha <= hasta;
+      return matchQ && matchDesde && matchHasta;
+    });
     return new Map(this.columnas.map((col) => [
       col.estado,
       todos.filter((p) => p.estado === col.estado),
@@ -94,6 +104,7 @@ export class Pedidos implements OnInit {
       case 'CONFIRMADO':     req$ = this.svc.preparar(p.id);  break;
       case 'EN_PREPARACION': req$ = this.svc.despachar(p.id); break;
       case 'LISTO_DESPACHO': req$ = this.svc.entregar(p.id);  break;
+      case 'EN_CAMINO':      req$ = this.svc.entregar(p.id);  break;
       default: this.accionando.set(null); return;
     }
     req$.subscribe({

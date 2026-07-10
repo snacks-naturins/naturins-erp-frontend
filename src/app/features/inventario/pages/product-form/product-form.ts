@@ -9,6 +9,7 @@ import { CategoriaService } from '../../services/categoria.service';
 import { CategoriaResponse } from '../../models/categoria.model';
 import { UploadService } from '../../../../core/services/upload.service';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { CanComponentDeactivate } from '../../../../core/guards/can-deactivate.guard';
 
 @Component({
   selector: 'app-product-form',
@@ -16,7 +17,7 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
   imports: [ReactiveFormsModule, RouterLink, MatIconModule, BreadcrumbComponent],
   templateUrl: './product-form.html',
 })
-export class ProductForm implements OnInit {
+export class ProductForm implements OnInit, CanComponentDeactivate {
   private readonly fb = inject(FormBuilder);
   private readonly productoService = inject(ProductoService);
   private readonly categoriaService = inject(CategoriaService);
@@ -66,25 +67,20 @@ export class ProductForm implements OnInit {
     categoriaId: ['', [Validators.required]],
     urlImagen: [''],
     activo: [true],
-    // Campos de UI (aún no modelados en el backend de Producto)
-    unidad: ['UNIDAD'],
-    stockMinimo: [50 as number | null],
-    stockCritico: [20 as number | null],
-    stockInicial: [0],
-    precioCompra: [null as number | null],
-    precioVenta: [null as number | null],
+    stockMinimo: [50 as number | null, [Validators.min(0)]],
+    stockCritico: [20 as number | null, [Validators.min(0)]],
+    precioCompra: [null as number | null, [Validators.min(0)]],
+    precioVentaRef: [null as number | null],
     visibleEcommerce: [true],
-    controlLotes: [true],
-    permitirDescuentos: [false],
     // Información nutricional
     ingredientes: [''],
     pesoNeto: [''],
     porcionRecomendada: [''],
-    caloriasXPorcion: [null as number | null],
-    proteinasXPorcion: [null as number | null],
-    carbohidratosXPorcion: [null as number | null],
-    grasasXPorcion: [null as number | null],
-    fibrasXPorcion: [null as number | null],
+    caloriasXPorcion: [null as number | null, [Validators.min(0)]],
+    proteinasXPorcion: [null as number | null, [Validators.min(0)]],
+    carbohidratosXPorcion: [null as number | null, [Validators.min(0)]],
+    grasasXPorcion: [null as number | null, [Validators.min(0)]],
+    fibrasXPorcion: [null as number | null, [Validators.min(0)]],
     alergenos: [''],
     certificaciones: [''],
   });
@@ -94,9 +90,9 @@ export class ProductForm implements OnInit {
   });
 
   readonly margen = computed(() => {
-    const { precioCompra, precioVenta } = this.value();
-    if (!precioCompra || !precioVenta || precioVenta <= 0) return null;
-    return Math.round(((precioVenta - precioCompra) / precioVenta) * 100);
+    const { precioCompra, precioVentaRef } = this.value();
+    if (!precioCompra || !precioVentaRef || precioVentaRef <= 0) return null;
+    return Math.round(((precioVentaRef - precioCompra) / precioVentaRef) * 100);
   });
 
   readonly imagenUrl = computed(() => this.value().urlImagen?.trim() || '');
@@ -298,6 +294,13 @@ export class ProductForm implements OnInit {
     }
 
     const v = this.form.getRawValue();
+
+    const stockMin  = v.stockMinimo  ?? 0;
+    const stockCrit = v.stockCritico ?? 0;
+    if (stockMin > 0 && stockCrit > 0 && stockCrit > stockMin) {
+      this.errorMsg.set('El stock crítico no puede ser mayor al stock mínimo.');
+      return;
+    }
     const payload = {
       categoriaId:           v.categoriaId,
       nombre:                v.nombre,
@@ -330,6 +333,7 @@ export class ProductForm implements OnInit {
     request$.subscribe({
       next: () => {
         this.saving.set(false);
+        this.form.markAsPristine();
         this.router.navigate(['/productos']);
       },
       error: (err) => {
@@ -339,5 +343,9 @@ export class ProductForm implements OnInit {
         );
       },
     });
+  }
+
+  canDeactivate(): boolean {
+    return !this.form.dirty;
   }
 }

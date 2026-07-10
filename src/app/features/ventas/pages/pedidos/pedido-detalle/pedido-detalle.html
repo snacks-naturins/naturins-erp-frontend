@@ -1,0 +1,283 @@
+<app-breadcrumb [items]="[
+  { label: 'Ventas' },
+  { label: 'Pedidos', ruta: '/pedidos' },
+  { label: pedido()?.numeroPedido ?? '...' }
+]" />
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="flex items-center justify-center h-64 text-gray-400">
+    <mat-icon class="animate-spin mr-3">autorenew</mat-icon>
+    Cargando pedido…
+  </div>
+}
+
+<!-- Error -->
+@if (!loading() && error()) {
+  <div class="m-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center gap-3">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error() }}</span>
+    <a routerLink="/pedidos" class="ml-auto text-sm underline">← Volver a pedidos</a>
+  </div>
+}
+
+<!-- Contenido principal -->
+@if (!loading() && !error() && pedido(); as p) {
+  <div class="p-6 space-y-6 max-w-5xl mx-auto">
+
+    <!-- Cabecera -->
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a routerLink="/pedidos"
+           class="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-gray-900">{{ p.numeroPedido }}</h1>
+            <span [class]="'px-3 py-1 rounded-full text-xs font-semibold ' + estadoClase(p.estado)">
+              {{ estadoLabel(p.estado) }}
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mt-0.5">
+            Creado el {{ p.fechaCreacion | fecha }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 no-print">
+        <button (click)="imprimir()"
+                class="flex items-center gap-2 px-4 py-2 text-sm border border-border-soft rounded-btn hover:bg-gray-50 transition-colors text-gray-700">
+          <mat-icon class="text-[18px]">print</mat-icon>
+          Imprimir
+        </button>
+        @if (puedeCancelar) {
+          <button (click)="cancelar()" [disabled]="accionando()"
+                  class="flex items-center gap-2 px-4 py-2 text-sm border border-red-200 rounded-btn text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50">
+            <mat-icon class="text-[18px]">cancel</mat-icon>
+            Cancelar
+          </button>
+        }
+        @if (puedeAvanzar) {
+          <button (click)="avanzar()" [disabled]="accionando()"
+                  class="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors disabled:opacity-50 font-medium">
+            @if (accionando()) {
+              <mat-icon class="text-[18px] animate-spin">autorenew</mat-icon>
+            } @else {
+              <mat-icon class="text-[18px]">arrow_forward</mat-icon>
+            }
+            {{ labelAvanzar() }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Error de acción -->
+    @if (accionError()) {
+      <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+        <mat-icon class="text-[18px]">error_outline</mat-icon>
+        {{ accionError() }}
+      </div>
+    }
+
+    <!-- Pipeline de estados -->
+    @if (p.estado !== 'CANCELADO' && p.estado !== 'DEVUELTO') {
+      <div class="bg-white border border-border-soft rounded-card p-5">
+        <div class="flex items-center">
+          @for (paso of pasos; track paso.key; let i = $index; let last = $last) {
+            <div class="flex items-center" [class.flex-1]="!last">
+              <!-- Círculo de estado -->
+              <div class="flex flex-col items-center">
+                <div [class]="'w-10 h-10 rounded-full flex items-center justify-center transition-colors ' +
+                  (i < pasoActual() ? 'bg-green-500 text-white' :
+                   i === pasoActual() ? 'bg-blue-600 text-white ring-4 ring-blue-100' :
+                   'bg-gray-100 text-gray-400')">
+                  @if (i < pasoActual()) {
+                    <mat-icon class="text-[18px]">check</mat-icon>
+                  } @else {
+                    <mat-icon class="text-[18px]">{{ paso.icon }}</mat-icon>
+                  }
+                </div>
+                <span [class]="'mt-1 text-xs font-medium whitespace-nowrap ' +
+                  (i === pasoActual() ? 'text-blue-600' : i < pasoActual() ? 'text-green-600' : 'text-gray-400')">
+                  {{ paso.label }}
+                </span>
+              </div>
+              <!-- Línea conectora -->
+              @if (!last) {
+                <div [class]="'flex-1 h-0.5 mx-2 mt-[-14px] ' + (i < pasoActual() ? 'bg-green-400' : 'bg-gray-200')"></div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Fichas de info -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Cliente -->
+      <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+          <mat-icon class="text-[20px]">person</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Cliente</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.nombreCliente }}</p>
+        </div>
+      </div>
+
+      <!-- Método de pago -->
+      <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+          <mat-icon class="text-[20px]">payments</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Método de pago</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.metodoPagoNombre }}</p>
+          <span [class]="'text-xs px-2 py-0.5 rounded-full mt-1 inline-block ' +
+            (p.estadoPago === 'PAGADO' ? 'bg-green-100 text-green-700' :
+             p.estadoPago === 'PENDIENTE' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600')">
+            {{ p.estadoPago }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Canal -->
+      <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0">
+          <mat-icon class="text-[20px]">storefront</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Canal / Entrega</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.canal }}</p>
+          <p class="text-xs text-gray-500">{{ p.tipoEntrega }}</p>
+        </div>
+      </div>
+
+      <!-- Prioridad -->
+      <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+        <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+          <mat-icon class="text-[20px]">priority_high</mat-icon>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Prioridad</p>
+          <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.prioridad }}</p>
+        </div>
+      </div>
+
+      <!-- Vendedor (si existe) -->
+      @if (p.nombreUsuarioVendedor) {
+        <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+            <mat-icon class="text-[20px]">badge</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Vendedor</p>
+            <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.nombreUsuarioVendedor }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Dirección (si delivery) -->
+      @if (p.direccionEntrega) {
+        <div class="bg-white border border-border-soft rounded-card p-4 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
+            <mat-icon class="text-[20px]">location_on</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Dirección</p>
+            <p class="text-sm font-semibold text-gray-800 mt-0.5">{{ p.direccionEntrega }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Tabla de ítems -->
+    <div class="bg-white border border-border-soft rounded-card overflow-hidden">
+      <div class="px-5 py-4 border-b border-border-soft flex items-center gap-2">
+        <mat-icon class="text-gray-400">inventory_2</mat-icon>
+        <h2 class="font-semibold text-gray-800">Ítems del pedido</h2>
+        <span class="ml-auto text-sm text-gray-400">{{ detalles().length }} producto{{ detalles().length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      @if (detalles().length === 0) {
+        <div class="p-8 text-center text-gray-400">
+          <mat-icon class="text-4xl mb-2 block">inbox</mat-icon>
+          <p class="text-sm">Este pedido no tiene ítems cargados aún.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th class="px-5 py-3 text-left">Producto</th>
+                <th class="px-4 py-3 text-left">Presentación</th>
+                <th class="px-4 py-3 text-left">Lote</th>
+                <th class="px-4 py-3 text-right">Precio unit.</th>
+                <th class="px-4 py-3 text-right">Cant.</th>
+                @if (detalles().some(d => (d.descuento ?? 0) > 0)) {
+                  <th class="px-4 py-3 text-right">Desc.</th>
+                }
+                <th class="px-5 py-3 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (d of detalles(); track d.id) {
+                <tr class="hover:bg-[#FFF8EE] transition-colors">
+                  <td class="px-5 py-3 font-medium text-gray-900">{{ d.nombreProducto }}</td>
+                  <td class="px-4 py-3 text-gray-600">{{ d.nombrePresentacion }}</td>
+                  <td class="px-4 py-3">
+                    <span class="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                      {{ d.codigoLote }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-right text-gray-700">{{ formatMonto(d.precioUnitario) }}</td>
+                  <td class="px-4 py-3 text-right font-medium">{{ d.cantidad }}</td>
+                  @if (d.descuento) {
+                    <td class="px-4 py-3 text-right text-red-500">-{{ formatMonto(d.descuento) }}</td>
+                  } @else {
+                    <td class="px-4 py-3 text-right text-gray-300">-</td>
+                  }
+                  <td class="px-5 py-3 text-right font-semibold text-gray-900">{{ formatMonto(d.subtotal) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totales -->
+        <div class="border-t border-border-soft px-5 py-4">
+          <div class="flex flex-col items-end gap-1 text-sm">
+            <div class="flex justify-between w-56 text-gray-600">
+              <span>Subtotal</span>
+              <span>{{ formatMonto(p.subTotal) }}</span>
+            </div>
+            @if (p.igv) {
+              <div class="flex justify-between w-56 text-gray-600">
+                <span>IGV (18%)</span>
+                <span>{{ formatMonto(p.igv) }}</span>
+              </div>
+            }
+            @if (p.costoEnvio) {
+              <div class="flex justify-between w-56 text-gray-600">
+                <span>Costo envío</span>
+                <span>{{ formatMonto(p.costoEnvio) }}</span>
+              </div>
+            }
+            @if (p.descuento) {
+              <div class="flex justify-between w-56 text-red-500">
+                <span>Descuento</span>
+                <span>-{{ formatMonto(p.descuento) }}</span>
+              </div>
+            }
+            <div class="flex justify-between w-56 font-bold text-base text-gray-900 border-t border-border-soft pt-2 mt-1">
+              <span>Total</span>
+              <span>{{ formatMonto(p.total) }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+}

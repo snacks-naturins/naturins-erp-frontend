@@ -9,6 +9,7 @@ import { ProveedorService } from '../../../proveedores/services/proveedor.servic
 import { ProveedorResponse } from '../../../proveedores/models/proveedor.model';
 import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { exportToCsv } from '../../../../shared/utils/export-csv';
 
 @Component({
   selector: 'app-compras-lista',
@@ -29,17 +30,21 @@ export class ComprasLista implements OnInit {
   readonly search = signal('');
   readonly searchDebounced = debouncedSignal(this.search);
   readonly filtroEstado = signal<string>('TODOS');
+  readonly fechaDesde = signal('');
+  readonly fechaHasta = signal('');
 
   readonly filtrados = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
+    const q      = this.searchDebounced().toLowerCase().trim();
     const estado = this.filtroEstado();
+    const desde  = this.fechaDesde();
+    const hasta  = this.fechaHasta();
     return this.items().filter((c) => {
-      const matchQ =
-        !q ||
-        c.numeroOrden.toLowerCase().includes(q) ||
-        c.nombreProveedor.toLowerCase().includes(q);
+      const matchQ = !q || c.numeroOrden.toLowerCase().includes(q) || c.nombreProveedor.toLowerCase().includes(q);
       const matchE = estado === 'TODOS' || c.estado === estado;
-      return matchQ && matchE;
+      const fecha = (c.fechaCompra ?? '').slice(0, 10);
+      const matchDesde = !desde || fecha >= desde;
+      const matchHasta = !hasta || fecha <= hasta;
+      return matchQ && matchE && matchDesde && matchHasta;
     });
   });
 
@@ -156,5 +161,19 @@ export class ComprasLista implements OnInit {
 
   verDetalle(id: string): void {
     this.router.navigate(['/compras', id]);
+  }
+
+  exportar(): void {
+    exportToCsv('compras.csv', this.filtrados(), [
+      { header: 'Nro orden',           value: (c) => c.numeroOrden },
+      { header: 'Proveedor',           value: (c) => c.nombreProveedor },
+      { header: 'Fecha compra',        value: (c) => (c.fechaCompra ?? '').slice(0, 10) },
+      { header: 'Fecha entrega esp.',  value: (c) => c.fechaEntregaEsperada ?? '' },
+      { header: 'Nro factura',         value: (c) => c.nroFacturaProveedor ?? '' },
+      { header: 'Estado',              value: (c) => c.estado },
+      { header: 'Subtotal',            value: (c) => c.subtotal },
+      { header: 'IGV',                 value: (c) => c.igv },
+      { header: 'Total',               value: (c) => c.total },
+    ]);
   }
 }

@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from '../../core/services/auth.service';
+import { RbacService } from '../../core/services/rbac.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface NavEntry {
   kind: 'divider' | 'item';
@@ -18,9 +20,28 @@ export interface NavEntry {
   imports: [RouterLink, RouterLinkActive, MatIconModule],
   templateUrl: './sidebar.html',
 })
-export class Sidebar {
+export class Sidebar implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly rbac = inject(RbacService);
+  private readonly notifications = inject(NotificationService);
   readonly user = this.auth.currentUser;
+
+  ngOnInit(): void {
+    this.notifications.refresh();
+    setInterval(() => this.notifications.refresh(), 60_000);
+  }
+
+  badgeFor(route: string): number {
+    const c = this.notifications.counts();
+    if (route === '/pedidos')    return c.urgentOrders + c.pendingOrders;
+    if (route === '/lotes')      return c.expiringLotes;
+    if (route === '/produccion') return c.activeOps;
+    return 0;
+  }
+
+  puedeVer(label: string): boolean {
+    return this.rbac.hasPermission(label, 'ver');
+  }
 
   readonly nav: NavEntry[] = [
     { kind: 'item',    label: 'Dashboard',       icon: 'dashboard',               route: '/dashboard' },
@@ -60,7 +81,7 @@ export class Sidebar {
     { kind: 'item',    label: 'Roles',            icon: 'admin_panel_settings',    route: '/roles' },
     { kind: 'item',    label: 'Departamentos',    icon: 'corporate_fare',          route: '/departamentos' },
     { kind: 'item',    label: 'Permisos RBAC',    icon: 'security',                route: '/permisos-rbac' },
-    { kind: 'item',    label: 'Reportes',         icon: 'analytics',               soon: true },
+    { kind: 'item',    label: 'Reportes',         icon: 'analytics',               route: '/reportes' },
   ];
 
   initials(): string {

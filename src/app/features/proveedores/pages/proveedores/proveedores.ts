@@ -1,11 +1,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { switchMap } from 'rxjs';
 
 import { UploadService } from '../../../../core/services/upload.service';
 
 import { ProveedorService } from '../../services/proveedor.service';
+import { CompraService } from '../../../compras/services/compra.service';
+import { CompraResponse } from '../../../compras/models/compra.model';
 import {
   EstadoCatalogoProveedor,
   EstadoProveedor,
@@ -25,7 +28,7 @@ type Tab = 'compras' | 'catalogo';
 @Component({
   selector: 'app-proveedores',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatIconModule, SlicePipe],
   templateUrl: './proveedores.html',
 })
 export class Proveedores implements OnInit {
@@ -35,6 +38,7 @@ export class Proveedores implements OnInit {
   private readonly tipoDocService = inject(TipoDocumentoService);
   private readonly materiaPrimaService = inject(MateriaPrimaService);
   private readonly uploadService = inject(UploadService);
+  private readonly compraService = inject(CompraService);
 
   // ── Lista ──────────────────────────────────────────────────
   readonly loading = signal(true);
@@ -70,6 +74,10 @@ export class Proveedores implements OnInit {
   readonly loadingCatalogo = signal(false);
   readonly tabActiva = signal<Tab>('compras');
 
+  // ── Compras del proveedor ──────────────────────────────────
+  readonly comprasProveedor  = signal<CompraResponse[]>([]);
+  readonly loadingCompras    = signal(false);
+
   // ── Modal proveedor ────────────────────────────────────────
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -83,12 +91,12 @@ export class Proveedores implements OnInit {
     nombres: ['', [Validators.required, Validators.maxLength(100)]],
     apellidos: ['', [Validators.required, Validators.maxLength(100)]],
     telefono: [''],
-    correo: [''],
+    correo: ['', [Validators.email]],
     direccion: [''],
     ruc: [''],
     razonSocial: [''],
     contacto: [''],
-    diasCredito: [null as number | null],
+    diasCredito: [null as number | null, [Validators.min(0), Validators.max(365)]],
     rubro: [''],
     estado: ['ACTIVO' as EstadoProveedor, [Validators.required]],
   });
@@ -110,7 +118,7 @@ export class Proveedores implements OnInit {
     materiaPrimaId: ['', [Validators.required]],
     precioCompra: [null as number | null, [Validators.min(0.01)]],
     tiempoEntregaDias: [null as number | null],
-    cantidadMinimaCompra: [null as number | null],
+    cantidadMinimaCompra: [null as number | null, [Validators.min(0)]],
     esPrincipal: [false],
     observacion: [''],
     imagenUrl: [null as string | null],
@@ -160,11 +168,21 @@ export class Proveedores implements OnInit {
     this.tabActiva.set('compras');
     this.selectedPersona.set(null);
     this.catalogo.set([]);
+    this.comprasProveedor.set([]);
     this.loadingCatalogo.set(false);
     this.loadingFicha.set(true);
     this.personaService.obtenerPorId(p.personaId).subscribe({
       next: (persona) => { this.selectedPersona.set(persona); this.loadingFicha.set(false); },
       error: () => this.loadingFicha.set(false),
+    });
+    this.cargarCompras(p.id);
+  }
+
+  cargarCompras(proveedorId: string): void {
+    this.loadingCompras.set(true);
+    this.compraService.listarPorProveedor(proveedorId).subscribe({
+      next: (c) => { this.comprasProveedor.set(c); this.loadingCompras.set(false); },
+      error: () => this.loadingCompras.set(false),
     });
   }
 

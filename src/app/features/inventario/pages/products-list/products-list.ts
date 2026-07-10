@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -9,8 +9,10 @@ import { ProductoResponse } from '../../models/producto.model';
 import { PresentacionResponse } from '../../models/presentacion.model';
 import { LoteResponse } from '../../models/lote.model';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { exportToCsv } from '../../../../shared/utils/export-csv';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
+import { RbacPipe } from '../../../../shared/pipes/rbac.pipe';
 
 interface EstadoView {
   label: string;
@@ -28,7 +30,7 @@ interface StockInfo {
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [RouterLink, MatIconModule, BreadcrumbComponent, EmptyState],
+  imports: [RouterLink, MatIconModule, BreadcrumbComponent, EmptyState, RbacPipe],
   templateUrl: './products-list.html',
 })
 export class ProductList implements OnInit {
@@ -44,6 +46,12 @@ export class ProductList implements OnInit {
   readonly lotes = signal<LoteResponse[]>([]);
   readonly search = signal('');
   readonly searchDebounced = debouncedSignal(this.search);
+  readonly filtroCategoria = signal('');
+  readonly filtroEstado    = signal('');
+
+  readonly categoriasDisponibles = computed(() =>
+    [...new Set(this.productos().map((p) => p.categoriaId ? (p.nombreCategoria ?? '') : '').filter(Boolean))].sort()
+  );
 
   /** Stock agregado por producto: suma de lotes de todas sus presentaciones. */
   readonly stockMap = computed(() => {
@@ -79,19 +87,37 @@ export class ProductList implements OnInit {
   readonly eliminarError = signal<string | null>(null);
 
   readonly filtrados = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
-    const list = this.productos();
-    if (!q) return list;
-    return list.filter(
-      (p) =>
-        p.nombre.toLowerCase().includes(q) ||
-        (p.nombreCategoria ?? '').toLowerCase().includes(q),
-    );
+    const q   = this.searchDebounced().toLowerCase().trim();
+    const cat = this.filtroCategoria();
+    const est = this.filtroEstado();
+    return this.productos().filter((p) => {
+      if (q && !p.nombre.toLowerCase().includes(q) && !(p.nombreCategoria ?? '').toLowerCase().includes(q)) return false;
+      if (cat && (p.nombreCategoria ?? '') !== cat) return false;
+      if (est && p.estado !== est) return false;
+      return true;
+    });
+  });
+
+  readonly PAGE_SIZE    = 20;
+  readonly pagina       = signal(0);
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtrados().length / this.PAGE_SIZE)));
+  readonly paginados    = computed(() => {
+    const p = this.pagina();
+    return this.filtrados().slice(p * this.PAGE_SIZE, (p + 1) * this.PAGE_SIZE);
   });
 
   readonly totalCategorias = computed(
     () => new Set(this.productos().map((p) => p.categoriaId)).size,
   );
+
+  constructor() {
+    effect(() => {
+      this.searchDebounced();
+      this.filtroCategoria();
+      this.filtroEstado();
+      this.pagina.set(0);
+    }, { allowSignalWrites: true });
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -146,6 +172,19 @@ export class ProductList implements OnInit {
   }
 
   irNuevoProducto(): void { this.router.navigate(['/productos/nuevo']); }
+
+  exportar(): void {
+    exportToCsv('productos.csv', this.filtrados(), [
+      { header: 'Código',         value: (p) => this.codigo(p) },
+      { header: 'Nombre',         value: (p) => p.nombre },
+      { header: 'Categoría',      value: (p) => p.nombreCategoria ?? '' },
+      { header: 'Estado',         value: (p) => p.estado },
+      { header: 'Precio compra',  value: (p) => p.precioCompra ?? '' },
+      { header: 'Stock',          value: (p) => this.stockDe(p.id).stock },
+      { header: 'Stock mínimo',   value: (p) => p.stockMinimo ?? '' },
+      { header: 'Stock crítico',  value: (p) => p.stockCritico ?? '' },
+    ]);
+  }
 
   // --- Ver ---
   ver(p: ProductoResponse): void {

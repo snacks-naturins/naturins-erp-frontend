@@ -4,22 +4,25 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { MateriaPrimaService } from '../../services/materia-prima.service';
+import { MovimientoMateriaService } from '../../services/movimiento-materia.service';
 import {
   EstadoMateriaPrima,
   MateriaPrimaResponse,
 } from '../../models/materia-prima.model';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { RbacPipe } from '../../../../shared/pipes/rbac.pipe';
 
 @Component({
   selector: 'app-materias-primas',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatIconModule, RbacPipe],
   templateUrl: './materias-primas.html',
 })
 export class MateriasPrimas implements OnInit {
-  private readonly fb      = inject(FormBuilder);
-  private readonly service = inject(MateriaPrimaService);
-  private readonly router  = inject(Router);
+  private readonly fb             = inject(FormBuilder);
+  private readonly service        = inject(MateriaPrimaService);
+  private readonly movService     = inject(MovimientoMateriaService);
+  private readonly router         = inject(Router);
 
   // ── Lista ──────────────────────────────────────────────────
   readonly loading = signal(true);
@@ -62,14 +65,22 @@ export class MateriasPrimas implements OnInit {
     stock:        [0 as number, [Validators.required, Validators.min(0)]],
     costoUnitario:[0 as number, [Validators.required, Validators.min(0)]],
     estado:       ['ACTIVO' as EstadoMateriaPrima, [Validators.required]],
-    stockMinimo:  [null as number | null],
-    stockCritico: [null as number | null],
+    stockMinimo:  [null as number | null, [Validators.min(0)]],
+    stockCritico: [null as number | null, [Validators.min(0)]],
   });
 
   // ── Modal eliminar ─────────────────────────────────────────
   readonly deleteTarget = signal<MateriaPrimaResponse | null>(null);
   readonly deleting     = signal(false);
   readonly deleteError  = signal<string | null>(null);
+
+  // ── Modal ajustar stock ────────────────────────────────────
+  readonly ajusteTarget  = signal<MateriaPrimaResponse | null>(null);
+  readonly ajusteTipo    = signal<'AJUSTE_POSITIVO' | 'AJUSTE_NEGATIVO'>('AJUSTE_POSITIVO');
+  readonly ajusteCantidad = signal<number>(0);
+  readonly ajusteObs     = signal('');
+  readonly savingAjuste  = signal(false);
+  readonly errorAjuste   = signal<string | null>(null);
 
   // ── Lifecycle ──────────────────────────────────────────────
   ngOnInit(): void { this.cargar(); }
@@ -184,6 +195,41 @@ export class MateriasPrimas implements OnInit {
     req$.subscribe({
       next:  () => { this.saving.set(false); this.modalOpen.set(false); this.cargar(); },
       error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo guardar.'); },
+    });
+  }
+
+  // ── Ajuste rápido de stock ─────────────────────────────────
+  abrirAjustarStock(m: MateriaPrimaResponse): void {
+    this.ajusteTarget.set(m);
+    this.ajusteTipo.set('AJUSTE_POSITIVO');
+    this.ajusteCantidad.set(0);
+    this.ajusteObs.set('');
+    this.errorAjuste.set(null);
+  }
+
+  cerrarAjuste(): void { this.ajusteTarget.set(null); }
+
+  guardarAjuste(): void {
+    const m = this.ajusteTarget();
+    const cantidad = this.ajusteCantidad();
+    if (!m || cantidad <= 0 || this.savingAjuste()) return;
+    this.savingAjuste.set(true);
+    this.errorAjuste.set(null);
+    this.movService.crear({
+      materiaPrimaId: m.id,
+      tipo: this.ajusteTipo(),
+      cantidad,
+      observacion: this.ajusteObs() || undefined,
+    }).subscribe({
+      next: () => {
+        this.savingAjuste.set(false);
+        this.ajusteTarget.set(null);
+        this.cargar();
+      },
+      error: (err) => {
+        this.savingAjuste.set(false);
+        this.errorAjuste.set(err?.error?.message ?? 'No se pudo registrar el ajuste.');
+      },
     });
   }
 

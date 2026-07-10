@@ -9,10 +9,12 @@
       <h1 class="text-[28px] font-bold text-text-main">Cotizaciones</h1>
       <p class="text-sm text-text-muted">Propuestas de venta enviadas a clientes</p>
     </div>
-    <button (click)="abrirNueva()"
-      class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon>add</mat-icon> Nueva cotización
-    </button>
+    @if ('Cotizaciones' | rbac:'crear') {
+      <button (click)="abrirNueva()"
+        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon>add</mat-icon> Nueva cotización
+      </button>
+    }
   </div>
 
   <!-- Filtros -->
@@ -94,6 +96,11 @@
               <td class="px-5 py-3">
                 <div class="flex items-center justify-center gap-1">
                   @if (c.estado === 'BORRADOR') {
+                    <button (click)="abrirEditar(c)"
+                      title="Editar cotización"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-amber-50 hover:text-amber-600 transition">
+                      <mat-icon class="text-[18px]">edit</mat-icon>
+                    </button>
                     <button (click)="enviar(c)" [disabled]="accionando() === c.id"
                       title="Enviar al cliente"
                       class="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50">
@@ -112,6 +119,13 @@
                       <mat-icon class="text-[14px]">close</mat-icon>
                     </button>
                   }
+                  @if (c.estado === 'ACEPTADA') {
+                    <button (click)="abrirConvertir(c)" [disabled]="accionando() === c.id"
+                      title="Convertir a pedido"
+                      class="flex items-center gap-1 rounded-lg bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50">
+                      <mat-icon class="text-[14px]">shopping_bag</mat-icon> Convertir
+                    </button>
+                  }
                   @if (c.estado === 'BORRADOR') {
                     <button (click)="pedirEliminar(c)"
                       class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-red-50 hover:text-red-500 transition">
@@ -127,6 +141,67 @@
     </table>
   </div>
 </div>
+
+<!-- ═══ MODAL: CONVERTIR A PEDIDO ═══ -->
+@if (convertirTarget(); as cot) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarConvertir()">
+    <div class="w-full max-w-[420px] rounded-modal bg-white p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      @if (convertirExitoNum()) {
+        <!-- Estado éxito -->
+        <div class="text-center">
+          <div class="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100">
+            <mat-icon class="text-green-600 text-[28px]!">check_circle</mat-icon>
+          </div>
+          <h3 class="text-lg font-bold text-text-main">¡Pedido creado!</h3>
+          <p class="mt-1 text-sm text-text-muted">
+            Pedido <span class="font-semibold text-primary">{{ convertirExitoNum() }}</span> generado desde la cotización <span class="font-semibold">{{ cot.numeroCotizacion }}</span>.
+          </p>
+          <p class="mt-2 text-xs text-text-muted">Ve a <strong>Pedidos</strong> para agregar los productos y confirmar el despacho.</p>
+          <button (click)="cerrarConvertir()" class="mt-5 w-full rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">
+            Cerrar
+          </button>
+        </div>
+      } @else {
+        <!-- Formulario conversión -->
+        <div class="mb-4 grid h-12 w-12 place-items-center rounded-full bg-purple-100">
+          <mat-icon class="text-purple-600">shopping_bag</mat-icon>
+        </div>
+        <h3 class="text-lg font-bold text-text-main">Convertir a pedido</h3>
+        <p class="mt-0.5 text-sm text-text-muted">
+          {{ cot.numeroCotizacion }} · {{ cot.nombreCliente }} · <span class="font-semibold text-text-main">{{ formatMonto(cot.total) }}</span>
+        </p>
+        <div class="mt-4">
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Método de pago <span class="text-red-500">*</span></label>
+          @if (metodosPago().length === 0) {
+            <p class="text-xs text-text-muted">Cargando métodos de pago...</p>
+          } @else {
+            <select class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              [value]="metodoPagoConvId()"
+              (change)="metodoPagoConvId.set($any($event.target).value)">
+              @for (m of metodosPago(); track m.id) {
+                <option [value]="m.id">{{ m.nombre }}</option>
+              }
+            </select>
+          }
+        </div>
+        @if (convertirError()) {
+          <p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{{ convertirError() }}</p>
+        }
+        <div class="mt-5 flex justify-end gap-3">
+          <button (click)="cerrarConvertir()" class="rounded-btn border border-border-soft px-4 py-2 text-sm font-semibold hover:bg-bg-app">Cancelar</button>
+          <button (click)="confirmarConvertir()" [disabled]="convirtiendo() || !metodoPagoConvId()"
+            class="flex items-center gap-1.5 rounded-btn bg-purple-600 px-5 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60">
+            @if (convirtiendo()) {
+              <mat-icon class="animate-spin text-[16px]!">refresh</mat-icon> Creando...
+            } @else {
+              <mat-icon class="text-[16px]!">shopping_bag</mat-icon> Crear pedido
+            }
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
 
 <!-- Modal eliminar -->
 @if (deleteTarget(); as t) {
@@ -161,11 +236,12 @@
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div>
-        <h2 class="font-bold text-text-main">Nueva cotización</h2>
+        <h2 class="font-bold text-text-main">{{ editId() ? 'Editar cotización' : 'Nueva cotización' }}</h2>
         <p class="text-xs text-text-muted">Completa los datos y agrega productos</p>
       </div>
     </div>
 
+    <form [formGroup]="form" (ngSubmit)="guardar()">
     <div class="flex flex-col gap-5 p-5">
       @if (formError()) {
         <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -200,7 +276,7 @@
                 (click)="clienteDropdown.set(true)" />
             </div>
             @if (clienteDropdown()) {
-              <div class="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl">
+              <div class="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-card border border-border-soft bg-white shadow-xl">
                 @if (clientesFiltrados().length === 0) {
                   <p class="py-4 text-center text-sm text-text-muted">Sin resultados</p>
                 }
@@ -235,7 +311,7 @@
               (click)="productoDropdown.set(true)" />
           </div>
           @if (productoDropdown()) {
-            <div class="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl">
+            <div class="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-card border border-border-soft bg-white shadow-xl">
               @if (productosFiltrados().length === 0) {
                 <p class="py-4 text-center text-sm text-text-muted">Sin resultados</p>
               }
@@ -283,33 +359,30 @@
       <!-- Configuración -->
       <div class="flex items-center gap-3 rounded-lg border border-border-soft p-3">
         <span class="text-sm font-medium text-text-main flex-1">IGV incluido (18%)</span>
-        <button type="button" (click)="incluyeIgv.set(!incluyeIgv())"
+        <button type="button" (click)="form.controls.incluyeIgv.setValue(!form.controls.incluyeIgv.value)"
           class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-          [class]="incluyeIgv() ? 'bg-primary' : 'bg-gray-300'">
+          [class]="form.controls.incluyeIgv.value ? 'bg-primary' : 'bg-gray-300'">
           <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
-            [class]="incluyeIgv() ? 'translate-x-6' : 'translate-x-1'"></span>
+            [class]="form.controls.incluyeIgv.value ? 'translate-x-6' : 'translate-x-1'"></span>
         </button>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="mb-1.5 block text-xs font-semibold text-text-main">Descuento (S/)</label>
-          <input type="number" min="0" step="0.01" [value]="descuento()"
-            (input)="descuento.set(+$any($event.target).value)"
+          <input type="number" min="0" step="0.01" formControlName="descuento"
             class="h-10 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
         </div>
         <div>
           <label class="mb-1.5 block text-xs font-semibold text-text-main">Vence el</label>
-          <input type="date" [value]="fechaVencimiento()" [min]="hoyISO()"
-            (input)="fechaVencimiento.set($any($event.target).value)"
+          <input type="date" formControlName="fechaVencimiento" [min]="hoyISO()"
             class="h-10 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
         </div>
       </div>
 
       <div>
         <label class="mb-1.5 block text-xs font-semibold text-text-main">Observaciones</label>
-        <textarea rows="2" [value]="observacion()"
-          (input)="observacion.set($any($event.target).value)"
+        <textarea rows="2" formControlName="observacion"
           placeholder="Ej. Precio válido por 15 días. No incluye despacho."
           class="w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 py-2 text-sm outline-none resize-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"></textarea>
       </div>
@@ -317,18 +390,19 @@
 
     <!-- Botones -->
     <div class="mt-auto flex items-center justify-between gap-3 border-t border-border-soft px-5 py-4 shrink-0">
-      <button (click)="volver()" class="rounded-btn border border-border-soft px-5 py-2.5 text-sm font-semibold text-text-main hover:bg-bg-app">
+      <button type="button" (click)="volver()" class="rounded-btn border border-border-soft px-5 py-2.5 text-sm font-semibold text-text-main hover:bg-bg-app">
         Cancelar
       </button>
-      <button (click)="guardar()" [disabled]="!canGuardar"
+      <button type="submit" [disabled]="!canGuardar"
         class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
         @if (saving()) {
           <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> Guardando...
         } @else {
-          <mat-icon class="text-[18px]">save</mat-icon> Guardar borrador
+          <mat-icon class="text-[18px]">save</mat-icon> {{ editId() ? 'Actualizar' : 'Guardar borrador' }}
         }
       </button>
     </div>
+    </form>
   </div>
 
   <!-- Panel derecho: preview de cotización (se imprime) -->
@@ -342,7 +416,7 @@
     </div>
 
     <!-- Documento -->
-    <div id="cotizacion-preview" class="m-5 rounded-xl bg-white p-8 shadow-sm text-[13px]">
+    <div id="cotizacion-preview" class="m-5 rounded-card bg-white p-8 shadow-sm text-[13px]">
       <!-- Cabecera empresa -->
       <div class="flex items-start justify-between mb-6">
         <div class="flex items-center gap-3">
@@ -409,14 +483,14 @@
           <div class="flex justify-between text-xs text-text-muted py-1">
             <span>Subtotal</span><span>{{ formatMonto(subTotal()) }}</span>
           </div>
-          @if (incluyeIgv()) {
+          @if (form.controls.incluyeIgv.value) {
             <div class="flex justify-between text-xs text-text-muted py-1">
               <span>IGV (18%)</span><span>{{ formatMonto(igv()) }}</span>
             </div>
           }
-          @if (descuento() > 0) {
+          @if (form.controls.descuento.value > 0) {
             <div class="flex justify-between text-xs text-text-muted py-1">
-              <span>Descuento</span><span>-{{ formatMonto(descuento()) }}</span>
+              <span>Descuento</span><span>-{{ formatMonto(form.controls.descuento.value) }}</span>
             </div>
           }
           <div class="flex justify-between font-bold py-1 mt-1" style="border-top:2px solid #e5e7eb">
@@ -427,13 +501,13 @@
       </div>
 
       <!-- Pie -->
-      @if (observacion()) {
-        <p class="mt-5 text-xs text-text-muted border-t border-border-soft pt-3">{{ observacion() }}</p>
+      @if (form.controls.observacion.value) {
+        <p class="mt-5 text-xs text-text-muted border-t border-border-soft pt-3">{{ form.controls.observacion.value }}</p>
       }
-      @if (fechaVencimiento()) {
-        <p class="mt-2 text-xs text-text-muted">Cotización válida hasta: <span class="font-medium">{{ fechaVencimiento() | fecha }}</span></p>
+      @if (form.controls.fechaVencimiento.value) {
+        <p class="mt-2 text-xs text-text-muted">Cotización válida hasta: <span class="font-medium">{{ form.controls.fechaVencimiento.value | fecha }}</span></p>
       }
-      <p class="mt-3 text-[11px] text-text-muted/60">Precios en soles (S/). {{ incluyeIgv() ? 'IGV incluido.' : 'No incluye IGV.' }}</p>
+      <p class="mt-3 text-[11px] text-text-muted/60">Precios en soles (S/). {{ form.controls.incluyeIgv.value ? 'IGV incluido.' : 'No incluye IGV.' }}</p>
     </div>
   </div>
 </div>

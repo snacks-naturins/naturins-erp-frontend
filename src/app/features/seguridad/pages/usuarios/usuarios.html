@@ -11,8 +11,7 @@
       </p>
     </div>
     <button (click)="abrirWizard()"
-      class="flex items-center gap-2 rounded-btn px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
-      style="background:var(--color-primary,#16a34a)">
+      class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover transition-colors">
       <mat-icon>person_add</mat-icon> Nuevo empleado
     </button>
   </div>
@@ -85,7 +84,7 @@
           <!-- Tarjetas empleados -->
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @for (u of grupo.usuarios; track u.id) {
-              <div class="group relative flex flex-col gap-3 rounded-xl bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
+              <div class="group relative flex flex-col gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] transition hover:shadow-md"
                 [class.opacity-60]="u.estado !== 'ACTIVO'">
 
                 <!-- Avatar + estado -->
@@ -140,6 +139,13 @@
 
                 <!-- Acciones hover -->
                 <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                  @if (u.estado === 'BLOQUEADO') {
+                    <button (click)="desbloquear(u)" [disabled]="desbloqueando() === u.id"
+                      class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-amber-500 hover:bg-amber-50 disabled:opacity-50"
+                      title="Desbloquear usuario">
+                      <mat-icon class="text-[14px]">lock_open</mat-icon>
+                    </button>
+                  }
                   <button (click)="abrirEditar(u)"
                     class="grid h-7 w-7 place-items-center rounded-lg bg-white shadow text-text-muted hover:text-primary hover:bg-bg-app">
                     <mat-icon class="text-[14px]">edit</mat-icon>
@@ -288,8 +294,7 @@
               Cancelar
             </button>
             <button type="submit" [disabled]="formPersona.invalid || saving()"
-              class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-              style="background:var(--color-primary,#16a34a)">
+              class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
               @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> } @else { <mat-icon class="text-[18px]">arrow_forward</mat-icon> }
               {{ saving() ? 'Guardando…' : 'Siguiente' }}
             </button>
@@ -351,8 +356,7 @@
               <mat-icon class="text-[18px]">arrow_back</mat-icon> Atrás
             </button>
             <button type="submit" [disabled]="formUsuario.invalid || saving()"
-              class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-              style="background:var(--color-primary,#16a34a)">
+              class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
               @if (saving()) { <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> } @else { <mat-icon class="text-[18px]">check_circle</mat-icon> }
               {{ saving() ? 'Creando…' : 'Crear empleado' }}
             </button>
@@ -417,8 +421,7 @@
           <button type="button" (click)="editandoUsuario.set(null)"
             class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">Cancelar</button>
           <button type="submit" [disabled]="formEditar.invalid || saving()"
-            class="flex flex-1 items-center justify-center gap-2 rounded-btn py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-            style="background:var(--color-primary,#16a34a)">
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
             {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
           </button>
         </div>

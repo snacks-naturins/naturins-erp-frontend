@@ -6,17 +6,23 @@
       <h1 class="text-2xl font-bold text-text-main">Órdenes de Compra</h1>
       <p class="text-sm text-text-muted mt-0.5">Gestiona el abastecimiento de materias primas</p>
     </div>
-    <button
-      (click)="abrirNuevaOC()"
-      class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium">
-      <mat-icon class="text-[18px] leading-none">add</mat-icon>
-      Nueva OC
-    </button>
+    <div class="flex items-center gap-3">
+      <button (click)="exportar()" class="flex items-center gap-2 border border-border-soft bg-white text-text-main px-4 py-2 rounded-btn hover:bg-bg-app transition-colors text-sm font-medium">
+        <mat-icon class="text-[18px] leading-none">file_download</mat-icon>
+        Exportar CSV
+      </button>
+      <button
+        (click)="abrirNuevaOC()"
+        class="flex items-center gap-2 bg-primary text-white px-4 h-11 rounded-btn hover:bg-primary-hover transition-colors text-sm font-medium">
+        <mat-icon class="text-[18px] leading-none">add</mat-icon>
+        Nueva OC
+      </button>
+    </div>
   </div>
 
   <!-- Stat cards -->
   <div class="grid grid-cols-3 gap-4">
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm p-4 flex items-center gap-4">
       <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
         <mat-icon class="text-amber-500 text-[20px]">pending</mat-icon>
       </div>
@@ -25,7 +31,7 @@
         <p class="text-xs text-text-muted">Pendientes</p>
       </div>
     </div>
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm p-4 flex items-center gap-4">
       <div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
         <mat-icon class="text-green-500 text-[20px]">check_circle</mat-icon>
       </div>
@@ -34,7 +40,7 @@
         <p class="text-xs text-text-muted">Completadas</p>
       </div>
     </div>
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm p-4 flex items-center gap-4">
       <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
         <mat-icon class="text-red-400 text-[20px]">cancel</mat-icon>
       </div>
@@ -53,7 +59,7 @@
         type="text"
         placeholder="Buscar por N° orden o proveedor..."
         (input)="onSearch($event)"
-        class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+        class="w-full pl-9 pr-4 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
     </div>
     <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
       @for (opt of [['TODOS','Todos'],['PENDIENTE','Pendientes'],['COMPLETADA','Completadas'],['CANCELADA','Canceladas']] ; track opt[0]) {
@@ -66,10 +72,23 @@
         </button>
       }
     </div>
+    <div class="flex items-center gap-2">
+      <mat-icon class="text-gray-400 text-[18px]">date_range</mat-icon>
+      <input type="date" [value]="fechaDesde()" (change)="fechaDesde.set($any($event.target).value)"
+        class="h-9 rounded-input border border-border-soft px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+      <span class="text-xs text-gray-400">—</span>
+      <input type="date" [value]="fechaHasta()" (change)="fechaHasta.set($any($event.target).value)"
+        class="h-9 rounded-input border border-border-soft px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+      @if (fechaDesde() || fechaHasta()) {
+        <button (click)="fechaDesde.set(''); fechaHasta.set('')" class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-gray-400 hover:bg-gray-50" title="Limpiar fechas">
+          <mat-icon class="text-[16px]">close</mat-icon>
+        </button>
+      }
+    </div>
   </div>
 
   <!-- Tabla -->
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="bg-white rounded-table border border-border-soft shadow-sm overflow-hidden">
     @if (loading()) {
       <div class="flex items-center justify-center py-20 gap-3 text-text-muted">
         <mat-icon class="animate-spin text-primary">refresh</mat-icon>
@@ -89,7 +108,7 @@
       </div>
     } @else {
       <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-100">
+        <thead class="bg-gray-50 border-b border-border-soft">
           <tr>
             <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">N° Orden</th>
             <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Proveedor</th>
@@ -101,7 +120,7 @@
         </thead>
         <tbody class="divide-y divide-gray-50">
           @for (oc of filtrados(); track oc.id) {
-            <tr class="hover:bg-gray-50/50 transition-colors">
+            <tr class="hover:bg-[#FFF8EE] transition-colors">
               <td class="px-4 py-3">
                 <span class="font-mono font-semibold text-primary text-xs">{{ oc.numeroOrden }}</span>
               </td>
@@ -133,10 +152,10 @@
 <!-- ═══════════════════════════════ MODAL NUEVA OC ═══════════════════════════════ -->
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-md">
 
       <!-- Header modal -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
             <mat-icon class="text-primary text-[18px]">add_shopping_cart</mat-icon>
@@ -171,7 +190,7 @@
           } @else {
             <select
               formControlName="proveedorId"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+              class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
               <option value="">Selecciona un proveedor</option>
               @for (p of proveedores(); track p.id) {
                 <option [value]="p.id">{{ p.nombreCompleto }}{{ p.razonSocial ? ' — ' + p.razonSocial : '' }}</option>
@@ -190,7 +209,7 @@
             formControlName="observacion"
             rows="3"
             placeholder="Notas adicionales sobre la compra (opcional)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
+            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
           </textarea>
         </div>
 
@@ -204,13 +223,13 @@
           <button
             type="button"
             (click)="cerrarModal()"
-            class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
             Cancelar
           </button>
           <button
             type="submit"
             [disabled]="saving()"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
             @if (saving()) {
               <mat-icon class="animate-spin text-[16px]">refresh</mat-icon>
               Creando...

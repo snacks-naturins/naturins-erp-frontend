@@ -18,7 +18,7 @@
   <div class="flex flex-col" style="width:62%;background:white;border-right:1px solid #e5e7eb">
 
     <!-- Header catálogo -->
-    <div class="flex items-center gap-3 px-5 py-3 shrink-0" style="background:var(--color-primary,#16a34a)">
+    <div class="flex items-center gap-3 px-5 py-3 shrink-0 bg-primary">
       <mat-icon style="color:white">storefront</mat-icon>
       <span style="color:white;font-weight:600;font-size:1.1rem">Punto de Venta</span>
       <div class="ml-auto flex items-center gap-2 rounded-lg px-3 py-2" style="background:rgba(255,255,255,.2);width:18rem">
@@ -32,6 +32,26 @@
           (input)="onBusqueda($event)"
         />
       </div>
+    </div>
+
+    <!-- Búsqueda por código de barras -->
+    <div class="flex items-center gap-2 px-5 py-2 shrink-0" style="border-bottom:1px solid #f3f4f6;background:#fafafa">
+      <mat-icon class="text-text-muted text-[18px] shrink-0">qr_code_scanner</mat-icon>
+      <input
+        type="text"
+        placeholder="Escanear código de barras (Enter para buscar)..."
+        class="h-9 flex-1 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        [value]="codigoBarras()"
+        (input)="codigoBarras.set($any($event.target).value)"
+        (keydown)="buscarPorCodigoBarras($event)"
+        [disabled]="buscandoCodigo()"
+      />
+      @if (buscandoCodigo()) {
+        <mat-icon class="animate-spin text-primary text-[18px] shrink-0">refresh</mat-icon>
+      }
+      @if (errorCodigo()) {
+        <span class="text-xs text-red-600 shrink-0">{{ errorCodigo() }}</span>
+      }
     </div>
 
     <!-- Chips de categorías -->
@@ -263,7 +283,7 @@
           placeholder="Dirección de entrega *"
           [value]="direccionEntrega()"
           (input)="direccionEntrega.set($any($event.target).value)"
-          class="mt-2 h-9 w-full rounded-lg border px-3 text-xs outline-none transition"
+          class="mt-2 h-9 w-full rounded-input border px-3 text-xs outline-none transition"
           [style]="direccionEntrega().trim()
             ? 'border-color:var(--color-primary,#16a34a)'
             : 'border-color:#fca5a5;background:#fff7f7'" />
@@ -303,6 +323,37 @@
       }
     </div>
 
+    <!-- ─── Efectivo: monto recibido / vuelto ─── -->
+    @if (esEfectivo() && carrito().length > 0) {
+      <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
+        <p class="text-xs font-semibold mb-2" style="color:#6b7280">EFECTIVO</p>
+        <div class="flex items-center gap-2 mb-1">
+          <label class="text-xs shrink-0" style="color:#6b7280;width:6rem">Monto recibido</label>
+          <input
+            type="number"
+            min="0"
+            step="0.10"
+            placeholder="S/ 0.00"
+            class="h-8 flex-1 rounded-input border px-3 text-sm outline-none transition"
+            [style]="(montoRecibido() ?? 0) >= total()
+              ? 'border-color:#16a34a;background:#f0fdf4'
+              : 'border-color:#d1d5db;background:white'"
+            [value]="montoRecibido() ?? ''"
+            (input)="montoRecibido.set(+$any($event.target).value || null)"
+          />
+        </div>
+        @if (vuelto() != null) {
+          <div class="flex items-center justify-between rounded-lg px-3 py-1.5 mt-1"
+            [style]="vuelto()! > 0 ? 'background:#f0fdf4;border:1px solid #bbf7d0' : 'background:#f9fafb;border:1px solid #e5e7eb'">
+            <span class="text-xs font-semibold" style="color:#6b7280">Vuelto</span>
+            <span class="font-bold text-sm" [style]="vuelto()! > 0 ? 'color:#15803d' : 'color:#1f2937'">
+              {{ formatMonto(vuelto()!) }}
+            </span>
+          </div>
+        }
+      </div>
+    }
+
     <!-- ─── Error + botón finalizar ─── -->
     <div class="px-4 pb-4 shrink-0">
       @if (errorVenta()) {
@@ -340,14 +391,21 @@
 <!-- ══════════════════ MODAL ÉXITO ══════════════════ -->
 @if (modalExito()) {
   <div class="fixed inset-0 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5);z-index:50">
-    <div class="bg-white rounded-2xl p-8 text-center" style="max-width:22rem;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.2)">
+    <div class="bg-white rounded-modal modal-enter p-8 text-center" style="max-width:22rem;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.2)">
       <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#dcfce7">
         <mat-icon style="color:#16a34a;font-size:2.5rem">check_circle</mat-icon>
       </div>
       <h2 style="font-size:1.25rem;font-weight:700;color:#1f2937;margin-bottom:4px">¡Venta registrada!</h2>
       @if (pedidoCreado(); as p) {
         <p class="text-sm mb-1" style="color:#6b7280">Pedido <span style="font-weight:600;color:var(--color-primary,#16a34a)">{{ p.numeroPedido }}</span></p>
-        <p style="font-size:1.75rem;font-weight:700;color:#111827;margin-bottom:1.5rem">{{ formatMonto(totalVenta()) }}</p>
+        <p style="font-size:1.75rem;font-weight:700;color:#111827;margin-bottom:.5rem">{{ formatMonto(totalVenta()) }}</p>
+        @if (vuelto() != null && vuelto()! >= 0) {
+          <p class="text-sm mb-4" style="color:#6b7280">
+            Vuelto: <span style="font-weight:700;color:#15803d">{{ formatMonto(vuelto()!) }}</span>
+          </p>
+        } @else {
+          <div style="margin-bottom:1.5rem"></div>
+        }
       }
       <button
         type="button"

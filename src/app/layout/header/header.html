@@ -9,21 +9,97 @@
     <input
       type="text"
       placeholder="Buscar productos, pedidos, clientes…"
+      (input)="onSearchInput($event)"
+      (blur)="closeDropdown()"
       class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
     />
+
+    @if (showDropdown.value && search.hasResults()) {
+      <div class="absolute left-0 top-full z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg">
+        <div class="max-h-80 overflow-y-auto p-2">
+
+          @if (search.results().length > 0) {
+            @for (r of search.results(); track r.label + r.type) {
+              <button
+                (mousedown)="navigateTo(r.route)"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-50">
+                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-bg-app">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-text-muted">{{ r.icon }}</mat-icon>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-medium text-text-main">{{ r.label }}</p>
+                  <p class="truncate text-xs text-text-muted">{{ r.subtitle }}</p>
+                </div>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-text-muted capitalize">{{ r.type }}</span>
+              </button>
+            }
+          } @else {
+            <p class="py-4 text-center text-sm text-text-muted">Sin resultados para "{{ search.query() }}"</p>
+          }
+
+        </div>
+      </div>
+    }
   </div>
 
   <div class="ml-auto flex items-center gap-2">
 
     <!-- Notificaciones -->
-    <button
-      type="button"
-      class="relative grid h-10 w-10 place-items-center rounded-input text-text-muted transition hover:bg-bg-app"
-      title="Notificaciones"
-    >
-      <mat-icon fontSet="material-icons-outlined">notifications</mat-icon>
-      <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-secondary"></span>
-    </button>
+    <div class="relative" (focusout)="closePanel()">
+      <button
+        type="button"
+        (click)="togglePanel()"
+        class="relative grid h-10 w-10 place-items-center rounded-input text-text-muted transition hover:bg-bg-app"
+        title="Notificaciones"
+      >
+        <mat-icon fontSet="material-icons-outlined">notifications</mat-icon>
+        @if (notificationCount() > 0) {
+          <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold text-white">
+            {{ notificationCount() }}
+          </span>
+        }
+      </button>
+
+      @if (showPanel()) {
+        <div class="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+          <!-- Panel header -->
+          <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <span class="text-sm font-semibold text-text-main">Notificaciones</span>
+            @if (notifications.hasNotifications()) {
+              <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                {{ notificationCount() }} alerta{{ notificationCount() > 1 ? 's' : '' }}
+              </span>
+            }
+          </div>
+          <!-- Panel body -->
+          <div class="max-h-72 overflow-y-auto">
+            @if (notifications.groups().length === 0) {
+              <div class="flex flex-col items-center gap-2 py-8 text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="text-3xl opacity-40">notifications_none</mat-icon>
+                <p class="text-sm">Sin notificaciones pendientes</p>
+              </div>
+            } @else {
+              @for (g of notifications.groups(); track g.route + g.label) {
+                <button
+                  (mousedown)="navigateFromPanel(g.route)"
+                  class="flex w-full items-center gap-3 border-b border-gray-50 px-4 py-3 text-left last:border-0 transition hover:bg-gray-50">
+                  <div
+                    class="grid h-8 w-8 shrink-0 place-items-center rounded-full"
+                    [class]="g.tone === 'red' ? 'bg-red-100 text-red-600'
+                           : g.tone === 'blue' ? 'bg-blue-100 text-blue-600'
+                           : 'bg-amber-100 text-amber-600'"
+                  >
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]">{{ g.icon }}</mat-icon>
+                  </div>
+                  <span class="flex-1 text-sm text-text-main">{{ g.label }}</span>
+                  <mat-icon fontSet="material-icons-outlined" class="text-[16px] text-text-muted">chevron_right</mat-icon>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
 
     <!-- Alertas -->
     <button
@@ -32,7 +108,6 @@
       title="Alertas"
     >
       <mat-icon fontSet="material-icons-outlined">warning_amber</mat-icon>
-      <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-[#EF4444]"></span>
     </button>
 
     <!-- Perfil -->

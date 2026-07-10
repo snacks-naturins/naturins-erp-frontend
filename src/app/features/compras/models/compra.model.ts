@@ -13,6 +13,8 @@ export interface CompraResponse {
   igv: number;
   total: number;
   observacion?: string | null;
+  fechaEntregaEsperada?: string | null;
+  nroFacturaProveedor?: string | null;
   fechaCreacion?: string;
   fechaModificacion?: string;
 }
@@ -25,4 +27,6 @@ export interface CreateCompraRequest {
 export interface UpdateCompraRequest {
   estado?: EstadoCompra;
   observacion?: string;
+  fechaEntregaEsperada?: string | null;
+  nroFacturaProveedor?: string | null;
 }

@@ -42,7 +42,7 @@ export interface CreateUsuarioRequest {
 }
 
 export interface UpdateUsuarioRequest {
-  password: string;
+  password?: string;
   rolId: string;
   departamentoId?: string;
   urlAvatar?: string;

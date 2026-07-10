@@ -64,7 +64,7 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-center">
-                <button (click)="eliminar(d.id)" [disabled]="deleting() === d.id"
+                <button (click)="pedirEliminar(d)" [disabled]="deleting()"
                   class="grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition disabled:opacity-50 mx-auto">
                   <mat-icon class="text-[16px]">delete</mat-icon>
                 </button>
@@ -85,6 +85,37 @@
     </div>
   }
 </div>
+
+<!-- Modal confirmar eliminar descuento -->
+@if (deleteTarget(); as t) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
+    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]" (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
+        </div>
+        <h3 class="font-semibold text-text-main">Eliminar descuento</h3>
+        <p class="text-sm text-text-muted">
+          ¿Eliminar <span class="font-semibold text-text-main">{{ t.nombre }}</span>?
+          Se dejará de aplicar en la tienda y no se puede deshacer.
+        </p>
+        @if (deleteError()) {
+          <p class="text-xs text-red-600">{{ deleteError() }}</p>
+        }
+      </div>
+      <div class="flex justify-center gap-3 border-t border-border-soft px-6 py-4 mt-3">
+        <button (click)="cancelarEliminar()"
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button (click)="confirmarEliminar()" [disabled]="deleting()"
+          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- Modal nuevo descuento -->
 @if (modalOpen()) {

@@ -10,6 +10,7 @@ import { ClienteService }        from '../../../clientes/services/cliente.servic
 import { MetodoPagoService }     from '../../services/metodo-pago.service';
 import { PedidoService }         from '../../services/pedido.service';
 import { DetallePedidoService }  from '../../services/detalle-pedido.service';
+import { CodigoBarrasService }   from '../../../inventario/services/codigo-barras.service';
 
 import { PresentacionResponse }  from '../../../inventario/models/presentacion.model';
 import { LoteResponse }          from '../../../inventario/models/lote.model';
@@ -45,6 +46,7 @@ export class Pos implements OnInit {
   private readonly svcMetodo  = inject(MetodoPagoService);
   private readonly svcPedido  = inject(PedidoService);
   private readonly svcDetalle = inject(DetallePedidoService);
+  private readonly svcBarras  = inject(CodigoBarrasService);
 
   readonly loading = signal(true);
   readonly error   = signal<string | null>(null);
@@ -54,6 +56,11 @@ export class Pos implements OnInit {
   readonly categorias      = signal<string[]>([]);
   readonly categoriaActiva = signal('Todos');
   readonly busqueda        = signal('');
+
+  // ── Búsqueda por código de barras ───────────────────────────
+  readonly codigoBarras      = signal('');
+  readonly buscandoCodigo    = signal(false);
+  readonly errorCodigo       = signal<string | null>(null);
 
   readonly productosFiltrados = computed(() => {
     const cat = this.categoriaActiva();
@@ -112,6 +119,17 @@ export class Pos implements OnInit {
   readonly metodosPago      = signal<MetodoPagoResponse[]>([]);
   readonly metodoPagoId     = signal('');
   readonly metodoPagoNombre = signal('');
+
+  // ── Efectivo: monto recibido / vuelto ────────────────────────
+  readonly montoRecibido  = signal<number | null>(null);
+  readonly esEfectivo     = computed(() =>
+    this.metodoPagoNombre().toLowerCase().includes('efectivo') ||
+    this.metodoPagoNombre().toLowerCase().includes('cash'));
+  readonly vuelto = computed(() => {
+    const monto = this.montoRecibido();
+    if (!this.esEfectivo() || monto == null) return null;
+    return Math.max(0, monto - this.total());
+  });
 
   // ── Venta ────────────────────────────────────────────────────
   readonly saving       = signal(false);
@@ -192,6 +210,33 @@ export class Pos implements OnInit {
   // ── Catálogo helpers ─────────────────────────────────────────
   onBusqueda(e: Event): void { this.busqueda.set((e.target as HTMLInputElement).value); }
   setCategoria(cat: string): void { this.categoriaActiva.set(cat); }
+
+  buscarPorCodigoBarras(e: KeyboardEvent): void {
+    if (e.key !== 'Enter') return;
+    const codigo = this.codigoBarras().trim();
+    if (!codigo || this.buscandoCodigo()) return;
+    this.buscandoCodigo.set(true);
+    this.errorCodigo.set(null);
+    this.svcBarras.buscarPorCodigo(codigo).subscribe({
+      next: (cb) => {
+        this.buscandoCodigo.set(false);
+        this.codigoBarras.set('');
+        const pres = this.presentaciones().find((p) => p.id === cb.presentacionProductoId);
+        if (pres) {
+          this.agregarAlCarrito(pres);
+        } else {
+          this.errorCodigo.set(`Producto "${cb.tituloPresentacion}" no disponible o sin stock.`);
+          setTimeout(() => this.errorCodigo.set(null), 4000);
+        }
+      },
+      error: () => {
+        this.buscandoCodigo.set(false);
+        this.errorCodigo.set(`Código de barras "${codigo}" no encontrado.`);
+        this.codigoBarras.set('');
+        setTimeout(() => this.errorCodigo.set(null), 4000);
+      },
+    });
+  }
 
   iconoProducto(pres: PresentacionPOS): string {
     const cat = (pres.nombreCategoria ?? '').toLowerCase();
@@ -311,6 +356,7 @@ export class Pos implements OnInit {
   seleccionarMetodo(m: MetodoPagoResponse): void {
     this.metodoPagoId.set(m.id);
     this.metodoPagoNombre.set(m.nombre);
+    this.montoRecibido.set(null);
   }
 
   // ── Finalizar venta ───────────────────────────────────────────
@@ -402,6 +448,9 @@ export class Pos implements OnInit {
             stockDisponible: (this.lotesPorPres.get(p.id) ?? []).reduce((s, l) => s + l.stockLote, 0),
           }))
         );
+      },
+      error: () => {
+        console.warn('No se pudieron recargar los lotes después de la venta.');
       },
     });
   }

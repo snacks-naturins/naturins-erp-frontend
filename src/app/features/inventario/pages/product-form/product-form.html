@@ -80,16 +80,6 @@
               <small class="mt-1 block text-xs text-text-muted">No hay categorías. Crea una primero (POST /api/categorias).</small>
             }
           </div>
-          <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Unidad de medida</label>
-            <select formControlName="unidad"
-              class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
-              <option value="UNIDAD">Unidad (u)</option>
-              <option value="KILOGRAMO">Kilogramo (kg)</option>
-              <option value="GRAMO">Gramo (g)</option>
-              <option value="CAJA">Caja</option>
-            </select>
-          </div>
         </div>
       </section>
 
@@ -98,11 +88,10 @@
         <h2 class="text-base font-semibold text-text-main">Control de inventario</h2>
         <p class="mb-5 text-xs text-text-muted">Niveles de alerta de stock</p>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           @for (f of [
             { ctrl: 'stockMinimo', label: 'Stock mínimo', icon: 'layers' },
-            { ctrl: 'stockCritico', label: 'Stock crítico', icon: 'warning_amber' },
-            { ctrl: 'stockInicial', label: 'Stock inicial', icon: 'inventory' }
+            { ctrl: 'stockCritico', label: 'Stock crítico', icon: 'warning_amber' }
           ]; track f.ctrl) {
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">{{ f.label }}</label>
@@ -177,7 +166,7 @@
       <!-- Precios -->
       <section class="rounded-card bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
         <h2 class="text-base font-semibold text-text-main">Precios</h2>
-        <p class="mb-5 text-xs text-text-muted">Costos y precio de venta (S/)</p>
+        <p class="mb-5 text-xs text-text-muted">Costo de compra del producto (S/). El precio de venta real se configura en cada Presentación.</p>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
@@ -189,12 +178,13 @@
             </div>
           </div>
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio de venta</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio ref. (para margen)</label>
             <div class="relative flex items-center">
               <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">sell</mat-icon>
-              <input type="number" formControlName="precioVenta" placeholder="14.90"
+              <input type="number" formControlName="precioVentaRef" placeholder="14.90"
                 class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-10 pr-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
             </div>
+            <small class="mt-1 block text-xs text-text-muted">No se guarda. Solo para calcular el margen.</small>
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Margen</label>
@@ -308,9 +298,7 @@
         <div class="flex flex-col gap-4">
           @for (t of [
             { ctrl: 'activo', label: 'Producto activo' },
-            { ctrl: 'visibleEcommerce', label: 'Visible en e-commerce' },
-            { ctrl: 'controlLotes', label: 'Control por lotes' },
-            { ctrl: 'permitirDescuentos', label: 'Permitir descuentos' }
+            { ctrl: 'visibleEcommerce', label: 'Visible en e-commerce' }
           ]; track t.ctrl) {
             <label class="flex cursor-pointer items-center justify-between">
               <span class="text-sm text-text-main">{{ t.label }}</span>

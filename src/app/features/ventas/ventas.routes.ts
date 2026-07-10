@@ -19,6 +19,11 @@ export const VENTAS_ROUTES: Routes = [
     loadComponent: () => import('./pages/pedidos/pedidos').then((m) => m.Pedidos),
   },
   {
+    path: 'pedidos/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/pedidos/pedido-detalle/pedido-detalle').then((m) => m.PedidoDetalle),
+  },
+  {
     path: 'metodos-pago',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/metodos-pago/metodos-pago').then((m) => m.MetodosPago),

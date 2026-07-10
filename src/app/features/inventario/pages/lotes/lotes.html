@@ -7,10 +7,16 @@
       <h1 class="text-[28px] font-bold text-text-main">Gestión de Lotes</h1>
       <p class="text-sm text-text-muted">Control de vencimientos por lote</p>
     </div>
-    <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
-      Nuevo lote
-    </button>
+    <div class="flex items-center gap-3">
+      <button (click)="exportar()" class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined">file_download</mat-icon>
+        Exportar CSV
+      </button>
+      <button (click)="abrirCrear()" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+        Nuevo lote
+      </button>
+    </div>
   </div>
 
   <!-- KPIs -->
@@ -84,7 +90,7 @@
         } @else if (error()) {
           <tr><td colspan="9" class="px-5 py-12 text-center text-[#B91C1C]">{{ error() }}</td></tr>
         } @else {
-          @for (l of filtrados(); track l.id) {
+          @for (l of paginados(); track l.id) {
             <tr class="border-b border-l-4 border-border-soft transition last:border-b-0 hover:bg-[#FFF8EE]" [class]="borde(l)">
               <td class="px-5 py-3 font-semibold text-primary">{{ l.codigoLote }}</td>
               <td class="px-5 py-3 font-medium text-text-main">{{ l.nombreProducto }}</td>
@@ -129,6 +135,34 @@
         }
       </tbody>
     </table>
+
+    <!-- Paginación -->
+    @if (totalPaginas() > 1) {
+      <div class="flex items-center justify-between border-t border-border-soft px-5 py-3">
+        <span class="text-xs text-text-muted">
+          {{ pagina() * PAGE_SIZE + 1 }}–{{ pagina() * PAGE_SIZE + paginados().length }} de {{ filtrados().length }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button (click)="pagina.set(0)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">first_page</mat-icon>
+          </button>
+          <button (click)="pagina.set(pagina() - 1)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">chevron_left</mat-icon>
+          </button>
+          <span class="px-2 text-xs font-medium text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
+          <button (click)="pagina.set(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">chevron_right</mat-icon>
+          </button>
+          <button (click)="pagina.set(totalPaginas() - 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon fontSet="material-icons-outlined">last_page</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 

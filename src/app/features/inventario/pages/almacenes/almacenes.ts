@@ -1,8 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AlmacenService } from '../../services/almacen.service';
+import { LoteService } from '../../services/lote.service';
 import {
   AlmacenResponse,
   EstadoAlmacen,
@@ -10,6 +11,7 @@ import {
   Zona,
   ZonaEstado,
 } from '../../models/almacen.model';
+import { LoteResponse } from '../../models/lote.model';
 
 @Component({
   selector: 'app-almacenes',
@@ -18,8 +20,9 @@ import {
   templateUrl: './almacenes.html',
 })
 export class Almacenes implements OnInit {
-  private readonly fb = inject(FormBuilder);
+  private readonly fb      = inject(FormBuilder);
   private readonly service = inject(AlmacenService);
+  private readonly svcLote = inject(LoteService);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -41,6 +44,22 @@ export class Almacenes implements OnInit {
     return this.generarZonas(pct);
   });
 
+  // ── Lotes del almacén seleccionado ────────────────────────
+  readonly lotesAlmacen  = signal<LoteResponse[]>([]);
+  readonly loadingLotes  = signal(false);
+
+  constructor() {
+    effect(() => {
+      const sel = this.almacenSeleccionado();
+      if (!sel) { this.lotesAlmacen.set([]); return; }
+      this.loadingLotes.set(true);
+      this.svcLote.listarPorAlmacen(sel.id).subscribe({
+        next:  (l) => { this.lotesAlmacen.set(l); this.loadingLotes.set(false); },
+        error: ()  => { this.lotesAlmacen.set([]); this.loadingLotes.set(false); },
+      });
+    }, { allowSignalWrites: true });
+  }
+
   // ── Modal crear/editar ─────────────────────────────────────
   readonly modalOpen = signal(false);
   readonly saving = signal(false);
@@ -52,7 +71,7 @@ export class Almacenes implements OnInit {
     tipo: ['PRINCIPAL' as TipoAlmacen, [Validators.required]],
     ubicacion: ['', [Validators.required, Validators.maxLength(200)]],
     telefono: ['', [Validators.maxLength(15)]],
-    capacidadKg: [null as number | null],
+    capacidadKg: [null as number | null, [Validators.min(0.001)]],
     estado: ['ACTIVO' as EstadoAlmacen, [Validators.required]],
   });
 
@@ -132,26 +151,22 @@ export class Almacenes implements OnInit {
 
   zonaClase(estado: ZonaEstado): string {
     switch (estado) {
-      case 'libre':     return 'bg-green-100  border-green-200';
-      case 'ocupado':   return 'bg-rose-100   border-rose-200';
-      case 'lleno':     return 'bg-amber-100  border-amber-200';
-      case 'bloqueado': return 'bg-rose-200   border-rose-300';
-      default:          return 'bg-gray-100   border-gray-200';
+      case 'libre':   return 'bg-green-100 border-green-200';
+      case 'ocupado': return 'bg-rose-100  border-rose-200';
+      case 'lleno':   return 'bg-amber-100 border-amber-200';
     }
   }
 
   // ── Generador de mapa visual (4 filas × 10 columnas) ──────
   private generarZonas(pct: number): Zona[] {
     const total = 40;
-    const bloqueados = 3;
-    const maxOcupables = total - bloqueados;
+    const maxOcupables = total;
     // Clamp so overcapacity (pct > 100) never produces a negative libre count
     const ocupadosTotal = Math.min(Math.round((pct / 100) * maxOcupables), maxOcupables);
     const llenos = Math.floor(ocupadosTotal * 0.35);
     const ocupados = ocupadosTotal - llenos;
 
     const estados: ZonaEstado[] = [
-      ...Array<ZonaEstado>(bloqueados).fill('bloqueado'),
       ...Array<ZonaEstado>(llenos).fill('lleno'),
       ...Array<ZonaEstado>(ocupados).fill('ocupado'),
       ...Array<ZonaEstado>(maxOcupables - ocupadosTotal).fill('libre'),
@@ -216,5 +231,24 @@ export class Almacenes implements OnInit {
       next: () => { this.deleting.set(false); this.deleteTarget.set(null); this.items.update((l) => l.filter((x) => x.id !== t.id)); },
       error: (err) => { this.deleting.set(false); this.deleteError.set(err?.error?.message ?? 'No se pudo eliminar el almacén.'); },
     });
+  }
+
+  // ── Helpers lotes ──────────────────────────────────────────
+  loteEstadoConfig(estado: string): { label: string; css: string } {
+    switch (estado) {
+      case 'DISPONIBLE':    return { label: 'Disponible',    css: 'bg-green-50 text-green-700' };
+      case 'EN_CUARENTENA': return { label: 'Cuarentena',    css: 'bg-amber-50 text-amber-700' };
+      case 'BLOQUEADO':     return { label: 'Bloqueado',     css: 'bg-red-50 text-red-600' };
+      case 'VENCIDO':       return { label: 'Vencido',       css: 'bg-gray-100 text-gray-500' };
+      case 'AGOTADO':       return { label: 'Agotado',       css: 'bg-gray-100 text-gray-500' };
+      case 'AGOTADO_MERMA': return { label: 'Agot. merma',  css: 'bg-gray-100 text-gray-500' };
+      default:              return { label: estado,          css: 'bg-gray-100 text-gray-500' };
+    }
+  }
+
+  formatFecha(fecha?: string | null): string {
+    if (!fecha) return '—';
+    const [y, m, d] = fecha.split('T')[0].split('-');
+    return `${d}/${m}/${y}`;
   }
 }

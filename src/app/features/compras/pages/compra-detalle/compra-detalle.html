@@ -21,7 +21,7 @@
   } @else if (compra()) {
 
     <!-- ── Header card ── -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <div class="bg-white rounded-card border border-border-soft shadow-sm p-6">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -41,6 +41,51 @@
             @if (compra()!.observacion) {
               <p class="text-xs text-text-muted mt-2 italic">{{ compra()!.observacion }}</p>
             }
+            <div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-text-muted">
+              @if (compra()!.fechaEntregaEsperada) {
+                <span class="flex items-center gap-1">
+                  <mat-icon class="text-[13px]">event</mat-icon>
+                  Entrega esperada: <span class="font-medium text-text-main">{{ compra()!.fechaEntregaEsperada }}</span>
+                </span>
+              }
+              @if (compra()!.nroFacturaProveedor) {
+                <span class="flex items-center gap-1">
+                  <mat-icon class="text-[13px]">receipt</mat-icon>
+                  Factura: <span class="font-mono font-medium text-text-main">{{ compra()!.nroFacturaProveedor }}</span>
+                </span>
+              }
+              @if (isPendiente()) {
+                <button (click)="abrirEditOc()" class="flex items-center gap-1 text-primary hover:underline">
+                  <mat-icon class="text-[12px]">edit</mat-icon>
+                  {{ compra()!.fechaEntregaEsperada || compra()!.nroFacturaProveedor ? 'Editar' : 'Añadir fecha entrega / factura' }}
+                </button>
+              }
+            </div>
+            @if (editOcOpen()) {
+              <div class="mt-3 flex flex-wrap items-end gap-3 rounded-lg border border-border-soft bg-bg-app p-3">
+                @if (errorOcEdit()) {
+                  <p class="w-full text-xs text-[#B91C1C]">{{ errorOcEdit() }}</p>
+                }
+                <div>
+                  <label class="mb-1 block text-[11px] font-semibold text-text-muted">Fecha entrega esperada</label>
+                  <input type="date" [value]="editFechaEnt()" (change)="editFechaEnt.set($any($event.target).value)"
+                    class="h-9 rounded-lg border border-border-soft bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+                </div>
+                <div>
+                  <label class="mb-1 block text-[11px] font-semibold text-text-muted">N° Factura proveedor</label>
+                  <input type="text" [value]="editNroFact()" (input)="editNroFact.set($any($event.target).value)" placeholder="F001-00123"
+                    class="h-9 rounded-lg border border-border-soft bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+                </div>
+                <button (click)="guardarEditOc()" [disabled]="savingOcEdit()"
+                  class="h-9 rounded-btn bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover disabled:opacity-60">
+                  {{ savingOcEdit() ? 'Guardando...' : 'Guardar' }}
+                </button>
+                <button (click)="editOcOpen.set(false)"
+                  class="h-9 rounded-lg border border-border-soft bg-white px-3 text-xs font-semibold text-text-muted hover:bg-bg-app">
+                  Cancelar
+                </button>
+              </div>
+            }
           </div>
         </div>
 
@@ -54,7 +99,7 @@
               <span>IGV (18%)</span>
               <span class="font-medium text-text-main w-28 text-right">{{ formatMonto(compra()!.igv) }}</span>
             </div>
-            <div class="flex items-center justify-end gap-8 border-t border-gray-100 pt-1 mt-1">
+            <div class="flex items-center justify-end gap-8 border-t border-border-soft pt-1 mt-1">
               <span class="text-sm font-semibold text-text-main">Total</span>
               <span class="text-lg font-bold text-primary w-28 text-right">{{ formatMonto(compra()!.total) }}</span>
             </div>
@@ -62,12 +107,12 @@
           @if (isPendiente()) {
             <div class="flex gap-2">
               <button (click)="abrirConfirmCancelar()"
-                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                class="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-500 border border-red-200 rounded-btn hover:bg-red-50 transition-colors">
                 <mat-icon class="text-[14px] leading-none">cancel</mat-icon>
                 Cancelar OC
               </button>
               <button (click)="abrirConfirmRecibir()" [disabled]="!canReceive()"
-                class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <mat-icon class="text-[14px] leading-none">check_circle</mat-icon>
                 Recibir mercancía
               </button>
@@ -78,15 +123,15 @@
     </div>
 
     <!-- ── Ítems ── -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+    <div class="bg-white rounded-table border border-border-soft shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <h2 class="text-base font-semibold text-text-main flex items-center gap-2">
           <mat-icon class="text-[18px] text-text-muted">inventory_2</mat-icon>
           Ítems ({{ detalles().length }})
         </h2>
         @if (isPendiente()) {
           <button (click)="abrirAgregar()"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors">
             <mat-icon class="text-[14px] leading-none">add</mat-icon>
             Agregar ítems
           </button>
@@ -108,7 +153,7 @@
         </div>
       } @else {
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 border-b border-gray-100">
+          <thead class="bg-gray-50 border-b border-border-soft">
             <tr>
               <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Materia Prima</th>
               <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad</th>
@@ -121,7 +166,7 @@
           </thead>
           <tbody class="divide-y divide-gray-50">
             @for (d of detalles(); track d.id) {
-              <tr class="hover:bg-gray-50/40 transition-colors">
+              <tr class="hover:bg-[#FFF8EE]/40 transition-colors">
                 <td class="px-4 py-3 font-medium text-text-main">{{ d.nombreMateriaPrima }}</td>
                 <td class="px-4 py-3 text-right text-text-main">{{ formatCantidad(d.cantidad) }}</td>
                 <td class="px-4 py-3 text-right text-text-main">{{ formatMonto(d.precioCompra) }}</td>
@@ -153,10 +198,10 @@
 <!-- ═══════════════════ MODAL AGREGAR ÍTEMS (multi-select cards) ═══════════════════ -->
 @if (modalAgregar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-2xl flex flex-col max-h-[90vh]">
 
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft shrink-0">
         <div>
           <h2 class="text-base font-semibold text-text-main">Agregar ítems</h2>
           <p class="text-xs text-text-muted mt-0.5">Selecciona uno o varios productos del catálogo</p>
@@ -230,7 +275,7 @@
                         placeholder="0.000"
                         [value]="getLinea(item.id)?.cantidad ?? ''"
                         (input)="setCantidad(item.id, $event)"
-                        class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
+                        class="w-full px-2 py-1.5 text-xs border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
                     </div>
                     <div>
                       <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Precio S/ *</label>
@@ -241,7 +286,7 @@
                         placeholder="0.00"
                         [value]="getLinea(item.id)?.precioCompra ?? ''"
                         (input)="setPrecio(item.id, $event)"
-                        class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
+                        class="w-full px-2 py-1.5 text-xs border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
                     </div>
                   </div>
                 </div>
@@ -280,7 +325,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50/50 rounded-b-2xl">
+      <div class="flex items-center justify-between px-6 py-4 border-t border-border-soft shrink-0 bg-gray-50/50 rounded-b-modal">
         <p class="text-sm text-text-muted">
           @if (lineasSeleccionadas().length === 0) {
             Ningún ítem seleccionado
@@ -295,11 +340,11 @@
         </p>
         <div class="flex gap-3">
           <button (click)="cerrarAgregar()"
-            class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main border border-gray-200 rounded-lg hover:bg-white transition-colors">
+            class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main border border-border-soft rounded-btn hover:bg-white transition-colors">
             Cancelar
           </button>
           <button (click)="guardarTodos()" [disabled]="savingAgregar() || lineasValidas().length === 0"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
             @if (savingAgregar()) {
               <mat-icon class="animate-spin text-[16px]">refresh</mat-icon>
               Guardando...
@@ -318,8 +363,8 @@
 <!-- ═══════════════════ MODAL EDITAR ÍTEM ═══════════════════ -->
 @if (modalEditar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
             <mat-icon class="text-amber-500 text-[18px]">edit</mat-icon>
@@ -344,21 +389,21 @@
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-text-main">Cantidad *</label>
             <input type="number" step="0.001" min="0.001" [value]="editCantidad()" (input)="onEditCantidad($event)"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+              class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
           </div>
           <div class="space-y-1.5">
             <label class="block text-sm font-medium text-text-main">Precio (S/) *</label>
             <input type="number" step="0.01" min="0.01" [value]="editPrecio()" (input)="onEditPrecio($event)"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+              class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
           </div>
         </div>
         <div class="flex justify-end gap-3 pt-1">
           <button (click)="cerrarEditar()"
-            class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
             Cancelar
           </button>
           <button (click)="guardarEditar()" [disabled]="savingEditar()"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
             @if (savingEditar()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> }
             Guardar
           </button>
@@ -371,7 +416,7 @@
 <!-- ═══════════════════ MODAL ELIMINAR ÍTEM ═══════════════════ -->
 @if (detalleToDelete()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
           <mat-icon class="text-red-500">delete_outline</mat-icon>
@@ -385,7 +430,7 @@
       @if (errorDelete()) { <p class="text-sm text-red-500">{{ errorDelete() }}</p> }
       <div class="flex justify-end gap-3">
         <button (click)="cancelarEliminarDetalle()"
-          class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
         <button (click)="confirmarEliminarDetalle()" [disabled]="deletingDetalle()"
@@ -401,7 +446,7 @@
 <!-- ═══════════════════ MODAL RECIBIR ═══════════════════ -->
 @if (confirmRecibir()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
           <mat-icon class="text-green-600">check_circle</mat-icon>
@@ -418,11 +463,11 @@
       @if (errorRecibir()) { <p class="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{{ errorRecibir() }}</p> }
       <div class="flex justify-end gap-3">
         <button (click)="cerrarConfirmRecibir()"
-          class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
         <button (click)="ejecutarRecibir()" [disabled]="procesandoRecibir()"
-          class="px-5 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors flex items-center gap-2">
+          class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors flex items-center gap-2">
           @if (procesandoRecibir()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Procesando... }
           @else { <mat-icon class="text-[16px]">check_circle</mat-icon> Confirmar recepción }
         </button>
@@ -434,7 +479,7 @@
 <!-- ═══════════════════ MODAL CANCELAR ═══════════════════ -->
 @if (confirmCancelar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
           <mat-icon class="text-red-500">cancel</mat-icon>
@@ -450,7 +495,7 @@
       @if (errorCancelar()) { <p class="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{{ errorCancelar() }}</p> }
       <div class="flex justify-end gap-3">
         <button (click)="cerrarConfirmCancelar()"
-          class="px-4 py-2 text-sm font-medium text-text-muted border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
           Volver
         </button>
         <button (click)="ejecutarCancelar()" [disabled]="procesandoCancelar()"

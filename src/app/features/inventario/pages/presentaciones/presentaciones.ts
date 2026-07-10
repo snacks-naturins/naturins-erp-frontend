@@ -36,7 +36,7 @@ export class Presentaciones implements OnInit {
   readonly form = this.fb.nonNullable.group({
     productoId: ['', [Validators.required]],
     nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
-    peso: [null as number | null],
+    peso: [null as number | null, [Validators.min(0.001)]],
     unidadMedida: ['g'],
     factorConversion: [1, [Validators.required, Validators.min(0.001)]],
     precioVenta: [null as number | null, [Validators.required, Validators.min(0.01)]],

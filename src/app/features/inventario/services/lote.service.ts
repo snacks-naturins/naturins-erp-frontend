@@ -14,6 +14,10 @@ export class LoteService {
     return this.http.get<LoteResponse[]>(this.API_URL);
   }
 
+  listarPorAlmacen(almacenId: string): Observable<LoteResponse[]> {
+    return this.http.get<LoteResponse[]>(`${this.API_URL}/por-almacen/${almacenId}`);
+  }
+
   listarDisponibles(): Observable<LoteResponse[]> {
     return this.http.get<LoteResponse[]>(`${this.API_URL}/disponibles`);
   }

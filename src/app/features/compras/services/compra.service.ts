@@ -34,6 +34,10 @@ export class CompraService {
     return this.http.put<CompraResponse>(`${this.API_URL}/${id}/recibir`, {});
   }
 
+  listarPorProveedor(proveedorId: string): Observable<CompraResponse[]> {
+    return this.http.get<CompraResponse[]>(`${this.API_URL}/por-proveedor/${proveedorId}`);
+  }
+
   cancelar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
   }

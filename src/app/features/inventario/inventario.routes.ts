@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '../../core/guards/auth.guard';
+import { canDeactivateGuard } from '../../core/guards/can-deactivate.guard';
 
 export const INVENTARIO_ROUTES: Routes = [
   {
@@ -12,12 +13,14 @@ export const INVENTARIO_ROUTES: Routes = [
   {
     path: 'productos/nuevo',
     canActivate: [authGuard],
+    canDeactivate: [canDeactivateGuard],
     loadComponent: () =>
       import('./pages/product-form/product-form').then((m) => m.ProductForm),
   },
   {
     path: 'productos/:id/editar',
     canActivate: [authGuard],
+    canDeactivate: [canDeactivateGuard],
     loadComponent: () =>
       import('./pages/product-form/product-form').then((m) => m.ProductForm),
   },

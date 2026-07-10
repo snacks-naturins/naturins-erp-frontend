@@ -11,17 +11,19 @@
       </p>
     </div>
     <div class="flex items-center gap-3">
-      <button class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+      <button (click)="exportar()" class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
         <mat-icon fontSet="material-icons-outlined">file_download</mat-icon>
-        Exportar
+        Exportar CSV
       </button>
-      <button
-        routerLink="/productos/nuevo"
-        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover"
-      >
-        <mat-icon fontSet="material-icons-outlined">add</mat-icon>
-        Crear producto
-      </button>
+      @if ('Inventario' | rbac:'crear') {
+        <button
+          routerLink="/productos/nuevo"
+          class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+        >
+          <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+          Crear producto
+        </button>
+      }
     </div>
   </div>
 
@@ -36,16 +38,33 @@
         class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
       />
     </div>
-    @for (f of ['Categoría', 'Almacén', 'Estado']; track f) {
-      <button class="flex h-11 items-center gap-2 rounded-input border border-border-soft bg-white px-4 text-sm text-text-main transition hover:bg-bg-app">
-        <mat-icon fontSet="material-icons-outlined" class="text-text-muted">filter_list</mat-icon>
-        {{ f }}
-        <mat-icon fontSet="material-icons-outlined" class="text-text-muted">expand_more</mat-icon>
-      </button>
-    }
+    <select
+      class="h-11 rounded-input border border-border-soft bg-white px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+      [value]="filtroCategoria()"
+      (change)="filtroCategoria.set($any($event.target).value)">
+      <option value="">Todas las categorías</option>
+      @for (cat of categoriasDisponibles(); track cat) {
+        <option [value]="cat">{{ cat }}</option>
+      }
+    </select>
+    <select
+      class="h-11 rounded-input border border-border-soft bg-white px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+      [value]="filtroEstado()"
+      (change)="filtroEstado.set($any($event.target).value)">
+      <option value="">Todos los estados</option>
+      <option value="ACTIVO">Activo</option>
+      <option value="INACTIVO">Inactivo</option>
+      <option value="DESCONTINUADO">Descontinuado</option>
+    </select>
     <span class="ml-auto text-xs text-text-muted">
       Mostrando {{ filtrados().length }} de {{ productos().length }}
     </span>
+    <select
+      class="h-9 rounded-input border border-border-soft bg-white px-2 text-xs text-text-muted outline-none"
+      [value]="PAGE_SIZE"
+      (change)="pagina.set(0)">
+      <option value="20">20 por pág.</option>
+    </select>
   </div>
 
   <!-- Tabla -->
@@ -77,7 +96,7 @@
             </td>
           </tr>
         } @else {
-          @for (p of filtrados(); track p.id) {
+          @for (p of paginados(); track p.id) {
             <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
               <td class="px-5 py-3 font-semibold text-primary">{{ codigo(p) }}</td>
               <td class="px-5 py-3">
@@ -142,6 +161,34 @@
         }
       </tbody>
     </table>
+
+    <!-- Paginación -->
+    @if (totalPaginas() > 1) {
+      <div class="flex items-center justify-between border-t border-border-soft px-5 py-3 text-sm">
+        <span class="text-xs text-text-muted">
+          {{ pagina() * PAGE_SIZE + 1 }}–{{ pagina() * PAGE_SIZE + paginados().length }} de {{ filtrados().length }}
+        </span>
+        <div class="flex items-center gap-1">
+          <button (click)="pagina.set(0)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon class="text-[16px]">first_page</mat-icon>
+          </button>
+          <button (click)="pagina.set(pagina() - 1)" [disabled]="pagina() === 0"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon class="text-[16px]">chevron_left</mat-icon>
+          </button>
+          <span class="px-2 text-xs font-medium text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
+          <button (click)="pagina.set(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon class="text-[16px]">chevron_right</mat-icon>
+          </button>
+          <button (click)="pagina.set(totalPaginas() - 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+            <mat-icon class="text-[16px]">last_page</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 

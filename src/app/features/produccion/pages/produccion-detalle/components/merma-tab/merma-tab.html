@@ -1,0 +1,136 @@
+<div>
+  <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
+    <p class="text-sm text-text-muted">Mermas registradas sobre los lotes generados</p>
+    <button (click)="abrirModal()"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-btn hover:bg-primary-hover transition-colors">
+      <mat-icon class="text-[14px] leading-none">add</mat-icon>
+      Registrar merma
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12 gap-2 text-text-muted">
+      <mat-icon class="animate-spin text-primary text-[18px]">refresh</mat-icon>
+      <span class="text-sm">Cargando...</span>
+    </div>
+  } @else if (mermas().length === 0) {
+    <div class="flex flex-col items-center justify-center py-14 gap-2 text-text-muted">
+      <mat-icon class="text-[40px] text-gray-200">delete_sweep</mat-icon>
+      <p class="text-sm font-medium">Sin mermas registradas</p>
+    </div>
+  } @else {
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-border-soft">
+        <tr>
+          <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Lote</th>
+          <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Tipo</th>
+          <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Cantidad</th>
+          <th class="text-left px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Observación</th>
+          <th class="text-right px-4 py-3 font-medium text-text-muted text-xs uppercase tracking-wide">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (m of mermas(); track m.id) {
+          <tr class="hover:bg-[#FFF8EE]/40">
+            <td class="px-4 py-3 font-mono text-xs text-text-main">{{ m.codigoLote }}</td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">{{ m.tipo }}</span>
+            </td>
+            <td class="px-4 py-3 text-right font-semibold text-red-500">{{ fmt(m.cantidad) }}</td>
+            <td class="px-4 py-3 text-text-muted text-xs">{{ m.observacion || '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <button (click)="pedirEliminar(m)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                <mat-icon class="text-[16px]">delete_outline</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- Modal registrar merma -->
+@if (modalOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-md">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <mat-icon class="text-amber-500 text-[18px]">delete_sweep</mat-icon>
+          </div>
+          <h2 class="text-base font-semibold text-text-main">Registrar merma</h2>
+        </div>
+        <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        @if (error()) {
+          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+            <mat-icon class="text-[16px]">error_outline</mat-icon>{{ error() }}
+          </div>
+        }
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-main">Lote afectado <span class="text-red-500">*</span></label>
+          <select (change)="loteId.set($any($event.target).value)" class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+            <option value="">Selecciona un lote</option>
+            @for (l of lotesOP(); track l.id) {
+              <option [value]="l.id">{{ l.codigoLote }} — {{ l.nombreProducto }} (stock: {{ fmt(l.stockLote) }})</option>
+            }
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium text-text-main">Tipo <span class="text-red-500">*</span></label>
+            <select (change)="tipo.set($any($event.target).value)" class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+              @for (t of tiposMerma; track t.value) {
+                <option [value]="t.value" [selected]="tipo() === t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-sm font-medium text-text-main">Cantidad <span class="text-red-500">*</span></label>
+            <input type="number" step="0.001" min="0.001" placeholder="0.000" (input)="cantidad.set($any($event.target).value)"
+              class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-main">Observación</label>
+          <textarea rows="2" (input)="obs.set($any($event.target).value)" placeholder="Descripción del motivo (opcional)"
+            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-3 pt-1">
+          <button (click)="cerrarModal()" class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">Cancelar</button>
+          <button (click)="guardar()" [disabled]="saving()"
+            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors flex items-center gap-2">
+            @if (saving()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Guardando... }
+            @else { Registrar merma }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal confirmar eliminar merma -->
+@if (deleteTarget()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-sm p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+          <mat-icon class="text-red-500">delete_outline</mat-icon>
+        </div>
+        <div>
+          <h3 class="font-semibold text-text-main">Eliminar merma</h3>
+          <p class="text-sm text-text-muted">{{ deleteTarget()?.codigoLote }}</p>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button (click)="cancelarEliminar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Cancelar</button>
+        <button (click)="confirmarEliminar()" [disabled]="deleting()"
+          class="px-4 py-2 text-sm font-medium bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-60 transition-colors flex items-center gap-2">
+          @if (deleting()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> } Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+}

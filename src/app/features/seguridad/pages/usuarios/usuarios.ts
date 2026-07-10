@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 
 import { UsuarioService }     from '../../services/usuario.service';
 import { RolService }         from '../../services/rol.service';
@@ -80,7 +80,7 @@ export class Usuarios implements OnInit {
   readonly editandoUsuario = signal<UsuarioResponse | null>(null);
 
   readonly formEditar = this.fb.group({
-    password:       ['', [Validators.required, Validators.minLength(8), Validators.maxLength(50)]],
+    password:       ['', [Validators.minLength(8), Validators.maxLength(50)]],
     rolId:          ['', Validators.required],
     departamentoId: [''],
     urlAvatar:      [''],
@@ -120,11 +120,15 @@ export class Usuarios implements OnInit {
 
   cargar(): void {
     this.loading.set(true);
+    this.error.set(null);
+    const noRoles:  RolResponse[]          = [];
+    const noDeps:   DepartamentoResponse[] = [];
+    const noDocs:   TipoDocumentoResponse[] = [];
     forkJoin([
       this.svcUsuario.listar(),
-      this.svcRol.listar(),
-      this.svcDep.listar(),
-      this.svcTipoDoc.listar(),
+      this.svcRol.listar().pipe(catchError(() => of(noRoles))),
+      this.svcDep.listar().pipe(catchError(() => of(noDeps))),
+      this.svcTipoDoc.listar().pipe(catchError(() => of(noDocs))),
     ]).subscribe({
       next: ([usuarios, roles, deps, tiposDocs]) => {
         this.usuarios.set(usuarios);
@@ -133,7 +137,7 @@ export class Usuarios implements OnInit {
         this.tiposDocs.set(tiposDocs);
         this.loading.set(false);
       },
-      error: () => { this.error.set('Error al cargar datos.'); this.loading.set(false); },
+      error: (e) => { this.error.set(e?.error?.message ?? 'No se pudieron cargar los empleados.'); this.loading.set(false); },
     });
   }
 
@@ -235,7 +239,7 @@ export class Usuarios implements OnInit {
     this.saving.set(true);
     const v = this.formEditar.value;
     this.svcUsuario.actualizar(u.id, {
-      password:       v.password!,
+      ...(v.password?.trim() ? { password: v.password.trim() } : {}),
       rolId:          v.rolId!,
       departamentoId: v.departamentoId || undefined,
       urlAvatar:      v.urlAvatar || undefined,
@@ -243,6 +247,24 @@ export class Usuarios implements OnInit {
     }).subscribe({
       next: () => { this.saving.set(false); this.editandoUsuario.set(null); this.cargar(); },
       error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Error al actualizar.'); },
+    });
+  }
+
+  // ── Desbloquear ───────────────────────────────────────────────
+  desbloqueando = signal<string | null>(null);
+
+  desbloquear(u: UsuarioResponse): void {
+    if (this.desbloqueando()) return;
+    this.desbloqueando.set(u.id);
+    this.svcUsuario.actualizar(u.id, { rolId: u.rolId, estado: 'ACTIVO' }).subscribe({
+      next: () => {
+        this.desbloqueando.set(null);
+        this.usuarios.update((list) => list.map((x) => x.id === u.id ? { ...x, estado: 'ACTIVO' } : x));
+      },
+      error: (err) => {
+        this.desbloqueando.set(null);
+        this.error.set(err?.error?.message ?? 'No se pudo desbloquear el usuario.');
+      },
     });
   }
 

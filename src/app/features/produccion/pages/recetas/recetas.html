@@ -5,22 +5,22 @@
     <p class="text-sm text-gray-500 mt-0.5">Fórmulas que definen los insumos necesarios por lote</p>
   </div>
   <button (click)="abrirCrear()"
-    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+    class="flex items-center gap-2 px-4 h-11 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover transition-colors">
     <mat-icon class="text-sm">add</mat-icon> Nueva receta
   </button>
 </div>
 
 <!-- Stats -->
 <div class="grid grid-cols-3 gap-4 mb-6">
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
+  <div class="bg-white rounded-card border border-border-soft p-4">
     <p class="text-xs text-gray-500 mb-1">Total recetas</p>
     <p class="text-2xl font-bold text-gray-900">{{ recetas().length }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
+  <div class="bg-white rounded-card border border-border-soft p-4">
     <p class="text-xs text-gray-500 mb-1">Activas</p>
     <p class="text-2xl font-bold text-green-600">{{ totalActivas() }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
+  <div class="bg-white rounded-card border border-border-soft p-4">
     <p class="text-xs text-gray-500 mb-1">Archivadas</p>
     <p class="text-2xl font-bold text-amber-600">{{ totalArchivadas() }}</p>
   </div>
@@ -31,7 +31,7 @@
   @for (f of [['TODAS','Todas'],['ACTIVA','Activas'],['ARCHIVADA','Archivadas'],['INACTIVA','Inactivas']]; track f[0]) {
     <button (click)="setFiltro(f[0])"
       [class]="filtroEstado() === f[0]
-        ? 'px-3 py-1.5 rounded-full text-sm font-medium bg-green-600 text-white'
+        ? 'px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-white'
         : 'px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200'">
       {{ f[1] }}
     </button>
@@ -46,7 +46,7 @@
 } @else if (error()) {
   <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error() }}</div>
 } @else if (recetasFiltradas().length === 0) {
-  <div class="bg-white border border-gray-200 rounded-xl p-12 text-center text-gray-400">
+  <div class="bg-white border border-border-soft rounded-card p-12 text-center text-gray-400">
     <mat-icon class="text-4xl mb-2">menu_book</mat-icon>
     <p class="text-sm">No hay recetas para mostrar.</p>
   </div>
@@ -54,7 +54,7 @@
   <!-- Lista -->
   <div class="grid grid-cols-1 gap-4">
     @for (r of recetasFiltradas(); track r.id) {
-      <div class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
+      <div class="bg-white border border-border-soft rounded-card p-4 hover:shadow-sm transition-shadow">
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
@@ -62,6 +62,11 @@
               <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + estadoBadge(r.estado)">
                 {{ r.estado }}
               </span>
+              @if (r.version) {
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  v{{ r.version }}
+                </span>
+              }
             </div>
             <p class="text-xs text-gray-500 mb-2">{{ r.nombreProducto }} — {{ r.nombrePresentacion }}</p>
             @if (r.descripcion) {
@@ -90,13 +95,21 @@
           </div>
           <!-- Acciones -->
           <div class="flex items-center gap-2 shrink-0">
+            <button (click)="abrirEditar(r)"
+              class="grid h-7 w-7 place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Editar receta">
+              <mat-icon class="text-[14px]">edit</mat-icon>
+            </button>
             @if (r.estado === 'ACTIVA') {
+              <button (click)="abrirNuevaVersion(r)"
+                class="grid h-7 w-7 place-items-center rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors" title="Nueva versión">
+                <mat-icon class="text-[14px]">content_copy</mat-icon>
+              </button>
               <button (click)="abrirCalculo(r)"
-                class="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
+                class="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-btn text-xs font-medium hover:bg-primary-hover transition-colors">
                 <mat-icon class="text-xs">play_arrow</mat-icon> Producir
               </button>
-              <button (click)="archivar(r)"
-                class="px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-xs hover:bg-gray-50 transition-colors">
+              <button (click)="pedirArchivar(r)"
+                class="px-3 py-1.5 border border-border-soft text-gray-600 rounded-btn text-xs hover:bg-gray-50 transition-colors">
                 Archivar
               </button>
             }
@@ -113,36 +126,57 @@
   </div>
 }
 
+<!-- Error de activar (inline) -->
+@if (errorActivar()) {
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-xl border border-red-200 bg-white px-5 py-3 shadow-xl">
+    <mat-icon class="text-red-500 shrink-0">error_outline</mat-icon>
+    <span class="text-sm text-red-700">{{ errorActivar() }}</span>
+    <button (click)="errorActivar.set(null)" class="ml-2 text-red-400 hover:text-red-600">
+      <mat-icon class="text-[18px]">close</mat-icon>
+    </button>
+  </div>
+}
+
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- Modal Crear Receta                                             -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 @if (modalCrear()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-2xl max-h-[90vh] flex flex-col">
       <!-- header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="text-lg font-semibold text-gray-900">Nueva receta</h2>
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
+        <h2 class="text-lg font-semibold text-gray-900">
+          {{ editRecetaId() ? 'Editar receta' : isNuevaVersion() ? 'Nueva versión de receta' : 'Nueva receta' }}
+        </h2>
         <button (click)="cerrarCrear()" class="text-gray-400 hover:text-gray-600">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
       <div class="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+
+        @if (isNuevaVersion()) {
+          <div class="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm text-blue-700">
+            <mat-icon class="text-[16px] mt-0.5 shrink-0">info</mat-icon>
+            <span>Se creará una nueva versión de la receta y la versión actual quedará <strong>archivada</strong> automáticamente.</span>
+          </div>
+        }
+
         <!-- Nombre -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
           <input type="text" [value]="formNombre()" (input)="onNombre($event)"
             placeholder="Ej: Receta Chips de Camote 50g"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
         </div>
         <!-- Presentación -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Presentación (producto final) *</label>
-          <select [value]="formPresentacionId()" (change)="onPresentacion($event)"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <select (change)="onPresentacion($event)" [disabled]="!!editRecetaId() || isNuevaVersion()"
+            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary disabled:opacity-60 disabled:bg-gray-50">
             <option value="">— Seleccionar —</option>
             @for (p of presentaciones(); track p.id) {
-              <option [value]="p.id">{{ p.nombreProducto }} — {{ p.nombre }}</option>
+              <option [value]="p.id" [selected]="p.id === formPresentacionId()">{{ p.nombreProducto }} — {{ p.nombre }}</option>
             }
           </select>
         </div>
@@ -151,14 +185,14 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Rendimiento por lote (unidades producidas) *</label>
           <input type="number" [value]="formRendimiento() ?? ''" (input)="onRendimiento($event)"
             min="0.001" step="0.001" placeholder="Ej: 100"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
         </div>
         <!-- Descripción -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
           <textarea [value]="formDescripcion()" (input)="onDescripcion($event)" rows="2"
             placeholder="Notas opcionales sobre la receta..."
-            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
+            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary resize-none"></textarea>
         </div>
 
         <!-- Ingredientes -->
@@ -173,16 +207,16 @@
           <div class="space-y-2">
             @for (ing of formIngredientes(); track $index; let i = $index) {
               <div class="flex items-center gap-2">
-                <select [value]="ing.materiaPrimaId" (change)="onIngredienteMp(i, $event)"
-                  class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                <select (change)="onIngredienteMp(i, $event)"
+                  class="flex-1 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary">
                   <option value="">— Materia prima —</option>
                   @for (mp of materiasPrimas(); track mp.id) {
-                    <option [value]="mp.id">{{ mp.nombre }} ({{ mp.unidadMedida }})</option>
+                    <option [value]="mp.id" [selected]="mp.id === ing.materiaPrimaId">{{ mp.nombre }} ({{ mp.unidadMedida }})</option>
                   }
                 </select>
                 <input type="number" [value]="ing.cantidadPorLote ?? ''" (input)="onIngredienteCantidad(i, $event)"
                   min="0.001" step="0.001" placeholder="Cantidad/lote"
-                  class="w-36 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  class="w-36 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
                 @if (formIngredientes().length > 1) {
                   <button (click)="quitarIngrediente(i)" class="text-red-400 hover:text-red-600">
                     <mat-icon>remove_circle_outline</mat-icon>
@@ -199,14 +233,14 @@
       </div>
 
       <!-- footer -->
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-border-soft">
         <button (click)="cerrarCrear()"
-          class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+          class="px-4 py-2 border border-border-soft text-gray-600 rounded-btn text-sm hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
         <button (click)="guardarReceta()" [disabled]="saving()"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
-          {{ saving() ? 'Guardando...' : 'Crear receta' }}
+          class="px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors">
+          {{ saving() ? 'Guardando...' : editRecetaId() ? 'Actualizar' : isNuevaVersion() ? 'Crear versión' : 'Crear receta' }}
         </button>
       </div>
     </div>
@@ -216,12 +250,50 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- Modal Calcular / Producir                                      -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Modal Confirmar Archivar                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+@if (recetaArchivar(); as r) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarArchivar()">
+    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]" (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-amber-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-amber-600">inventory_2</mat-icon>
+        </div>
+        <h3 class="font-semibold text-text-main">Archivar receta</h3>
+        <p class="text-sm text-text-muted">
+          ¿Archivar <span class="font-semibold text-text-main">{{ r.nombre }}</span>?
+          La receta quedará inactiva y podrás reactivarla cuando necesites.
+        </p>
+        @if (errorArchivar()) {
+          <p class="text-xs text-red-600">{{ errorArchivar() }}</p>
+        }
+      </div>
+      <div class="flex justify-center gap-3 border-t border-border-soft px-6 py-4 mt-3">
+        <button (click)="cancelarArchivar()"
+          class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button (click)="confirmarArchivar()" [disabled]="archivando()"
+          class="flex h-10 items-center rounded-lg bg-amber-500 px-5 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60">
+          {{ archivando() ? 'Archivando...' : 'Sí, archivar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 @if (modalCalculo()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">{{ recetaSeleccionada()?.nombre }}</h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-semibold text-gray-900">{{ recetaSeleccionada()?.nombre }}</h2>
+            @if (recetaSeleccionada()?.version) {
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">v{{ recetaSeleccionada()?.version }}</span>
+            }
+          </div>
           <p class="text-xs text-gray-500">{{ recetaSeleccionada()?.nombrePresentacion }}</p>
         </div>
         <button (click)="cerrarCalculo()" class="text-gray-400 hover:text-gray-600">
@@ -236,7 +308,7 @@
           <div class="flex gap-2">
             <input type="number" [value]="formLotes() ?? ''" (input)="onLotes($event)"
               min="0.001" step="1" placeholder="Ej: 2"
-              class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              class="flex-1 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
             <button (click)="calcular()" [disabled]="calculando()"
               class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
               {{ calculando() ? '...' : 'Calcular' }}
@@ -249,13 +321,13 @@
 
         <!-- Resultado del cálculo -->
         @if (calculo(); as c) {
-          <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-3">
+          <div class="bg-gray-50 rounded-card border border-border-soft p-4 space-y-3">
             <div class="flex justify-between text-sm">
               <span class="text-gray-500">Unidades esperadas</span>
               <span class="font-semibold text-gray-900">{{ c.unidadesEsperadas }}</span>
             </div>
 
-            <div class="border-t border-gray-200 pt-3">
+            <div class="border-t border-border-soft pt-3">
               <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Insumos requeridos</p>
               <div class="space-y-2">
                 @for (ins of c.insumos; track ins.materiaPrimaId) {
@@ -282,11 +354,11 @@
                 Stock insuficiente para completar la producción.
               </div>
             } @else {
-              <div class="border-t border-gray-200 pt-3">
+              <div class="border-t border-border-soft pt-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
                 <input type="text" [value]="formObservacion()" (input)="onObservacion($event)"
                   placeholder="Nota para la orden de producción..."
-                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                  class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
               </div>
             }
           </div>
@@ -297,14 +369,14 @@
         }
       </div>
 
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-border-soft">
         <button (click)="cerrarCalculo()"
-          class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+          class="px-4 py-2 border border-border-soft text-gray-600 rounded-btn text-sm hover:bg-gray-50 transition-colors">
           Cerrar
         </button>
         @if (calculo()?.stockSuficiente) {
           <button (click)="producir()" [disabled]="produciendo()"
-            class="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
+            class="flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors">
             <mat-icon class="text-sm">precision_manufacturing</mat-icon>
             {{ produciendo() ? 'Creando OP...' : 'Crear orden de producción' }}
           </button>
