@@ -1,46 +1,76 @@
-<aside class="flex h-screen w-[280px] shrink-0 flex-col bg-[#3D220A] text-white">
+<aside class="flex h-screen shrink-0 flex-col overflow-hidden bg-sidebar text-white transition-all duration-300"
+       [class]="layout.sidebarCollapsed() ? 'w-[64px]' : 'w-[280px]'">
 
-  <!-- ── Logo ── -->
-  <div class="px-4 pt-5 pb-3">
-    <div class="flex items-center justify-between rounded-xl bg-white/95 px-4 py-2.5
-                shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
-      <img src="logo.svg"        alt="Naturin's" class="hidden sm:block h-8 w-auto object-contain" />
-      <img src="logo-mobile.svg" alt="Naturin's" class="block sm:hidden h-8 w-auto" />
-      <span class="ml-2 shrink-0 rounded-md bg-[#97BF04]/15 px-2 py-0.5
-                   text-[10px] font-bold tracking-[1.5px] text-[#5a8800]
-                   ring-1 ring-[#97BF04]/30">ERP</span>
-    </div>
+  <!-- ── Logo + Toggle ── -->
+  <div class="border-b border-white/10 p-3">
+    @if (!layout.sidebarCollapsed()) {
+      <!-- Tarjeta logo: imagen grande + botón de contraer integrado -->
+      <div class="flex items-center rounded-xl bg-white/90 pl-4 pr-2 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.3)] dark:bg-white/10 dark:ring-1 dark:ring-white/10">
+        <img src="logo.svg" alt="Naturin's" class="h-11 min-w-0 flex-1 object-contain object-left" />
+        <button type="button" (click)="layout.toggleSidebar()"
+          class="ml-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg text-primary transition hover:bg-black/10 dark:text-white/60 dark:hover:bg-white/10"
+          title="Contraer menú">
+          <mat-icon fontSet="material-icons-outlined">menu_open</mat-icon>
+        </button>
+      </div>
+    } @else {
+      <!-- Contraído: solo el botón de expandir, centrado -->
+      <div class="flex justify-center">
+        <button type="button" (click)="layout.toggleSidebar()"
+          class="grid h-9 w-9 place-items-center rounded-lg text-white/70 transition hover:bg-white/10 hover:text-white"
+          title="Expandir menú">
+          <mat-icon fontSet="material-icons-outlined">menu</mat-icon>
+        </button>
+      </div>
+    }
   </div>
 
   <!-- ── Navegación ── -->
-  <nav class="flex-1 overflow-y-auto px-3 pb-4">
+  <nav class="flex-1 overflow-y-auto py-3"
+       [class.px-3]="!layout.sidebarCollapsed()"
+       [class.px-1]="layout.sidebarCollapsed()">
     @for (entry of nav; track $index) {
 
       @if (entry.kind === 'divider') {
-        <p class="mt-4 mb-1 px-2 text-[10px] font-bold uppercase tracking-[1.2px] text-white/35 select-none">
-          {{ entry.label }}
-        </p>
+        @if (!layout.sidebarCollapsed()) {
+          <p class="mt-4 mb-1 px-2 text-[10px] font-bold uppercase tracking-[1.2px] text-white/35 select-none">
+            {{ entry.label }}
+          </p>
+        } @else {
+          <div class="my-2 border-t border-white/10"></div>
+        }
 
       } @else if (entry.route && !entry.soon && puedeVer(entry.label)) {
         <a [routerLink]="entry.route"
-          routerLinkActive="bg-[#9B4D00]! text-white!"
-          class="mb-0.5 flex items-center gap-3 rounded-[10px] px-4 py-2.5
-                 text-sm text-white/80 transition hover:bg-[#5B2E05]">
+          routerLinkActive="bg-sidebar-active! text-white!"
+          class="mb-0.5 flex items-center rounded-[10px] py-2.5 text-sm text-white/80 transition hover:bg-sidebar-hover"
+          [class.justify-center]="layout.sidebarCollapsed()"
+          [class.gap-3]="!layout.sidebarCollapsed()"
+          [class.px-4]="!layout.sidebarCollapsed()"
+          [class.px-2]="layout.sidebarCollapsed()"
+          [title]="layout.sidebarCollapsed() ? entry.label : ''">
           <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
-          <span>{{ entry.label }}</span>
-          @if (entry.route && badgeFor(entry.route) > 0) {
-            <span class="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EF4444] px-1.5 text-[10px] font-bold text-white">
-              {{ badgeFor(entry.route) }}
-            </span>
+          @if (!layout.sidebarCollapsed()) {
+            <span>{{ entry.label }}</span>
+            @if (badgeFor(entry.route) > 0) {
+              <span class="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[10px] font-bold text-white">
+                {{ badgeFor(entry.route) }}
+              </span>
+            }
           }
         </a>
 
       } @else if (entry.kind === 'item') {
-        <div class="mb-0.5 flex cursor-not-allowed items-center gap-3 rounded-[10px]
-                    px-4 py-2.5 text-sm text-white/30">
+        <div class="mb-0.5 flex cursor-not-allowed items-center rounded-[10px] py-2.5 text-sm text-white/30"
+             [class.justify-center]="layout.sidebarCollapsed()"
+             [class.gap-3]="!layout.sidebarCollapsed()"
+             [class.px-4]="!layout.sidebarCollapsed()"
+             [class.px-2]="layout.sidebarCollapsed()">
           <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
-          <span>{{ entry.label }}</span>
-          <span class="ml-auto text-[9px] uppercase tracking-wide text-white/25">Pronto</span>
+          @if (!layout.sidebarCollapsed()) {
+            <span>{{ entry.label }}</span>
+            <span class="ml-auto text-[9px] uppercase tracking-wide text-white/25">Pronto</span>
+          }
         </div>
       }
 
@@ -48,20 +78,22 @@
   </nav>
 
   <!-- ── Usuario ── -->
-  <div class="flex items-center gap-3 border-t border-white/10 p-4">
-    <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full
-                bg-[#A3C614] text-sm font-semibold text-[#1F2937]">
+  <div class="flex items-center border-t border-white/10 p-4"
+       [class.justify-center]="layout.sidebarCollapsed()"
+       [class.gap-3]="!layout.sidebarCollapsed()">
+    <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-text-main">
       {{ initials() }}
     </div>
-    <div class="flex min-w-0 flex-col leading-tight">
-      <span class="truncate text-sm font-medium">{{ user()?.username || 'Invitado' }}</span>
-      <span class="text-[11px] capitalize text-white/50">{{ user()?.rol || '—' }}</span>
-    </div>
-    <button type="button" (click)="logout()" title="Cerrar sesión"
-      class="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg
-             text-white/70 transition hover:bg-[#5B2E05] hover:text-white">
-      <mat-icon fontSet="material-icons-outlined">logout</mat-icon>
-    </button>
+    @if (!layout.sidebarCollapsed()) {
+      <div class="flex min-w-0 flex-col leading-tight">
+        <span class="truncate text-sm font-medium">{{ user()?.username || 'Invitado' }}</span>
+        <span class="text-[11px] capitalize text-white/50">{{ user()?.rol || '—' }}</span>
+      </div>
+      <button type="button" (click)="logout()" title="Cerrar sesión"
+        class="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/70 transition hover:bg-sidebar-hover hover:text-white">
+        <mat-icon fontSet="material-icons-outlined">logout</mat-icon>
+      </button>
+    }
   </div>
 
 </aside>

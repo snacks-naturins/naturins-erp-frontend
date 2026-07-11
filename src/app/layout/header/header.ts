@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AuthService } from '../../core/services/auth.service';
+import { LayoutService } from '../../core/services/layout.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { GlobalSearchService } from '../../core/services/global-search.service';
 
@@ -15,6 +16,7 @@ import { GlobalSearchService } from '../../core/services/global-search.service';
 export class Header {
   private readonly auth   = inject(AuthService);
   private readonly router = inject(Router);
+  readonly layout          = inject(LayoutService);
   readonly notifications  = inject(NotificationService);
   readonly search         = inject(GlobalSearchService);
   readonly user           = this.auth.currentUser;

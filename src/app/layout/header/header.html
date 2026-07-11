@@ -1,4 +1,4 @@
-<header class="flex h-[72px] items-center gap-4 border-b border-border-soft bg-white px-6">
+<header class="flex h-[72px] items-center gap-4 border-b border-border-soft bg-bg-card px-6">
 
   <!-- Buscador global -->
   <div class="relative flex w-full max-w-md items-center">
@@ -11,18 +11,18 @@
       placeholder="Buscar productos, pedidos, clientes…"
       (input)="onSearchInput($event)"
       (blur)="closeDropdown()"
-      class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
+      class="h-11 w-full rounded-input border border-border-soft bg-bg-app pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-bg-card focus:ring-2 focus:ring-secondary/30"
     />
 
     @if (showDropdown.value && search.hasResults()) {
-      <div class="absolute left-0 top-full z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg">
+      <div class="absolute left-0 top-full z-50 mt-1 w-full rounded-xl border border-border-soft bg-bg-card shadow-lg">
         <div class="max-h-80 overflow-y-auto p-2">
 
           @if (search.results().length > 0) {
             @for (r of search.results(); track r.label + r.type) {
               <button
                 (mousedown)="navigateTo(r.route)"
-                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-gray-50">
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-bg-app">
                 <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-bg-app">
                   <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-text-muted">{{ r.icon }}</mat-icon>
                 </div>
@@ -30,7 +30,7 @@
                   <p class="truncate text-sm font-medium text-text-main">{{ r.label }}</p>
                   <p class="truncate text-xs text-text-muted">{{ r.subtitle }}</p>
                 </div>
-                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-text-muted capitalize">{{ r.type }}</span>
+                <span class="shrink-0 rounded-full bg-bg-app px-2 py-0.5 text-[10px] font-medium text-text-muted capitalize">{{ r.type }}</span>
               </button>
             }
           } @else {
@@ -44,6 +44,17 @@
 
   <div class="ml-auto flex items-center gap-2">
 
+    <!-- Theme toggle -->
+    <button type="button" (click)="layout.toggleTheme()"
+      class="grid h-10 w-10 place-items-center rounded-input text-text-muted transition hover:bg-bg-app"
+      [title]="layout.theme() === 'light' ? 'Modo oscuro' : 'Modo claro'">
+      @if (layout.theme() === 'light') {
+        <mat-icon fontSet="material-icons-outlined">dark_mode</mat-icon>
+      } @else {
+        <mat-icon fontSet="material-icons-outlined">light_mode</mat-icon>
+      }
+    </button>
+
     <!-- Notificaciones -->
     <div class="relative" (focusout)="closePanel()">
       <button
@@ -54,19 +65,19 @@
       >
         <mat-icon fontSet="material-icons-outlined">notifications</mat-icon>
         @if (notificationCount() > 0) {
-          <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#EF4444] px-1 text-[10px] font-bold text-white">
+          <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-white">
             {{ notificationCount() }}
           </span>
         }
       </button>
 
       @if (showPanel()) {
-        <div class="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+        <div class="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-xl border border-border-soft bg-bg-card shadow-xl">
           <!-- Panel header -->
-          <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <div class="flex items-center justify-between border-b border-border-soft px-4 py-3">
             <span class="text-sm font-semibold text-text-main">Notificaciones</span>
             @if (notifications.hasNotifications()) {
-              <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+              <span class="rounded-full bg-error-bg px-2 py-0.5 text-[11px] font-medium text-error">
                 {{ notificationCount() }} alerta{{ notificationCount() > 1 ? 's' : '' }}
               </span>
             }
@@ -82,12 +93,12 @@
               @for (g of notifications.groups(); track g.route + g.label) {
                 <button
                   (mousedown)="navigateFromPanel(g.route)"
-                  class="flex w-full items-center gap-3 border-b border-gray-50 px-4 py-3 text-left last:border-0 transition hover:bg-gray-50">
+                  class="flex w-full items-center gap-3 border-b border-border-soft px-4 py-3 text-left last:border-0 transition hover:bg-bg-app">
                   <div
                     class="grid h-8 w-8 shrink-0 place-items-center rounded-full"
-                    [class]="g.tone === 'red' ? 'bg-red-100 text-red-600'
-                           : g.tone === 'blue' ? 'bg-blue-100 text-blue-600'
-                           : 'bg-amber-100 text-amber-600'"
+                    [class]="g.tone === 'red' ? 'bg-error-bg text-error'
+                           : g.tone === 'blue' ? 'bg-info-bg text-info'
+                           : 'bg-warning-bg text-warning'"
                   >
                     <mat-icon fontSet="material-icons-outlined" class="text-[16px]">{{ g.icon }}</mat-icon>
                   </div>

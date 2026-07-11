@@ -1,4 +1,4 @@
-<div class="flex h-screen overflow-hidden bg-gray-100">
+<div class="flex h-screen overflow-hidden bg-bg-app">
 
   <!-- ─── Loading / Error full-screen ─── -->
   @if (loading()) {
@@ -15,7 +15,7 @@
   } @else {
 
   <!-- ═══════════════ PANEL IZQUIERDO: CATÁLOGO ═══════════════ -->
-  <div class="flex flex-col" style="width:62%;background:white;border-right:1px solid #e5e7eb">
+  <div class="flex flex-col" style="width:62%;background:var(--color-bg-card);border-right:1px solid var(--color-border-soft)">
 
     <!-- Header catálogo -->
     <div class="flex items-center gap-3 px-5 py-3 shrink-0 bg-primary">
@@ -35,12 +35,12 @@
     </div>
 
     <!-- Búsqueda por código de barras -->
-    <div class="flex items-center gap-2 px-5 py-2 shrink-0" style="border-bottom:1px solid #f3f4f6;background:#fafafa">
+    <div class="flex items-center gap-2 px-5 py-2 shrink-0" style="border-bottom:1px solid var(--color-border-soft);background:var(--color-bg-app)">
       <mat-icon class="text-text-muted text-[18px] shrink-0">qr_code_scanner</mat-icon>
       <input
         type="text"
         placeholder="Escanear código de barras (Enter para buscar)..."
-        class="h-9 flex-1 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        class="h-9 flex-1 rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         [value]="codigoBarras()"
         (input)="codigoBarras.set($any($event.target).value)"
         (keydown)="buscarPorCodigoBarras($event)"
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Chips de categorías -->
-    <div class="flex items-center gap-2 px-5 py-2 shrink-0 overflow-x-auto" style="border-bottom:1px solid #f3f4f6">
+    <div class="flex items-center gap-2 px-5 py-2 shrink-0 overflow-x-auto" style="border-bottom:1px solid var(--color-border-soft)">
       <button
         type="button"
         (click)="setCategoria('Todos')"
@@ -83,8 +83,8 @@
     <!-- Grid de productos -->
     <div class="flex-1 overflow-y-auto p-4">
       @if (productosFiltrados().length === 0) {
-        <div class="flex flex-col items-center justify-center h-full text-gray-400">
-          <mat-icon style="font-size:3.5rem;color:#9ca3af">inventory_2</mat-icon>
+        <div class="flex flex-col items-center justify-center h-full" style="color:var(--color-text-muted)">
+          <mat-icon style="font-size:3.5rem;opacity:.4">inventory_2</mat-icon>
           <p class="mt-2 text-sm">No hay productos disponibles</p>
         </div>
       }
@@ -103,7 +103,7 @@
               @if (pres.urlImagen) {
                 <img [src]="pres.urlImagen" [alt]="pres.nombreProducto" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />
               } @else {
-                <mat-icon style="font-size:2.5rem;opacity:.5;color:var(--color-primary,#16a34a)">{{ iconoProducto(pres) }}</mat-icon>
+                <mat-icon style="font-size:2.5rem;opacity:.5;color:var(--color-primary)">{{ iconoProducto(pres) }}</mat-icon>
               }
             </div>
             <p class="product-name">{{ pres.nombreProducto }}</p>
@@ -119,41 +119,42 @@
   </div>
 
   <!-- ═══════════════ PANEL DERECHO: CARRITO ═══════════════ -->
-  <div class="flex flex-col flex-1" style="background:white">
+  <div class="flex flex-col flex-1" style="background:var(--color-bg-card)">
 
     <!-- Header carrito -->
-    <div class="flex items-center justify-between px-5 py-3 shrink-0" style="border-bottom:1px solid #e5e7eb">
+    <div class="flex items-center justify-between px-5 py-3 shrink-0" style="border-bottom:1px solid var(--color-border-soft)">
       <div class="flex items-center gap-2">
-        <mat-icon style="color:var(--color-primary,#16a34a)">shopping_cart</mat-icon>
-        <span style="font-weight:600;color:#1f2937">Carrito</span>
+        <mat-icon style="color:var(--color-primary)">shopping_cart</mat-icon>
+        <span style="font-weight:600;color:var(--color-text-main)">Carrito</span>
         @if (carrito().length > 0) {
           <span class="badge-primary">{{ carrito().length }}</span>
         }
       </div>
       @if (carrito().length > 0) {
-        <button type="button" (click)="vaciarCarrito()" class="flex items-center gap-1 text-sm" style="color:#ef4444">
+        <button type="button" (click)="vaciarCarrito()" class="flex items-center gap-1 text-sm text-red-500">
           <mat-icon style="font-size:16px">delete_sweep</mat-icon> Vaciar
         </button>
       }
     </div>
 
     <!-- ─── Cliente selector ─── -->
-    <div class="px-4 py-3 shrink-0" style="border-bottom:1px solid #f3f4f6">
-      <label class="block text-xs font-semibold mb-1" style="color:#6b7280">CLIENTE</label>
+    <div class="px-4 py-3 shrink-0" style="border-bottom:1px solid var(--color-border-soft)">
+      <label class="block text-xs font-semibold mb-1 text-text-muted">CLIENTE</label>
 
       @if (clienteSeleccionado(); as c) {
-        <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.3)">
-          <mat-icon style="color:var(--color-primary,#16a34a);font-size:18px">person</mat-icon>
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2"
+          style="background:color-mix(in srgb,var(--color-primary) 8%,transparent);border:1px solid color-mix(in srgb,var(--color-primary) 30%,transparent)">
+          <mat-icon style="color:var(--color-primary);font-size:18px">person</mat-icon>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate" style="color:#1f2937">{{ c.nombreCompleto }}</p>
-            @if (c.ruc) { <p class="text-xs" style="color:#6b7280">RUC: {{ c.ruc }}</p> }
-            @if (c.razonSocial && !c.ruc) { <p class="text-xs" style="color:#6b7280">{{ c.razonSocial }}</p> }
+            <p class="text-sm font-medium truncate text-text-main">{{ c.nombreCompleto }}</p>
+            @if (c.ruc) { <p class="text-xs text-text-muted">RUC: {{ c.ruc }}</p> }
+            @if (c.razonSocial && !c.ruc) { <p class="text-xs text-text-muted">{{ c.razonSocial }}</p> }
           </div>
           <div class="flex items-center gap-1 shrink-0">
             @if (c.aplicaIgv) {
-              <span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:#dbeafe;color:#1d4ed8">+IGV</span>
+              <span class="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-50 text-blue-700">+IGV</span>
             }
-            <button type="button" (click)="limpiarCliente()" style="color:#9ca3af" class="ml-1">
+            <button type="button" (click)="limpiarCliente()" class="ml-1 text-text-muted">
               <mat-icon style="font-size:16px">close</mat-icon>
             </button>
           </div>
@@ -163,37 +164,39 @@
           <div class="fixed inset-0" style="z-index:40" (click)="clienteDropdown.set(false)"></div>
         }
         <div class="relative">
-          <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="border:1px solid #d1d5db">
-            <mat-icon style="color:#9ca3af;font-size:18px">search</mat-icon>
+          <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="border:1px solid var(--color-border-soft)">
+            <mat-icon class="text-text-muted" style="font-size:18px">search</mat-icon>
             <input
               type="text"
               placeholder="Buscar cliente..."
-              class="flex-1 outline-none text-sm"
+              class="flex-1 outline-none text-sm bg-transparent text-text-main"
               [value]="clienteSearch()"
               (input)="clienteSearch.set($any($event.target).value)"
               (click)="clienteDropdown.set(true)"
             />
           </div>
           @if (clienteDropdown()) {
-            <div class="absolute left-0 right-0 bg-white rounded-lg overflow-y-auto" style="top:calc(100% + 4px);border:1px solid #e5e7eb;box-shadow:0 10px 25px rgba(0,0,0,.1);max-height:13rem;z-index:50">
+            <div class="absolute left-0 right-0 rounded-lg overflow-y-auto"
+              style="top:calc(100% + 4px);background:var(--color-bg-card);border:1px solid var(--color-border-soft);box-shadow:0 10px 25px rgba(0,0,0,.2);max-height:13rem;z-index:50">
               @if (clientesFiltrados().length === 0) {
-                <p class="text-center text-sm py-4" style="color:#9ca3af">Sin resultados</p>
+                <p class="text-center text-sm py-4 text-text-muted">Sin resultados</p>
               }
               @for (c of clientesFiltrados(); track c.id) {
                 <button
                   type="button"
                   (click)="seleccionarCliente(c)"
-                  class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-50"
+                  class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-bg-app"
                 >
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(22,163,74,.1)">
-                    <mat-icon style="color:var(--color-primary,#16a34a);font-size:16px">{{ c.tipoCliente === 'EMPRESA' ? 'business' : 'person' }}</mat-icon>
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                    style="background:color-mix(in srgb,var(--color-primary) 10%,transparent)">
+                    <mat-icon style="color:var(--color-primary);font-size:16px">{{ c.tipoCliente === 'EMPRESA' ? 'business' : 'person' }}</mat-icon>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium truncate" style="color:#1f2937">{{ c.nombreCompleto }}</p>
-                    @if (c.ruc) { <p class="text-xs" style="color:#6b7280">RUC: {{ c.ruc }}</p> }
+                    <p class="text-sm font-medium truncate text-text-main">{{ c.nombreCompleto }}</p>
+                    @if (c.ruc) { <p class="text-xs text-text-muted">RUC: {{ c.ruc }}</p> }
                   </div>
                   @if (c.aplicaIgv) {
-                    <span class="text-xs px-1.5 py-0.5 rounded shrink-0" style="background:#dbeafe;color:#1d4ed8">IGV</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded shrink-0 bg-blue-50 text-blue-700">IGV</span>
                   }
                 </button>
               }
@@ -206,37 +209,37 @@
     <!-- ─── Ítems del carrito ─── -->
     <div class="flex-1 overflow-y-auto px-4 py-2">
       @if (carrito().length === 0) {
-        <div class="flex flex-col items-center justify-center h-full gap-2" style="color:#d1d5db">
-          <mat-icon style="font-size:3.5rem;color:#d1d5db">add_shopping_cart</mat-icon>
+        <div class="flex flex-col items-center justify-center h-full gap-2 text-text-muted">
+          <mat-icon style="font-size:3.5rem;opacity:.3">add_shopping_cart</mat-icon>
           <p class="text-sm">Agrega productos del catálogo</p>
         </div>
       }
       @for (item of carrito(); track item.lote.id + item.presentacion.id) {
-        <div class="flex items-center gap-3 py-3" style="border-bottom:1px solid #f3f4f6">
+        <div class="flex items-center gap-3 py-3" style="border-bottom:1px solid var(--color-border-soft)">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" [class]="bgCard(item.presentacion)">
             @if (item.presentacion.urlImagen) {
               <img [src]="item.presentacion.urlImagen" style="width:100%;height:100%;object-fit:contain;border-radius:8px" />
             } @else {
-              <mat-icon style="font-size:18px;opacity:.6;color:var(--color-primary,#16a34a)">{{ iconoProducto(item.presentacion) }}</mat-icon>
+              <mat-icon style="font-size:18px;opacity:.6;color:var(--color-primary)">{{ iconoProducto(item.presentacion) }}</mat-icon>
             }
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate" style="color:#1f2937">{{ item.presentacion.nombreProducto }}</p>
-            <p class="text-xs truncate" style="color:#6b7280">{{ item.presentacion.nombre }}</p>
-            <p class="text-xs" style="color:#9ca3af">Lote: {{ item.lote.codigoLote }}</p>
+            <p class="text-sm font-medium truncate text-text-main">{{ item.presentacion.nombreProducto }}</p>
+            <p class="text-xs truncate text-text-muted">{{ item.presentacion.nombre }}</p>
+            <p class="text-xs text-text-muted">Lote: {{ item.lote.codigoLote }}</p>
           </div>
           <div class="flex items-center gap-1">
             <button type="button" (click)="decrementar(item)" class="qty-btn">
               <mat-icon style="font-size:14px">remove</mat-icon>
             </button>
-            <span style="width:1.5rem;text-align:center;font-size:.875rem;font-weight:600">{{ item.cantidad }}</span>
+            <span class="text-text-main" style="width:1.5rem;text-align:center;font-size:.875rem;font-weight:600">{{ item.cantidad }}</span>
             <button type="button" (click)="incrementar(item)" class="qty-btn">
               <mat-icon style="font-size:14px">add</mat-icon>
             </button>
           </div>
           <div class="text-right shrink-0 ml-2">
-            <p class="text-sm font-semibold" style="color:#1f2937">{{ formatMonto(item.cantidad * item.presentacion.precioVenta) }}</p>
-            <button type="button" (click)="eliminarDelCarrito(item)" style="color:#f87171;font-size:.75rem">
+            <p class="text-sm font-semibold text-text-main">{{ formatMonto(item.cantidad * item.presentacion.precioVenta) }}</p>
+            <button type="button" (click)="eliminarDelCarrito(item)" class="text-red-400" style="font-size:.75rem">
               <mat-icon style="font-size:14px">delete</mat-icon>
             </button>
           </div>
@@ -245,24 +248,25 @@
     </div>
 
     <!-- ─── Totales ─── -->
-    <div class="px-4 pt-3 pb-2 shrink-0" style="border-top:1px solid #e5e7eb">
-      <div class="flex justify-between text-sm mb-1" style="color:#6b7280">
+    <div class="px-4 pt-3 pb-2 shrink-0" style="border-top:1px solid var(--color-border-soft)">
+      <div class="flex justify-between text-sm mb-1 text-text-muted">
         <span>Subtotal</span><span>{{ formatMonto(subtotal()) }}</span>
       </div>
       @if (igv() > 0) {
-        <div class="flex justify-between text-sm mb-1" style="color:#6b7280">
+        <div class="flex justify-between text-sm mb-1 text-text-muted">
           <span>IGV (18%)</span><span>{{ formatMonto(igv()) }}</span>
         </div>
       }
-      <div class="flex justify-between font-bold text-base pt-1" style="color:#111827;border-top:1px solid #e5e7eb;margin-top:4px">
+      <div class="flex justify-between font-bold text-base pt-1 text-text-main"
+        style="border-top:1px solid var(--color-border-soft);margin-top:4px">
         <span>TOTAL</span>
-        <span style="color:var(--color-primary,#16a34a);font-size:1.125rem">{{ formatMonto(total()) }}</span>
+        <span style="color:var(--color-primary);font-size:1.125rem">{{ formatMonto(total()) }}</span>
       </div>
     </div>
 
     <!-- ─── Tipo de entrega ─── -->
-    <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
-      <p class="text-xs font-semibold mb-2" style="color:#6b7280">TIPO DE ENTREGA</p>
+    <div class="px-4 py-2 shrink-0" style="border-top:1px solid var(--color-border-soft)">
+      <p class="text-xs font-semibold mb-2 text-text-muted">TIPO DE ENTREGA</p>
       <div class="flex gap-1">
         @for (te of tiposEntrega; track te.value) {
           <button
@@ -270,8 +274,8 @@
             (click)="tipoEntregaSignal.set(te.value)"
             class="flex flex-1 flex-col items-center gap-1 rounded-lg py-2 text-xs font-medium transition border"
             [style]="tipoEntregaSignal() === te.value
-              ? 'background:color-mix(in srgb,var(--color-primary,#16a34a) 10%,white);border-color:var(--color-primary,#16a34a);color:var(--color-primary,#16a34a)'
-              : 'background:white;border-color:#e5e7eb;color:#6b7280'">
+              ? 'background:color-mix(in srgb,var(--color-primary) 10%,transparent);border-color:var(--color-primary);color:var(--color-primary)'
+              : 'background:var(--color-bg-app);border-color:var(--color-border-soft);color:var(--color-text-muted)'">
             <mat-icon style="font-size:18px">{{ te.icon }}</mat-icon>
             <span class="leading-tight text-center" style="font-size:10px">{{ te.label }}</span>
           </button>
@@ -283,26 +287,27 @@
           placeholder="Dirección de entrega *"
           [value]="direccionEntrega()"
           (input)="direccionEntrega.set($any($event.target).value)"
-          class="mt-2 h-9 w-full rounded-input border px-3 text-xs outline-none transition"
+          class="mt-2 h-9 w-full rounded-input border px-3 text-xs text-text-main outline-none transition"
           [style]="direccionEntrega().trim()
-            ? 'border-color:var(--color-primary,#16a34a)'
-            : 'border-color:#fca5a5;background:#fff7f7'" />
+            ? 'border-color:var(--color-primary);background:var(--color-bg-card)'
+            : 'border-color:#fca5a5;background:var(--color-error-bg)'" />
         @if (!direccionEntrega().trim()) {
-          <p class="mt-0.5 text-[10px]" style="color:#ef4444">Ingresa la dirección para continuar</p>
+          <p class="mt-0.5 text-[10px] text-red-500">Ingresa la dirección para continuar</p>
         }
       }
     </div>
 
     <!-- ─── Métodos de pago ─── -->
-    <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
-      <p class="text-xs font-semibold mb-2" style="color:#6b7280">MÉTODO DE PAGO</p>
+    <div class="px-4 py-2 shrink-0" style="border-top:1px solid var(--color-border-soft)">
+      <p class="text-xs font-semibold mb-2 text-text-muted">MÉTODO DE PAGO</p>
       @if (metodosPago().length === 0) {
-        <div class="flex items-center gap-2 rounded-lg px-3 py-2" style="background:#fffbeb;border:1px solid #fcd34d">
-          <mat-icon style="color:#d97706;font-size:18px">warning</mat-icon>
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2"
+          style="background:var(--color-warning-bg);border:1px solid var(--color-warning)">
+          <mat-icon style="color:var(--color-warning);font-size:18px">warning</mat-icon>
           <div>
-            <p class="text-xs font-semibold" style="color:#92400e">Sin métodos de pago</p>
-            <p class="text-[11px]" style="color:#b45309">Configura al menos uno en
-              <a routerLink="/metodos-pago" style="text-decoration:underline;color:#92400e">Ajustes → Métodos de pago</a>
+            <p class="text-xs font-semibold text-text-main">Sin métodos de pago</p>
+            <p class="text-[11px] text-text-muted">Configura al menos uno en
+              <a routerLink="/metodos-pago" class="underline text-text-main">Ajustes → Métodos de pago</a>
             </p>
           </div>
         </div>
@@ -325,28 +330,30 @@
 
     <!-- ─── Efectivo: monto recibido / vuelto ─── -->
     @if (esEfectivo() && carrito().length > 0) {
-      <div class="px-4 py-2 shrink-0" style="border-top:1px solid #f3f4f6">
-        <p class="text-xs font-semibold mb-2" style="color:#6b7280">EFECTIVO</p>
+      <div class="px-4 py-2 shrink-0" style="border-top:1px solid var(--color-border-soft)">
+        <p class="text-xs font-semibold mb-2 text-text-muted">EFECTIVO</p>
         <div class="flex items-center gap-2 mb-1">
-          <label class="text-xs shrink-0" style="color:#6b7280;width:6rem">Monto recibido</label>
+          <label class="text-xs shrink-0 text-text-muted" style="width:6rem">Monto recibido</label>
           <input
             type="number"
             min="0"
             step="0.10"
             placeholder="S/ 0.00"
-            class="h-8 flex-1 rounded-input border px-3 text-sm outline-none transition"
+            class="h-8 flex-1 rounded-input border px-3 text-sm text-text-main outline-none transition"
             [style]="(montoRecibido() ?? 0) >= total()
-              ? 'border-color:#16a34a;background:#f0fdf4'
-              : 'border-color:#d1d5db;background:white'"
+              ? 'border-color:var(--color-success);background:color-mix(in srgb,var(--color-success) 8%,transparent)'
+              : 'border-color:var(--color-border-soft);background:var(--color-bg-card)'"
             [value]="montoRecibido() ?? ''"
             (input)="montoRecibido.set(+$any($event.target).value || null)"
           />
         </div>
         @if (vuelto() != null) {
           <div class="flex items-center justify-between rounded-lg px-3 py-1.5 mt-1"
-            [style]="vuelto()! > 0 ? 'background:#f0fdf4;border:1px solid #bbf7d0' : 'background:#f9fafb;border:1px solid #e5e7eb'">
-            <span class="text-xs font-semibold" style="color:#6b7280">Vuelto</span>
-            <span class="font-bold text-sm" [style]="vuelto()! > 0 ? 'color:#15803d' : 'color:#1f2937'">
+            [style]="vuelto()! > 0
+              ? 'background:color-mix(in srgb,var(--color-success) 10%,transparent);border:1px solid color-mix(in srgb,var(--color-success) 30%,transparent)'
+              : 'background:var(--color-bg-app);border:1px solid var(--color-border-soft)'">
+            <span class="text-xs font-semibold text-text-muted">Vuelto</span>
+            <span class="font-bold text-sm" [style]="vuelto()! > 0 ? 'color:var(--color-success)' : 'color:var(--color-text-main)'">
               {{ formatMonto(vuelto()!) }}
             </span>
           </div>
@@ -357,9 +364,10 @@
     <!-- ─── Error + botón finalizar ─── -->
     <div class="px-4 pb-4 shrink-0">
       @if (errorVenta()) {
-        <div class="flex items-center gap-2 rounded-lg px-3 py-2 mb-2" style="background:#fef2f2;border:1px solid #fecaca">
-          <mat-icon style="color:#ef4444;font-size:18px">error</mat-icon>
-          <p class="text-xs" style="color:#b91c1c">{{ errorVenta() }}</p>
+        <div class="flex items-center gap-2 rounded-lg px-3 py-2 mb-2"
+          style="background:var(--color-error-bg);border:1px solid color-mix(in srgb,var(--color-error) 40%,transparent)">
+          <mat-icon style="color:var(--color-error);font-size:18px">error</mat-icon>
+          <p class="text-xs text-text-main">{{ errorVenta() }}</p>
         </div>
       }
       <button
@@ -378,7 +386,7 @@
         }
       </button>
       @if (!clienteIdSignal() && carrito().length > 0) {
-        <p class="text-center text-xs mt-1" style="color:#9ca3af">Selecciona un cliente para continuar</p>
+        <p class="text-center text-xs mt-1 text-text-muted">Selecciona un cliente para continuar</p>
       }
     </div>
 
@@ -391,17 +399,18 @@
 <!-- ══════════════════ MODAL ÉXITO ══════════════════ -->
 @if (modalExito()) {
   <div class="fixed inset-0 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5);z-index:50">
-    <div class="bg-white rounded-modal modal-enter p-8 text-center" style="max-width:22rem;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.2)">
-      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#dcfce7">
-        <mat-icon style="color:#16a34a;font-size:2.5rem">check_circle</mat-icon>
+    <div class="bg-bg-card rounded-modal modal-enter p-8 text-center" style="max-width:22rem;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.3)">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+        style="background:color-mix(in srgb,var(--color-success) 15%,transparent)">
+        <mat-icon style="color:var(--color-success);font-size:2.5rem">check_circle</mat-icon>
       </div>
-      <h2 style="font-size:1.25rem;font-weight:700;color:#1f2937;margin-bottom:4px">¡Venta registrada!</h2>
+      <h2 class="text-text-main" style="font-size:1.25rem;font-weight:700;margin-bottom:4px">¡Venta registrada!</h2>
       @if (pedidoCreado(); as p) {
-        <p class="text-sm mb-1" style="color:#6b7280">Pedido <span style="font-weight:600;color:var(--color-primary,#16a34a)">{{ p.numeroPedido }}</span></p>
-        <p style="font-size:1.75rem;font-weight:700;color:#111827;margin-bottom:.5rem">{{ formatMonto(totalVenta()) }}</p>
+        <p class="text-sm mb-1 text-text-muted">Pedido <span style="font-weight:600;color:var(--color-primary)">{{ p.numeroPedido }}</span></p>
+        <p class="text-text-main" style="font-size:1.75rem;font-weight:700;margin-bottom:.5rem">{{ formatMonto(totalVenta()) }}</p>
         @if (vuelto() != null && vuelto()! >= 0) {
-          <p class="text-sm mb-4" style="color:#6b7280">
-            Vuelto: <span style="font-weight:700;color:#15803d">{{ formatMonto(vuelto()!) }}</span>
+          <p class="text-sm mb-4 text-text-muted">
+            Vuelto: <span style="font-weight:700;color:var(--color-success)">{{ formatMonto(vuelto()!) }}</span>
           </p>
         } @else {
           <div style="margin-bottom:1.5rem"></div>
@@ -410,7 +419,7 @@
       <button
         type="button"
         (click)="cerrarModalExito()"
-        style="width:100%;padding:.75rem;background:var(--color-primary,#16a34a);color:white;border-radius:.75rem;font-weight:600;border:none;cursor:pointer;font-size:1rem"
+        style="width:100%;padding:.75rem;background:var(--color-primary);color:white;border-radius:.75rem;font-weight:600;border:none;cursor:pointer;font-size:1rem"
       >Nueva Venta</button>
     </div>
   </div>

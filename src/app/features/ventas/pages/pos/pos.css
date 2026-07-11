@@ -193,3 +193,64 @@
 .bg-green-50  { background: #f0fdf4; }
 .bg-blue-50   { background: #eff6ff; }
 .bg-purple-50 { background: #faf5ff; }
+
+/* ══════════════════════════════════════════════════
+   Dark mode overrides para clases del componente
+   ══════════════════════════════════════════════════ */
+:host-context(.dark) .chip {
+  background: var(--color-bg-app);
+  color: var(--color-text-muted);
+}
+:host-context(.dark) .chip:hover {
+  background: var(--color-border-soft);
+}
+
+:host-context(.dark) .product-card {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-soft);
+}
+:host-context(.dark) .product-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.5);
+}
+:host-context(.dark) .product-card--active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+:host-context(.dark) .product-name { color: var(--color-text-main); }
+:host-context(.dark) .product-pres { color: var(--color-text-muted); }
+:host-context(.dark) .stock-label  { color: var(--color-text-muted); }
+
+:host-context(.dark) .qty-btn {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-soft);
+  color: var(--color-text-main);
+}
+:host-context(.dark) .qty-btn:hover { background: var(--color-bg-app); }
+
+:host-context(.dark) .metodo-btn {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-soft);
+  color: var(--color-text-main);
+}
+:host-context(.dark) .metodo-btn:hover { border-color: var(--color-text-muted); }
+:host-context(.dark) .metodo-btn--active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  color: var(--color-primary);
+}
+
+:host-context(.dark) .finalizar-btn:not(.finalizar-btn--active) {
+  background: var(--color-bg-app);
+  color: var(--color-text-muted);
+}
+:host-context(.dark) .finalizar-btn--active {
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+:host-context(.dark) .bg-orange-50 { background: #431407; }
+:host-context(.dark) .bg-yellow-50 { background: #422006; }
+:host-context(.dark) .bg-green-50  { background: #052e16; }
+:host-context(.dark) .bg-blue-50   { background: #172554; }
+:host-context(.dark) .bg-purple-50 { background: #2e1065; }

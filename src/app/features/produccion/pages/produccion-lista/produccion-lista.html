@@ -1,153 +1,184 @@
-<div class="p-6 flex flex-col gap-5 h-full">
+<div class="flex flex-col gap-5 p-6">
+
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Producción'}]" />
 
   <!-- Header -->
-  <div class="flex items-center justify-between shrink-0">
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-text-main">Producción</h1>
-      <p class="text-sm text-text-muted mt-0.5">Tablero de órdenes de producción</p>
+      <h1 class="text-[28px] font-bold text-text-main">Producción</h1>
+      <p class="text-sm text-text-muted">
+        <span class="font-medium text-text-main">{{ kpiTotal() }}</span> órdenes activas ·
+        <span class="font-medium text-text-main">{{ kpiEnProceso() }}</span> en proceso
+      </p>
     </div>
-    <button (click)="abrirNuevaOP()"
-      class="flex items-center gap-2 bg-primary text-white px-4 h-11 rounded-btn hover:bg-primary-hover transition-colors text-sm font-medium">
-      <mat-icon class="text-[18px] leading-none">add</mat-icon>
-      Nueva orden
-    </button>
+    <div class="flex items-center gap-2">
+      <button (click)="cargar()" title="Recargar"
+        class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-bg-card text-text-muted hover:bg-bg-app transition">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button (click)="abrirNuevaOP()"
+        class="flex items-center gap-2 bg-primary text-white px-4 h-11 rounded-btn hover:bg-primary-hover transition-colors text-sm font-medium">
+        <mat-icon class="text-[18px] leading-none">add</mat-icon>
+        Nueva orden
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">Total activas</p>
+      <p class="text-2xl font-bold text-primary">{{ kpiTotal() }}</p>
+    </div>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">En proceso</p>
+      <p class="text-2xl font-bold text-amber-500">{{ kpiEnProceso() }}</p>
+    </div>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <p class="text-xs text-text-muted">Completadas</p>
+      <p class="text-2xl font-bold text-green-600">{{ kpiCompletadas() }}</p>
+    </div>
   </div>
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-24 gap-3 text-text-muted">
-      <mat-icon class="animate-spin text-primary">refresh</mat-icon>
-      <span class="text-sm">Cargando órdenes...</span>
+    <div class="flex items-center justify-center py-16 text-text-muted">
+      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
     </div>
   } @else if (error()) {
-    <div class="flex flex-col items-center justify-center py-16 gap-3 text-red-500">
-      <mat-icon>error_outline</mat-icon>
-      <p class="text-sm">{{ error() }}</p>
-      <button (click)="cargar()" class="text-xs text-primary hover:underline">Reintentar</button>
+    <div class="rounded-card border border-border-soft bg-bg-card p-8 text-center text-red-600">
+      {{ error() }}
+      <button (click)="cargar()" class="mt-2 block text-xs text-primary hover:underline mx-auto">Reintentar</button>
     </div>
   } @else {
 
-    <!-- Kanban board -->
-    <div class="flex gap-4 flex-1 overflow-x-auto pb-2">
+    <!-- Kanban -->
+    <div class="flex gap-4 overflow-x-auto pb-4">
+      @for (col of columnas; track col.estado) {
+        <div class="flex w-64 shrink-0 flex-col rounded-card border border-border-soft bg-bg-app"
+          [class]="'border-t-4 ' + col.color">
 
-      <!-- Columna PLANIFICADA -->
-      <div class="flex flex-col min-w-[260px] flex-1">
-        <div class="flex items-center gap-2 mb-3 px-1">
-          <span class="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
-          <span class="text-sm font-semibold text-text-main">Planificada</span>
-          <span class="ml-auto text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium">{{ planificadas().length }}</span>
-        </div>
-        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
-          @for (op of planificadas(); track op.id) {
-            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
-          }
-          @if (planificadas().length === 0) {
-            <div class="border-2 border-dashed border-gray-100 rounded-xl py-8 text-center text-xs text-gray-300">Sin órdenes</div>
-          }
-        </div>
-      </div>
+          <!-- Cabecera columna -->
+          <div class="flex items-center gap-2 border-b border-border-soft px-3 py-3">
+            <span class="h-2.5 w-2.5 shrink-0 rounded-full" [class]="col.dot"></span>
+            <span class="flex-1 text-sm font-semibold text-text-main">{{ col.label }}</span>
+            <span class="rounded-full border border-border-soft bg-bg-card px-2 py-0.5 text-xs font-bold text-text-muted">
+              {{ (opsPorEstado().get(col.estado) ?? []).length }}
+            </span>
+          </div>
 
-      <!-- Columna EN_PROCESO -->
-      <div class="flex flex-col min-w-[260px] flex-1">
-        <div class="flex items-center gap-2 mb-3 px-1">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
-          <span class="text-sm font-semibold text-text-main">En proceso</span>
-          <span class="ml-auto text-xs bg-amber-50 text-amber-600 rounded-full px-2 py-0.5 font-medium">{{ enProceso().length }}</span>
-        </div>
-        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
-          @for (op of enProceso(); track op.id) {
-            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
-          }
-          @if (enProceso().length === 0) {
-            <div class="border-2 border-dashed border-amber-100 rounded-xl py-8 text-center text-xs text-amber-200">Sin órdenes</div>
-          }
-        </div>
-      </div>
+          <!-- Cards -->
+          <div class="flex flex-col gap-3 p-3 min-h-[120px]">
+            @if ((opsPorEstado().get(col.estado) ?? []).length === 0) {
+              <div class="flex flex-col items-center justify-center py-8 text-text-muted/40">
+                <mat-icon class="text-3xl">precision_manufacturing</mat-icon>
+              </div>
+            }
+            @for (op of (opsPorEstado().get(col.estado) ?? []); track op.id) {
+              <div class="rounded-card border border-border-soft bg-bg-card p-3 shadow-sm cursor-pointer transition-all hover:shadow-md hover:border-primary/30"
+                (click)="irDetalle(op.id)">
 
-      <!-- Columna COMPLETADA -->
-      <div class="flex flex-col min-w-[260px] flex-1">
-        <div class="flex items-center gap-2 mb-3 px-1">
-          <span class="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0"></span>
-          <span class="text-sm font-semibold text-text-main">Completada</span>
-          <span class="ml-auto text-xs bg-green-50 text-green-600 rounded-full px-2 py-0.5 font-medium">{{ completadas().length }}</span>
-        </div>
-        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
-          @for (op of completadas(); track op.id) {
-            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
-          }
-          @if (completadas().length === 0) {
-            <div class="border-2 border-dashed border-green-100 rounded-xl py-8 text-center text-xs text-green-200">Sin órdenes</div>
-          }
-        </div>
-      </div>
+                <!-- Número + fecha -->
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-mono font-bold text-primary">{{ op.numeroOrden }}</span>
+                  <span class="text-[11px] text-text-muted">{{ op.fechaProduccion | fecha:'mini' }}</span>
+                </div>
 
-      <!-- Columna CANCELADA -->
-      <div class="flex flex-col min-w-[260px] flex-1">
-        <div class="flex items-center gap-2 mb-3 px-1">
-          <span class="w-2.5 h-2.5 rounded-full bg-red-300 shrink-0"></span>
-          <span class="text-sm font-semibold text-text-main">Cancelada</span>
-          <span class="ml-auto text-xs bg-red-50 text-red-400 rounded-full px-2 py-0.5 font-medium">{{ canceladas().length }}</span>
-        </div>
-        <div class="flex flex-col gap-3 overflow-y-auto flex-1">
-          @for (op of canceladas(); track op.id) {
-            <ng-container *ngTemplateOutlet="cardTpl; context: { op: op }"></ng-container>
-          }
-          @if (canceladas().length === 0) {
-            <div class="border-2 border-dashed border-red-100 rounded-xl py-8 text-center text-xs text-red-200">Sin órdenes</div>
-          }
-        </div>
-      </div>
+                <!-- Descripción -->
+                @if (op.observacion) {
+                  <p class="mb-2 text-sm leading-snug line-clamp-2 text-text-main">{{ op.observacion }}</p>
+                } @else {
+                  <p class="mb-2 text-sm italic text-text-muted/50">Sin descripción</p>
+                }
 
+                <!-- Footer: responsable + costo -->
+                <div class="flex items-center justify-between border-t border-border-soft pt-2">
+                  <div class="flex items-center gap-1 text-xs text-text-muted">
+                    <mat-icon class="text-[13px]">person_outline</mat-icon>
+                    <span class="max-w-[90px] truncate">{{ op.nombreCompleto || op.nombreUsuario || 'Sin asignar' }}</span>
+                  </div>
+                  <span class="text-sm font-semibold text-text-main">{{ formatMonto(op.costoTotal) }}</span>
+                </div>
+
+                <!-- Botón acción (solo Planificada) -->
+                @if (col.accionLabel) {
+                  <button
+                    (click)="iniciar(op, $event)"
+                    [disabled]="accionando() === op.id"
+                    class="mt-2 flex w-full items-center justify-center gap-1 rounded-btn bg-primary py-1.5 text-xs font-semibold text-white transition disabled:opacity-50 hover:bg-primary-hover">
+                    @if (accionando() === op.id) {
+                      <mat-icon class="animate-spin text-[14px]">refresh</mat-icon>
+                    } @else {
+                      <mat-icon class="text-[14px]">{{ col.accionIcon }}</mat-icon>
+                    }
+                    {{ col.accionLabel }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
+
+    <!-- Canceladas (colapsable) -->
+    @if (canceladas().length > 0) {
+      <div>
+        <button (click)="mostrarCanceladas.set(!mostrarCanceladas())"
+          class="flex items-center gap-2 text-sm text-text-muted transition hover:text-text-main">
+          <mat-icon class="text-[18px]">{{ mostrarCanceladas() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          Órdenes canceladas ({{ canceladas().length }})
+        </button>
+        @if (mostrarCanceladas()) {
+          <div class="mt-3 overflow-hidden rounded-table border border-border-soft bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+                  <th class="px-4 py-2 font-semibold">Orden</th>
+                  <th class="px-4 py-2 font-semibold">Descripción</th>
+                  <th class="px-4 py-2 font-semibold">Responsable</th>
+                  <th class="px-4 py-2 text-right font-semibold">Costo</th>
+                  <th class="px-4 py-2 text-center font-semibold">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of canceladas(); track op.id) {
+                  <tr class="cursor-pointer border-b border-border-soft last:border-0 transition hover:bg-bg-app"
+                    (click)="irDetalle(op.id)">
+                    <td class="px-4 py-2 font-mono font-bold text-text-muted">{{ op.numeroOrden }}</td>
+                    <td class="max-w-[200px] truncate px-4 py-2 text-text-muted">{{ op.observacion || '—' }}</td>
+                    <td class="px-4 py-2 text-text-muted">{{ op.nombreCompleto || op.nombreUsuario || '—' }}</td>
+                    <td class="px-4 py-2 text-right text-text-muted">{{ formatMonto(op.costoTotal) }}</td>
+                    <td class="px-4 py-2 text-center text-xs text-text-muted">{{ op.fechaProduccion | fecha:'mini' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
   }
 
 </div>
 
-<!-- Card template -->
-<ng-template #cardTpl let-op="op">
-  <div (click)="irDetalle(op.id)"
-    class="bg-white rounded-card border border-border-soft shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-primary/20 transition-all group">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-xs font-mono font-bold text-primary">{{ op.numeroOrden }}</span>
-      <span class="text-xs text-text-muted">{{ op.fechaProduccion | fecha }}</span>
-    </div>
-    @if (op.observacion) {
-      <p class="text-sm text-text-main leading-snug line-clamp-2 mb-3">{{ op.observacion }}</p>
-    } @else {
-      <p class="text-sm text-gray-300 italic mb-3">Sin descripción</p>
-    }
-    <div class="flex items-center justify-between pt-3 border-t border-border-soft">
-      <div class="flex items-center gap-1.5 text-xs text-text-muted">
-        <mat-icon class="text-[13px]">person_outline</mat-icon>
-        <span class="truncate max-w-[90px]">{{ op.nombreCompleto || op.nombreUsuario || 'Sin asignar' }}</span>
-      </div>
-      <span class="text-sm font-semibold text-text-main">{{ formatMonto(op.costoTotal) }}</span>
-    </div>
-    <div class="mt-2 flex justify-end">
-      <span [class]="'text-[10px] font-medium px-2 py-0.5 rounded-full ' + estadoBadge(op.estado)">
-        {{ op.estado === 'EN_PROCESO' ? 'En proceso' : op.estado === 'PLANIFICADA' ? 'Planificada' : op.estado === 'COMPLETADA' ? 'Completada' : 'Cancelada' }}
-      </span>
-    </div>
-  </div>
-</ng-template>
-
 <!-- ═══════════════ MODAL NUEVA OP ═══════════════ -->
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-md">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+    <div class="modal-enter w-full max-w-md rounded-modal border border-border-soft bg-bg-card shadow-[var(--shadow-modal)]">
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <mat-icon class="text-primary text-[18px]">precision_manufacturing</mat-icon>
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <mat-icon class="text-[18px] text-primary">precision_manufacturing</mat-icon>
           </div>
           <h2 class="text-base font-semibold text-text-main">Nueva Orden de Producción</h2>
         </div>
-        <button (click)="cerrarModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button (click)="cerrarModal()" class="text-text-muted transition-colors hover:text-text-main">
           <mat-icon>close</mat-icon>
         </button>
       </div>
-      <div class="px-6 py-5 space-y-4">
+      <div class="space-y-4 px-6 py-5">
         @if (formError()) {
-          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+          <div class="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
             <mat-icon class="text-[16px]">error_outline</mat-icon>
             {{ formError() }}
           </div>
@@ -159,22 +190,25 @@
             (input)="onObservacion($event)"
             rows="3"
             placeholder="Ej: Producción semanal de Granola Natural 500g (opcional)"
-            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none">
+            class="w-full resize-none rounded-input border border-border-soft bg-bg-app px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
           </textarea>
         </div>
-        <p class="text-xs text-text-muted bg-gray-50 rounded-lg px-3 py-2 flex items-start gap-2">
-          <mat-icon class="text-[14px] mt-0.5 text-gray-400">info</mat-icon>
+        <p class="flex items-start gap-2 rounded-lg bg-bg-app px-3 py-2 text-xs text-text-muted">
+          <mat-icon class="mt-0.5 text-[14px] text-text-muted/60">info</mat-icon>
           Se creará en estado <strong>Planificada</strong>. Después agregas los insumos y los productos a fabricar.
         </p>
         <div class="flex justify-end gap-3 pt-1">
           <button (click)="cerrarModal()"
-            class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-gray-50 transition-colors">
+            class="rounded-btn border border-border-soft px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-bg-app">
             Cancelar
           </button>
           <button (click)="crearOP()" [disabled]="saving()"
-            class="px-5 py-2 text-sm font-medium bg-primary text-white rounded-btn hover:bg-primary-hover disabled:opacity-60 transition-colors flex items-center gap-2">
-            @if (saving()) { <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Creando... }
-            @else { <mat-icon class="text-[16px]">add</mat-icon> Crear OP }
+            class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-60">
+            @if (saving()) {
+              <mat-icon class="animate-spin text-[16px]">refresh</mat-icon> Creando...
+            } @else {
+              <mat-icon class="text-[16px]">add</mat-icon> Crear OP
+            }
           </button>
         </div>
       </div>

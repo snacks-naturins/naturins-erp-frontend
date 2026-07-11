@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { RbacService } from '../../core/services/rbac.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { LayoutService } from '../../core/services/layout.service';
 
 export interface NavEntry {
   kind: 'divider' | 'item';
@@ -24,6 +25,7 @@ export class Sidebar implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly rbac = inject(RbacService);
   private readonly notifications = inject(NotificationService);
+  readonly layout = inject(LayoutService);
   readonly user = this.auth.currentUser;
 
   ngOnInit(): void {
