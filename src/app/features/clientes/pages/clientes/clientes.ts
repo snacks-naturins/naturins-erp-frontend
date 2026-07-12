@@ -66,17 +66,25 @@ export class Clientes implements OnInit {
     'tipoDocumentoId', 'numeroDocumento', 'nombres', 'apellidos', 'telefono', 'correo', 'direccion',
   ] as const;
 
+  readonly estadoFiltro = signal('');
+
   readonly filtrados = computed(() => {
     const q = this.searchDebounced().toLowerCase().trim();
-    const list = this.items();
-    if (!q) return list;
-    return list.filter(
-      (c) =>
-        c.nombreCompleto.toLowerCase().includes(q) ||
+    const e = this.estadoFiltro();
+    return this.items().filter((c) => {
+      const matchE = !e || c.estado === e;
+      const matchQ = !q || c.nombreCompleto.toLowerCase().includes(q) ||
         (c.razonSocial ?? '').toLowerCase().includes(q) ||
-        (c.ruc ?? '').toLowerCase().includes(q),
-    );
+        (c.ruc ?? '').toLowerCase().includes(q);
+      return matchE && matchQ;
+    });
   });
+
+  // KPIs
+  readonly totalActivos    = computed(() => this.items().filter(c => c.estado === 'ACTIVO').length);
+  readonly totalPotenciales= computed(() => this.items().filter(c => c.estado === 'POTENCIAL').length);
+  readonly totalSuspendidos= computed(() => this.items().filter(c => c.estado === 'SUSPENDIDO').length);
+  readonly totalEmpresas   = computed(() => this.items().filter(c => c.tipoCliente === 'EMPRESA').length);
 
   // Eliminar
   readonly deleteTarget = signal<ClienteResponse | null>(null);
@@ -269,6 +277,15 @@ export class Clientes implements OnInit {
 
   cerrarHistorial(): void {
     this.fichaPedidos.set(null);
+  }
+
+  setEstadoFiltro(v: string): void {
+    this.estadoFiltro.set(this.estadoFiltro() === v ? '' : v);
+  }
+
+  limpiarFiltros(): void {
+    this.estadoFiltro.set('');
+    this.search.set('');
   }
 
   tipoLabel(t?: string | null): string {

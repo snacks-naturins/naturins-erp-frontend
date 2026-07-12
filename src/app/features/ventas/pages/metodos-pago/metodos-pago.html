@@ -1,103 +1,205 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-5">
 
   <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Ventas'}, {label:'Métodos de Pago'}]" />
 
-  <!-- Header -->
-  <div class="flex flex-wrap items-center justify-between gap-4">
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
       <h1 class="text-[28px] font-bold text-text-main">Métodos de Pago</h1>
-      <p class="text-sm text-text-muted">Configura los datos que verá el cliente al seleccionar cada método en el ecommerce</p>
+      <p class="text-sm text-text-muted">Configura los datos que verá el cliente al seleccionar cada método</p>
     </div>
-    <button
-      (click)="abrirCrear()"
-      class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover transition-colors">
-      <mat-icon>add</mat-icon> Nuevo método
+    <button (click)="abrirCrear()"
+      class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
+      Nuevo método
     </button>
   </div>
 
+  <!-- Error global -->
   @if (error()) {
-    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-      <mat-icon class="text-[18px]">error</mat-icon>
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! shrink-0">error_outline</mat-icon>
       {{ error() }}
-      <button (click)="error.set(null)" class="ml-auto"><mat-icon class="text-[16px]">close</mat-icon></button>
+      <button (click)="error.set(null)" class="ml-auto grid h-6 w-6 place-items-center rounded hover:bg-red-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">close</mat-icon>
+      </button>
     </div>
   }
 
+  <!-- KPI bar -->
+  @if (!loading() && metodos().length > 0) {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10">
+          <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">payments</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ metodos().length }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Total</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-50">
+          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">check_circle</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Activos</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-gray-400 text-[20px]!">pause_circle</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ totalInactivos() }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Inactivos</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-purple-50">
+          <mat-icon fontSet="material-icons-outlined" class="text-purple-600 text-[20px]!">qr_code_2</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">
+            {{ metodos().filter(m => m.urlQr).length }}
+          </p>
+          <p class="text-xs text-text-muted mt-0.5">Con QR</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex items-center justify-center gap-2 py-20 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
+      <span class="text-sm">Cargando métodos de pago...</span>
+    </div>
+  }
+
+  <!-- Empty state -->
   @if (!loading() && metodos().length === 0) {
     <app-empty-state icono="payments" titulo="Sin métodos configurados"
       descripcion="Agrega el primer método de pago para empezar a registrar ventas."
       labelCta="Nuevo método" (cta)="abrirCrear()" />
   }
 
-  <!-- Lista -->
-  @if (loading()) {
-    <div class="flex items-center justify-center py-16 text-text-muted">
-      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
-    </div>
-  } @else if (metodos().length > 0) {
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <!-- Grid de cards -->
+  @if (!loading() && metodos().length > 0) {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (m of metodos(); track m.id) {
-        <div class="group flex items-start gap-4 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-md"
-          [class.opacity-50]="m.estado === 'INACTIVO'">
 
-          <!-- Icono -->
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl mt-0.5"
-            style="background:color-mix(in srgb,var(--color-primary,#16a34a) 12%,white)">
-            <mat-icon style="color:var(--color-primary,#16a34a)">{{ tipoIcono(m.tipo) }}</mat-icon>
-          </div>
+        @let colorBg =
+          m.tipo === 'YAPE'          ? '#F3F0FF' :
+          m.tipo === 'PLIN'          ? '#E0F2FE' :
+          m.tipo === 'TRANSFERENCIA' ? '#EFF6FF' :
+          m.tipo === 'TARJETA'       ? '#FFFBEB' :
+          m.tipo === 'EFECTIVO'      ? '#F0FDF4' : '#F9FAFB';
 
-          <!-- Info -->
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-text-main truncate">{{ m.nombre }}</p>
+        @let colorText =
+          m.tipo === 'YAPE'          ? '#7C3AED' :
+          m.tipo === 'PLIN'          ? '#0284C7' :
+          m.tipo === 'TRANSFERENCIA' ? '#1D4ED8' :
+          m.tipo === 'TARJETA'       ? '#D97706' :
+          m.tipo === 'EFECTIVO'      ? '#15803D' : '#6B7280';
 
-            <div class="mt-1 flex flex-wrap items-center gap-1.5">
-              <!-- Badge tipo -->
-              @if (m.tipo) {
-                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium {{ tipoColorClass(m.tipo) }}">
-                  {{ tipoLabel(m.tipo) }}
-                </span>
-              }
-              <!-- Badge estado -->
-              <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
-                [class]="m.estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'">
-                <span class="h-1.5 w-1.5 rounded-full"
-                  [class]="m.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
-                {{ m.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
-              </span>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-md"
+          [class.opacity-60]="m.estado === 'INACTIVO'">
+
+          <!-- Barra de color superior -->
+          <div class="h-1 w-full" [style.background]="colorText"></div>
+
+          <div class="flex flex-1 flex-col gap-3 p-5">
+
+            <!-- Ícono + nombre + badges -->
+            <div class="flex items-start gap-3">
+              <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+                [style.background]="colorBg">
+                <mat-icon fontSet="material-icons-outlined" class="text-[22px]!" [style.color]="colorText">
+                  {{ tipoIcono(m.tipo) }}
+                </mat-icon>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-text-main truncate">{{ m.nombre }}</p>
+                <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                  @if (m.tipo) {
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      [style.background]="colorBg" [style.color]="colorText">
+                      {{ tipoLabel(m.tipo) }}
+                    </span>
+                  }
+                  <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                    [class]="m.estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'">
+                    <span class="h-1.5 w-1.5 rounded-full"
+                      [class]="m.estado === 'ACTIVO' ? 'bg-green-500' : 'bg-gray-400'"></span>
+                    {{ m.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <!-- Subtítulo: dato clave según tipo -->
-            @if (subtituloCard(m); as sub) {
-              <p class="mt-1 text-xs text-text-muted truncate">{{ sub }}</p>
-            }
+            <!-- Datos relevantes según tipo -->
+            <div class="flex flex-col gap-1 text-xs text-text-muted">
+              @if ((m.tipo === 'YAPE' || m.tipo === 'PLIN') && m.numeroCelular) {
+                <div class="flex items-center gap-1.5">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! shrink-0">phone</mat-icon>
+                  <span class="font-mono font-medium text-text-main">{{ m.numeroCelular }}</span>
+                </div>
+              }
+              @if ((m.tipo === 'YAPE' || m.tipo === 'PLIN') && m.urlQr) {
+                <div class="flex items-center gap-1.5 text-green-600">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! shrink-0">qr_code</mat-icon>
+                  <span class="font-medium">QR configurado</span>
+                </div>
+              }
+              @if (m.tipo === 'TRANSFERENCIA' && m.bancoNombre) {
+                <div class="flex items-center gap-1.5">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! shrink-0">account_balance</mat-icon>
+                  <span class="font-medium text-text-main">{{ m.bancoNombre }}</span>
+                </div>
+              }
+              @if (m.tipo === 'TRANSFERENCIA' && m.numeroCuenta) {
+                <div class="flex items-center gap-1.5">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! shrink-0">tag</mat-icon>
+                  <span class="font-mono text-text-main">{{ m.numeroCuenta }}</span>
+                </div>
+              }
+              @if (m.descripcion && !m.numeroCelular && !m.bancoNombre) {
+                <p class="truncate italic">{{ m.descripcion }}</p>
+              }
+            </div>
 
-            <!-- Indicador QR configurado -->
-            @if ((m.tipo === 'YAPE' || m.tipo === 'PLIN') && m.urlQr) {
-              <p class="mt-0.5 flex items-center gap-1 text-xs text-green-600">
-                <mat-icon class="text-[13px]">qr_code</mat-icon> QR configurado
-              </p>
-            }
-            @if (m.tipo === 'TRANSFERENCIA' && m.numeroCuenta) {
-              <p class="mt-0.5 flex items-center gap-1 text-xs text-blue-600">
-                <mat-icon class="text-[13px]">receipt</mat-icon> Cuenta: {{ m.numeroCuenta }}
-              </p>
-            }
           </div>
 
-          <!-- Acciones -->
-          <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
-            <button (click)="abrirEditar(m)" title="Editar"
-              class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
-              <mat-icon class="text-[16px]">edit</mat-icon>
+          <!-- Footer con acciones -->
+          <div class="flex items-center justify-between border-t border-border-soft px-4 py-2.5">
+            <button (click)="toggleEstado(m)"
+              class="flex h-7 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition"
+              [class]="m.estado === 'ACTIVO'
+                ? 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                : 'bg-green-50 text-green-700 hover:bg-green-100'"
+              [title]="m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'">
+              <mat-icon fontSet="material-icons-outlined" class="text-[13px]!">
+                {{ m.estado === 'ACTIVO' ? 'toggle_off' : 'toggle_on' }}
+              </mat-icon>
+              {{ m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}
             </button>
-            <button (click)="toggleEstado(m)" [title]="m.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'"
-              class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
-              <mat-icon class="text-[16px]">{{ m.estado === 'ACTIVO' ? 'toggle_on' : 'toggle_off' }}</mat-icon>
-            </button>
-            <button (click)="pedirEliminar(m)" title="Eliminar"
-              class="grid h-7 w-7 place-items-center rounded-lg text-red-400 hover:bg-red-50">
-              <mat-icon class="text-[16px]">delete</mat-icon>
-            </button>
+            <div class="flex items-center gap-1">
+              <button (click)="abrirEditar(m)"
+                class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-primary/10 hover:text-primary"
+                title="Editar">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">edit</mat-icon>
+              </button>
+              <button (click)="pedirEliminar(m)"
+                class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500"
+                title="Eliminar">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">delete</mat-icon>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -106,33 +208,48 @@
   }
 </div>
 
-<!-- ── Modal crear / editar ── -->
+<!-- ── Modal crear / editar ──────────────────────────────────── -->
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 py-8"
     (click)="cerrarModal()">
-    <div class="w-full max-w-lg rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="w-full max-w-lg rounded-modal bg-bg-card shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
+      (click)="$event.stopPropagation()">
 
       <!-- Cabecera -->
-      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
-        <h3 class="font-bold text-text-main">
-          {{ editandoId() ? 'Editar método de pago' : 'Nuevo método de pago' }}
-        </h3>
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <div class="flex items-center gap-2.5">
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-primary text-[18px]!">
+              {{ editandoId() ? 'edit' : 'add_card' }}
+            </mat-icon>
+          </div>
+          <h3 class="text-base font-semibold text-text-main">
+            {{ editandoId() ? 'Editar método de pago' : 'Nuevo método de pago' }}
+          </h3>
+        </div>
         <button (click)="cerrarModal()"
-          class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
-          <mat-icon>close</mat-icon>
+          class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="guardar()" class="p-5 flex flex-col gap-4">
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-4 p-6">
+
+        @if (formError()) {
+          <div class="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! shrink-0 mt-px">error_outline</mat-icon>
+            {{ formError() }}
+          </div>
+        }
 
         <!-- Nombre + Tipo -->
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2 sm:col-span-1">
-            <label class="mb-1 block text-sm font-medium text-text-main">
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">
               Nombre <span class="text-red-500">*</span>
             </label>
             <input formControlName="nombre" type="text" placeholder="Ej: Yape, Efectivo…"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
               [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
             @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
               <p class="mt-1 text-xs text-red-500">Mínimo 2 caracteres</p>
@@ -140,9 +257,9 @@
           </div>
 
           <div class="col-span-2 sm:col-span-1">
-            <label class="mb-1 block text-sm font-medium text-text-main">Tipo</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo</label>
             <select formControlName="tipo" (change)="onTipoCambio($event)"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
               <option value="">— Sin tipo específico —</option>
               <option value="YAPE">Yape</option>
               <option value="PLIN">Plin</option>
@@ -154,143 +271,134 @@
           </div>
         </div>
 
-        <!-- ── Campos YAPE / PLIN ── -->
+        <!-- Campos YAPE / PLIN -->
         @if (muestraQr()) {
-          <div class="rounded-lg border border-purple-100 bg-purple-50/40 p-4 flex flex-col gap-3">
-            <p class="text-xs font-semibold uppercase tracking-wide text-purple-600">
-              <mat-icon class="text-[14px] align-middle">phone_android</mat-icon>
+          <div class="flex flex-col gap-3 rounded-lg border border-purple-100 bg-purple-50/50 p-4">
+            <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-purple-600">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">phone_android</mat-icon>
               Datos {{ tipoSel() === 'YAPE' ? 'Yape' : 'Plin' }}
             </p>
-
             <div>
-              <label class="mb-1 block text-sm font-medium text-text-main">Número de celular</label>
-              <input formControlName="numeroCelular" type="text" placeholder="Ej: 987654321"
-                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">Número de celular</label>
+              <input formControlName="numeroCelular" type="text" placeholder="Ej: 987 654 321"
+                class="h-11 w-full rounded-input border border-purple-200 bg-white px-3.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100" />
             </div>
-
             <div>
-              <label class="mb-1 block text-sm font-medium text-text-main">URL del código QR</label>
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">URL del código QR</label>
               <input formControlName="urlQr" type="url" placeholder="https://…/qr.png"
-                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+                class="h-11 w-full rounded-input border border-purple-200 bg-white px-3.5 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-100" />
               <p class="mt-1 text-xs text-text-muted">Imagen QR que verá el cliente al pagar</p>
             </div>
           </div>
         }
 
-        <!-- ── Campos TRANSFERENCIA ── -->
+        <!-- Campos TRANSFERENCIA -->
         @if (muestraTransferencia()) {
-          <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-4 flex flex-col gap-3">
-            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
-              <mat-icon class="text-[14px] align-middle">account_balance</mat-icon>
+          <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+            <p class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-blue-600">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">account_balance</mat-icon>
               Datos bancarios
             </p>
-
             <div>
-              <label class="mb-1 block text-sm font-medium text-text-main">Nombre del banco</label>
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre del banco</label>
               <input formControlName="bancoNombre" type="text" placeholder="Ej: BCP, Interbank, Scotiabank…"
-                class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+                class="h-11 w-full rounded-input border border-blue-200 bg-white px-3.5 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
             </div>
-
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="mb-1 block text-sm font-medium text-text-main">Número de cuenta</label>
-                <input formControlName="numeroCuenta" type="text" placeholder="Ej: 1234567890123"
-                  class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+                <label class="mb-1.5 block text-xs font-semibold text-text-main">N° de cuenta</label>
+                <input formControlName="numeroCuenta" type="text" placeholder="1234567890"
+                  class="h-11 w-full rounded-input border border-blue-200 bg-white px-3.5 text-sm font-mono outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-text-main">CCI (interbancario)</label>
-                <input formControlName="cuentaInterbancaria" type="text" placeholder="Ej: 00212340012345678912"
-                  class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+                <label class="mb-1.5 block text-xs font-semibold text-text-main">CCI interbancario</label>
+                <input formControlName="cuentaInterbancaria" type="text" placeholder="00212340…"
+                  class="h-11 w-full rounded-input border border-blue-200 bg-white px-3.5 text-sm font-mono outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100" />
               </div>
             </div>
           </div>
         }
 
-        <!-- ── Campos TARJETA ── -->
+        <!-- Campos TARJETA -->
         @if (tipoSel() === 'TARJETA') {
-          <div class="rounded-lg border border-amber-100 bg-amber-50/40 p-4">
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-600">
-              <mat-icon class="text-[14px] align-middle">credit_card</mat-icon>
-              Tarjeta de crédito / débito
+          <div class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+            <mat-icon fontSet="material-icons-outlined" class="text-amber-500 text-[18px]! shrink-0 mt-px">info</mat-icon>
+            <p class="text-xs text-amber-700">
+              Integración con Culqi para pagos con tarjeta próximamente. Por ahora puedes agregar instrucciones manuales en la descripción.
             </p>
-            <div class="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
-              <mat-icon class="text-amber-500 text-[18px] mt-0.5 shrink-0">info</mat-icon>
-              <p class="text-xs text-amber-700">
-                El procesamiento de pagos con tarjeta vía API de Culqi se implementará próximamente.
-                Por ahora puedes agregar instrucciones manuales en el campo de descripción.
-              </p>
-            </div>
           </div>
         }
 
-        <!-- ── Descripción / Instrucciones (TARJETA, EFECTIVO, OTRO) ── -->
+        <!-- Descripción -->
         @if (muestraDescripcion()) {
           <div>
-            <label class="mb-1 block text-sm font-medium text-text-main">
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">
               Instrucciones para el cliente
-              <span class="text-text-muted font-normal">(opcional)</span>
+              <span class="font-normal text-text-muted">(opcional)</span>
             </label>
             <textarea formControlName="descripcion" rows="3"
               placeholder="Ej: Paga en caja al momento de recibir tu pedido..."
-              class="w-full rounded-input border border-border-soft px-3 py-2 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 resize-none"></textarea>
+              class="w-full resize-none rounded-input border border-border-soft bg-bg-app px-3.5 py-2.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"></textarea>
           </div>
         }
 
         <!-- Estado (solo editar) -->
         @if (editandoId()) {
           <div>
-            <label class="mb-1 block text-sm font-medium text-text-main">Estado</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
+              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
             </select>
           </div>
         }
 
-        <!-- Acciones -->
+        <!-- Botones -->
         <div class="flex gap-3 pt-1">
           <button type="button" (click)="cerrarModal()"
-            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+            class="flex h-11 flex-1 items-center justify-center rounded-btn border border-border-soft bg-white text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="form.invalid || saving()"
-            class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
+            class="flex h-11 flex-1 items-center justify-center gap-2 rounded-btn bg-primary text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50">
             @if (saving()) {
-              <mat-icon class="animate-spin text-[18px]">refresh</mat-icon>
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]!">progress_activity</mat-icon>
             } @else {
-              <mat-icon class="text-[18px]">save</mat-icon>
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">save</mat-icon>
             }
-            {{ saving() ? 'Guardando…' : 'Guardar' }}
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>
-
       </form>
     </div>
   </div>
 }
 
-<!-- ── Confirmar eliminar ── -->
+<!-- ── Modal confirmar eliminar ───────────────────────────────── -->
 @if (confirmDelete(); as m) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div class="w-full max-w-sm rounded-modal bg-white p-6 shadow-2xl">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
-          <mat-icon class="text-red-600">delete</mat-icon>
+    <div class="w-full max-w-[380px] overflow-hidden rounded-modal bg-bg-card shadow-[0_20px_40px_rgba(0,0,0,0.15)]">
+
+      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+        <div class="grid h-14 w-14 place-items-center rounded-full bg-red-50">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500 text-[28px]!">delete</mat-icon>
         </div>
-        <div>
-          <p class="font-semibold text-text-main">¿Eliminar método?</p>
-          <p class="text-sm text-text-muted">{{ m.nombre }}</p>
-        </div>
+        <h3 class="text-lg font-bold text-text-main">Eliminar método</h3>
+        <p class="text-sm text-text-muted">
+          ¿Eliminar <span class="font-semibold text-text-main">{{ m.nombre }}</span>?
+          Los pedidos existentes no se verán afectados.
+        </p>
       </div>
-      <p class="text-sm text-text-muted mb-5">Esta acción no se puede deshacer. Los pedidos existentes no se verán afectados.</p>
-      <div class="flex gap-3">
+
+      <div class="flex justify-center gap-3 px-6 py-5">
         <button (click)="confirmDelete.set(null)"
-          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
+          class="flex h-11 flex-1 items-center justify-center rounded-btn border border-border-soft bg-white text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()"
-          class="flex-1 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
+          class="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-btn bg-red-500 text-sm font-semibold text-white transition hover:bg-red-600">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">delete</mat-icon>
           Eliminar
         </button>
       </div>

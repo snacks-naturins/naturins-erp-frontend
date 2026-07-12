@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
 
@@ -26,16 +26,60 @@ export class PermisosRbac implements OnInit {
   readonly error    = signal<string | null>(null);
   readonly success  = signal(false);
 
-  readonly roles    = signal<RolResponse[]>([]);
+  readonly roles     = signal<RolResponse[]>([]);
   readonly rolActivo = signal<string>('');
-  readonly matriz   = signal<MatrizRow[]>([]);
+  readonly matriz    = signal<MatrizRow[]>([]);
 
-  readonly acciones: { key: CampoAccion; label: string }[] = [
-    { key: 'puedeVer',      label: 'Ver'      },
-    { key: 'puedeCrear',    label: 'Crear'    },
-    { key: 'puedeEditar',   label: 'Editar'   },
-    { key: 'puedeEliminar', label: 'Eliminar' },
+  readonly acciones: { key: CampoAccion; label: string; icono: string }[] = [
+    { key: 'puedeVer',      label: 'Ver',      icono: 'visibility'   },
+    { key: 'puedeCrear',    label: 'Crear',    icono: 'add_circle'   },
+    { key: 'puedeEditar',   label: 'Editar',   icono: 'edit'         },
+    { key: 'puedeEliminar', label: 'Eliminar', icono: 'delete'       },
   ];
+
+  private readonly SECCIONES: Record<string, string> = {
+    'Dashboard':      'General',
+    'Inventario':     'Inventario', 'Almacenes':    'Inventario', 'Presentaciones': 'Inventario',
+    'Lotes':          'Inventario', 'Kardex':       'Inventario',
+    'Producción':     'Producción', 'Materia Prima':'Producción', 'Recetas':        'Producción',
+    'Compras':        'Compras & Proveedores', 'Proveedores': 'Compras & Proveedores',
+    'Ventas':         'Ventas', 'Cotizaciones': 'Ventas', 'Pedidos':         'Ventas',
+    'Clientes':       'Ventas', 'Métodos de Pago': 'Ventas',
+    'E-Commerce':     'E-Commerce', 'Catálogo Web': 'E-Commerce', 'Banners':        'E-Commerce',
+    'Cupones':        'E-Commerce', 'Descuentos':  'E-Commerce', 'Pedidos Web':    'E-Commerce',
+    'Empleados':      'Administración', 'Roles':    'Administración', 'Departamentos': 'Administración',
+    'Seguridad':      'Administración', 'Permisos RBAC': 'Administración',
+    'Facturación':    'Finanzas',  'Reportes':    'Finanzas',
+  };
+
+  private readonly SECCION_ICONOS: Record<string, string> = {
+    'General':                'home',
+    'Inventario':             'inventory_2',
+    'Producción':             'precision_manufacturing',
+    'Compras & Proveedores':  'shopping_cart',
+    'Ventas':                 'point_of_sale',
+    'E-Commerce':             'storefront',
+    'Administración':         'admin_panel_settings',
+    'Finanzas':               'receipt_long',
+  };
+
+  private seccionDe(nombre: string): string {
+    return this.SECCIONES[nombre] ?? 'Otros';
+  }
+
+  seccionIcono(seccion: string): string {
+    return this.SECCION_ICONOS[seccion] ?? 'apps';
+  }
+
+  readonly matrizConSecciones = computed(() => {
+    let lastSec = '';
+    return this.matriz().map(row => {
+      const sec = this.seccionDe(row.nombre);
+      const isFirst = sec !== lastSec;
+      lastSec = sec;
+      return { row, seccion: sec, isFirst };
+    });
+  });
 
   ngOnInit(): void {
     forkJoin([this.svcRol.listar(), this.svcPermiso.listarModulos()]).subscribe({

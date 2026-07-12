@@ -2,115 +2,266 @@
 
   <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'E-commerce', ruta:'/ecommerce'}, {label:'Descuentos'}]" />
 
-  <div class="flex flex-wrap items-center justify-between gap-4">
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
       <h1 class="text-[28px] font-bold text-text-main">Descuentos de Productos</h1>
-      <p class="text-sm text-text-muted">
-        <span class="font-medium text-green-600">{{ activos() }} activos</span> ·
-        <span class="font-medium text-blue-600">{{ programados() }} programados</span>
-      </p>
+      <p class="text-sm text-text-muted">Precios rebajados que se muestran automáticamente en la tienda</p>
     </div>
-    <button (click)="abrirNuevo()"
-      class="flex items-center gap-2 rounded-btn bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition">
-      <mat-icon class="text-[18px]">add</mat-icon> Nuevo Descuento
-    </button>
+    <div class="flex items-center gap-2">
+      <button (click)="cargar()" title="Recargar"
+        class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-muted transition hover:bg-bg-app hover:text-text-main">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">refresh</mat-icon>
+      </button>
+      <button (click)="abrirNuevo()"
+        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:opacity-90">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">add</mat-icon>
+        Nuevo Descuento
+      </button>
+    </div>
   </div>
 
+  <!-- KPI bar -->
+  @if (!loading() && descuentos().length > 0) {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+
+      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10">
+          <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">percent</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ descuentos().length }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Total</p>
+        </div>
+      </div>
+
+      <button type="button" (click)="setEstadoFiltro('ACTIVO')"
+        class="flex items-center gap-3 rounded-card p-4 text-left transition"
+        [class]="estadoFiltro() === 'ACTIVO'
+          ? 'bg-green-50 ring-2 ring-green-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
+          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
+          [class]="estadoFiltro() === 'ACTIVO' ? 'bg-green-100' : 'bg-green-50'">
+          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">check_circle</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Activos</p>
+        </div>
+      </button>
+
+      <button type="button" (click)="setEstadoFiltro('PROGRAMADO')"
+        class="flex items-center gap-3 rounded-card p-4 text-left transition"
+        [class]="estadoFiltro() === 'PROGRAMADO'
+          ? 'bg-blue-50 ring-2 ring-blue-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
+          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
+          [class]="estadoFiltro() === 'PROGRAMADO' ? 'bg-blue-100' : 'bg-blue-50'">
+          <mat-icon fontSet="material-icons-outlined" class="text-blue-600 text-[20px]!">schedule</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ totalProgramados() }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Programados</p>
+        </div>
+      </button>
+
+      <button type="button" (click)="setEstadoFiltro('VENCIDO')"
+        class="flex items-center gap-3 rounded-card p-4 text-left transition"
+        [class]="estadoFiltro() === 'VENCIDO'
+          ? 'bg-gray-100 ring-2 ring-gray-300 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
+          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
+          [class]="estadoFiltro() === 'VENCIDO' ? 'bg-gray-200' : 'bg-gray-100'">
+          <mat-icon fontSet="material-icons-outlined" class="text-gray-500 text-[20px]!">event_busy</mat-icon>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-text-main leading-none">{{ totalVencidos() }}</p>
+          <p class="text-xs text-text-muted mt-0.5">Vencidos</p>
+        </div>
+      </button>
+
+    </div>
+  }
+
+  <!-- Filter pills -->
+  @if (!loading() && descuentos().length > 0) {
+    <div class="flex items-center gap-2">
+      @for (f of [{v:'', label:'Todos'}, {v:'ACTIVO', label:'Activos'}, {v:'PROGRAMADO', label:'Programados'}, {v:'VENCIDO', label:'Vencidos'}]; track f.v) {
+        <button type="button" (click)="setEstadoFiltro(f.v)"
+          class="h-8 rounded-full px-4 text-xs font-semibold transition"
+          [class]="estadoFiltro() === f.v
+            ? 'bg-primary text-white shadow-sm'
+            : 'bg-bg-app text-text-muted hover:bg-primary/10 hover:text-primary'">
+          {{ f.label }}
+        </button>
+      }
+      <span class="ml-auto text-xs text-text-muted">{{ filtrados().length }} de {{ descuentos().length }}</span>
+    </div>
+  }
+
+  <!-- Estados -->
   @if (loading()) {
-    <div class="flex items-center justify-center py-16 text-text-muted">
-      <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
+    <div class="flex items-center justify-center gap-2 py-16 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
+      <span class="text-sm">Cargando descuentos...</span>
     </div>
   } @else if (error()) {
-    <div class="rounded-card bg-white p-8 text-center text-red-600">{{ error() }}</div>
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! shrink-0">error_outline</mat-icon>
+      {{ error() }}
+    </div>
   } @else {
-    <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+    <!-- Tabla -->
+    <div class="overflow-hidden rounded-table bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-            <th class="px-4 py-3 font-semibold">Campaña</th>
-            <th class="px-4 py-3 font-semibold">Producto / Presentación</th>
-            <th class="px-4 py-3 font-semibold">Descuento</th>
-            <th class="px-4 py-3 font-semibold">Precio</th>
-            <th class="px-4 py-3 font-semibold">Vigencia</th>
-            <th class="px-4 py-3 text-center font-semibold">Estado</th>
-            <th class="px-4 py-3 text-center font-semibold">Acciones</th>
+          <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+            <th class="px-5 py-3 font-semibold">Campaña</th>
+            <th class="px-5 py-3 font-semibold">Producto / Presentación</th>
+            <th class="px-5 py-3 font-semibold">Descuento</th>
+            <th class="px-5 py-3 font-semibold">Precio</th>
+            <th class="px-5 py-3 font-semibold">Vigencia</th>
+            <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <th class="px-5 py-3 text-center font-semibold">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          @for (d of descuentos(); track d.id) {
-            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FAFAFA] transition">
-              <td class="px-4 py-3 font-medium text-text-main">{{ d.nombre }}</td>
-              <td class="px-4 py-3">
-                <p class="font-medium text-text-main">{{ d.productoNombre }}</p>
-                <p class="text-xs text-text-muted">{{ d.presentacionNombre }}</p>
+          @for (d of filtrados(); track d.id) {
+            <tr class="border-b border-border-soft last:border-0 transition hover:bg-bg-app">
+
+              <!-- Campaña -->
+              <td class="px-5 py-4">
+                <p class="font-semibold text-text-main">{{ d.nombre }}</p>
               </td>
-              <td class="px-4 py-3">
-                <span class="rounded-full px-2 py-0.5 text-xs font-bold"
+
+              <!-- Producto / Presentación -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-sm font-bold"
+                    [class]="avatarColor(d.productoNombre)">
+                    {{ d.productoNombre.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-medium text-text-main leading-snug">{{ d.productoNombre }}</p>
+                    <p class="text-xs text-text-muted">{{ d.presentacionNombre }}</p>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Descuento -->
+              <td class="px-5 py-4">
+                <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
                   [class]="d.tipo === 'PORCENTAJE' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'">
                   {{ valorDisplay(d) }}
                 </span>
               </td>
-              <td class="px-4 py-3">
-                <span class="text-xs text-text-muted line-through">S/ {{ d.precioOriginal | number:'1.2-2' }}</span>
-                <span class="ml-1.5 font-bold text-green-600">S/ {{ d.precioFinal | number:'1.2-2' }}</span>
+
+              <!-- Precio -->
+              <td class="px-5 py-4">
+                <p class="text-xs text-text-muted line-through">S/ {{ d.precioOriginal.toFixed(2) }}</p>
+                <p class="font-bold text-green-600">S/ {{ d.precioFinal.toFixed(2) }}</p>
               </td>
-              <td class="px-4 py-3 text-xs text-text-muted">
-                {{ d.fechaInicio | fecha:'corto' }}<br/>
-                <span class="text-[11px]">→ {{ d.fechaFin | fecha:'corto' }}</span>
+
+              <!-- Vigencia -->
+              <td class="px-5 py-4 text-xs">
+                <p class="font-medium text-text-main">{{ d.fechaInicio | fecha:'corto' }}</p>
+                <p class="text-text-muted">hasta {{ d.fechaFin | fecha:'corto' }}</p>
               </td>
-              <td class="px-4 py-3 text-center">
-                <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="estadoBadge(d.estado)">
-                  {{ d.estado }}
+
+              <!-- Estado -->
+              <td class="px-5 py-4 text-center">
+                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+                  [class]="estadoBadge(d.estado)">
+                  <span class="h-1.5 w-1.5 shrink-0 rounded-full" [class]="estadoDot(d.estado)"></span>
+                  {{ estadoLabel(d.estado) }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-center">
-                <button (click)="pedirEliminar(d)" [disabled]="deleting()"
-                  class="grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition disabled:opacity-50 mx-auto">
-                  <mat-icon class="text-[16px]">delete</mat-icon>
+
+              <!-- Acciones -->
+              <td class="px-5 py-4 text-center">
+                <button (click)="pedirEliminar(d)" [disabled]="deleting()" title="Eliminar"
+                  class="mx-auto grid h-8 w-8 place-items-center rounded-lg border border-red-200 text-red-400 transition hover:bg-red-50 disabled:opacity-50">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">delete</mat-icon>
                 </button>
               </td>
             </tr>
           }
-          @empty {
+
+          <!-- Empty con filtro -->
+          @if (filtrados().length === 0 && descuentos().length > 0) {
             <tr>
-              <td colspan="7" class="px-4 py-14 text-center text-text-muted">
-                <mat-icon class="text-5xl mb-2">percent</mat-icon>
-                <p class="font-medium">No hay descuentos configurados.</p>
-                <p class="text-xs mt-1">Crea uno para que aparezca automáticamente en la tienda.</p>
+              <td colspan="7">
+                <div class="flex flex-col items-center justify-center gap-3 py-14 text-text-muted">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[44px] opacity-30">manage_search</mat-icon>
+                  <p class="text-sm">No hay descuentos con ese filtro.</p>
+                  <button type="button" (click)="setEstadoFiltro('')"
+                    class="text-xs font-semibold text-primary hover:underline">Limpiar filtro</button>
+                </div>
               </td>
             </tr>
           }
+
+          <!-- Empty sin datos -->
+          @if (descuentos().length === 0) {
+            <tr>
+              <td colspan="7">
+                <div class="flex flex-col items-center justify-center gap-4 py-16 text-text-muted">
+                  <div class="grid h-16 w-16 place-items-center rounded-full bg-primary/10">
+                    <mat-icon fontSet="material-icons-outlined" class="text-primary text-[36px]!">percent</mat-icon>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-text-main">No hay descuentos configurados</p>
+                    <p class="mt-1 text-sm">Crea uno y aparecerá automáticamente en la tienda.</p>
+                  </div>
+                  <button (click)="abrirNuevo()"
+                    class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">add</mat-icon>
+                    Crear Descuento
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+
         </tbody>
       </table>
     </div>
+
   }
+
 </div>
 
-<!-- Modal confirmar eliminar descuento -->
+<!-- Modal confirmar eliminar -->
 @if (deleteTarget(); as t) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
-        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
+    <div class="w-full max-w-[420px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)] modal-enter" (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pb-2 pt-7 text-center">
+        <div class="grid h-14 w-14 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500 text-[28px]!">delete_forever</mat-icon>
         </div>
-        <h3 class="font-semibold text-text-main">Eliminar descuento</h3>
+        <h3 class="font-bold text-text-main">Eliminar descuento</h3>
         <p class="text-sm text-text-muted">
           ¿Eliminar <span class="font-semibold text-text-main">{{ t.nombre }}</span>?
           Se dejará de aplicar en la tienda y no se puede deshacer.
         </p>
         @if (deleteError()) {
-          <p class="text-xs text-red-600">{{ deleteError() }}</p>
+          <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{{ deleteError() }}</p>
         }
       </div>
-      <div class="flex justify-center gap-3 border-t border-border-soft px-6 py-4 mt-3">
+      <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarEliminar()"
-          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
-          {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
+          class="flex h-10 items-center gap-1.5 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          @if (deleting()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]!">progress_activity</mat-icon>
+            Eliminando...
+          } @else {
+            Sí, eliminar
+          }
         </button>
       </div>
     </div>
@@ -120,16 +271,23 @@
 <!-- Modal nuevo descuento -->
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="modalOpen.set(false)">
-    <div class="w-full max-w-md rounded-modal bg-white shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="w-full max-w-md overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)] modal-enter" (click)="$event.stopPropagation()">
 
+      <!-- Header -->
       <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
-        <h3 class="font-bold text-text-main">Nuevo Descuento</h3>
-        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
-          <mat-icon>close</mat-icon>
+        <div class="flex items-center gap-2">
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-primary text-[18px]!">percent</mat-icon>
+          </div>
+          <h3 class="font-bold text-text-main">Nuevo Descuento</h3>
+        </div>
+        <button (click)="modalOpen.set(false)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">close</mat-icon>
         </button>
       </div>
 
-      <div class="p-5 flex flex-col gap-4">
+      <!-- Body -->
+      <div class="flex flex-col gap-4 p-5">
 
         <!-- Nombre campaña -->
         <div>
@@ -138,18 +296,80 @@
             class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
         </div>
 
-        <!-- Presentación -->
+        <!-- Presentación — search dropdown -->
         <div>
           <label class="mb-1 block text-xs font-semibold text-text-muted">Presentación *</label>
-          <select [(ngModel)]="form.presentacionId"
-            class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
-            <option value="">— Selecciona —</option>
-            @for (p of presentaciones(); track p.id) {
-              <option [value]="p.id">
-                {{ p.nombreProducto }} – {{ p.nombre }} (S/ {{ p.precioVenta | number:'1.2-2' }})
-              </option>
+          <div class="relative">
+
+            <!-- Overlay para cerrar al hacer click afuera -->
+            @if (presDropdownOpen()) {
+              <div class="fixed inset-0 z-10" (click)="presDropdownOpen.set(false)"></div>
             }
-          </select>
+
+            <!-- Chip de seleccionada / input de búsqueda -->
+            @if (presSeleccionada() && !presDropdownOpen()) {
+              <button type="button" (click)="abrirDropdownPres()"
+                class="flex h-14 w-full items-center gap-3 rounded-input border border-secondary bg-secondary/5 px-3 text-left transition hover:bg-secondary/10">
+                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-sm font-bold"
+                  [class]="avatarColor(presSeleccionada()!.nombreProducto)">
+                  {{ presSeleccionada()!.nombreProducto.charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold text-text-main leading-snug truncate">{{ presSeleccionada()!.nombreProducto }}</p>
+                  <p class="text-xs text-text-muted truncate">{{ presInfo(presSeleccionada()!) }} · S/ {{ presSeleccionada()!.precioVenta.toFixed(2) }}</p>
+                </div>
+                <mat-icon fontSet="material-icons-outlined" class="text-[18px]! shrink-0 text-text-muted">unfold_more</mat-icon>
+              </button>
+            } @else {
+              <div class="relative">
+                <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]!">search</mat-icon>
+                <input
+                  type="text"
+                  placeholder="Buscar producto o presentación..."
+                  [value]="presSearch()"
+                  (input)="presSearch.set($any($event.target).value)"
+                  (focus)="presDropdownOpen.set(true)"
+                  (blur)="cerrarDropdownPres()"
+                  class="h-11 w-full rounded-input border border-secondary bg-white pl-10 pr-3 text-sm outline-none ring-2 ring-secondary/30" />
+              </div>
+            }
+
+            <!-- Lista desplegable -->
+            @if (presDropdownOpen()) {
+              <div class="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border-soft bg-bg-card shadow-lg">
+
+                @if (presFiltered().length === 0) {
+                  <div class="flex flex-col items-center justify-center gap-1 py-8 text-text-muted">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[32px]! opacity-30">search_off</mat-icon>
+                    <p class="text-xs">Sin resultados</p>
+                  </div>
+                }
+
+                @for (p of presFiltered(); track p.id) {
+                  <button type="button" (mousedown)="seleccionarPresentacion(p)"
+                    class="flex w-full items-center gap-3 border-b border-border-soft px-3 py-2.5 text-left last:border-0 transition hover:bg-bg-app"
+                    [class.bg-primary/5]="p.id === form.presentacionId">
+                    <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-sm font-bold"
+                      [class]="avatarColor(p.nombreProducto)">
+                      {{ p.nombreProducto.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-semibold text-text-main leading-snug">{{ p.nombreProducto }}</p>
+                      <p class="text-xs text-text-muted">{{ presInfo(p) }}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                      <p class="text-sm font-bold text-text-main">S/ {{ p.precioVenta.toFixed(2) }}</p>
+                    </div>
+                    @if (p.id === form.presentacionId) {
+                      <mat-icon fontSet="material-icons-outlined" class="text-primary text-[16px]! shrink-0">check</mat-icon>
+                    }
+                  </button>
+                }
+
+              </div>
+            }
+
+          </div>
         </div>
 
         <!-- Tipo + Valor -->
@@ -157,7 +377,7 @@
           <div>
             <label class="mb-1 block text-xs font-semibold text-text-muted">Tipo *</label>
             <select [(ngModel)]="form.tipo"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary">
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30">
               @for (t of tipos; track t.value) {
                 <option [value]="t.value">{{ t.label }}</option>
               }
@@ -168,15 +388,21 @@
               {{ form.tipo === 'PORCENTAJE' ? 'Porcentaje (%)' : 'Precio final (S/)' }} *
             </label>
             <input [(ngModel)]="form.valor" type="number" min="0.01" step="0.01"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
           </div>
         </div>
 
         <!-- Preview precio -->
-        @if (form.presentacionId && form.valor > 0) {
-          <div class="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm">
-            <mat-icon class="text-green-600 text-[18px]">sell</mat-icon>
-            <span class="font-medium text-green-700">{{ precioPreview }}</span>
+        @if (precioPreview; as p) {
+          <div class="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+            <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]! shrink-0">sell</mat-icon>
+            <div>
+              <p class="text-xs text-green-700 font-semibold">Vista previa del precio</p>
+              <p class="text-sm">
+                <span class="text-text-muted line-through">{{ p.original }}</span>
+                <span class="ml-2 font-bold text-green-700">{{ p.final }}</span>
+              </p>
+            </div>
           </div>
         }
 
@@ -185,32 +411,40 @@
           <div>
             <label class="mb-1 block text-xs font-semibold text-text-muted">Desde *</label>
             <input [(ngModel)]="form.fechaInicio" type="datetime-local"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
           </div>
           <div>
             <label class="mb-1 block text-xs font-semibold text-text-muted">Hasta *</label>
             <input [(ngModel)]="form.fechaFin" type="datetime-local"
-              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary" />
+              class="h-10 w-full rounded-input border border-border-soft px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
           </div>
         </div>
 
         <!-- Error -->
         @if (formError()) {
-          <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            <mat-icon class="text-[16px]">error</mat-icon> {{ formError() }}
+          <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <mat-icon fontSet="material-icons-outlined" class="text-[16px]! shrink-0">error_outline</mat-icon>
+            {{ formError() }}
           </div>
         }
 
-        <div class="flex justify-end gap-2 pt-1">
+        <!-- Acciones -->
+        <div class="flex justify-end gap-2 border-t border-border-soft pt-4">
           <button (click)="modalOpen.set(false)"
-            class="rounded-btn border border-border-soft px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft px-5 text-sm font-medium text-text-muted transition hover:bg-bg-app">
             Cancelar
           </button>
           <button (click)="guardar()" [disabled]="saving()"
-            class="rounded-btn bg-primary px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
-            {{ saving() ? 'Guardando...' : 'Crear descuento' }}
+            class="flex h-10 items-center gap-1.5 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50">
+            @if (saving()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]!">progress_activity</mat-icon>
+              Guardando...
+            } @else {
+              Crear descuento
+            }
           </button>
         </div>
+
       </div>
     </div>
   </div>

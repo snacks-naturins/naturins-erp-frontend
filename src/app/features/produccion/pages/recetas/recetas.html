@@ -1,225 +1,360 @@
-<!-- Header -->
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-bold text-gray-900">Recetas de Producción</h1>
-    <p class="text-sm text-gray-500 mt-0.5">Fórmulas que definen los insumos necesarios por lote</p>
-  </div>
-  <button (click)="abrirCrear()"
-    class="flex items-center gap-2 px-4 h-11 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover transition-colors">
-    <mat-icon class="text-sm">add</mat-icon> Nueva receta
-  </button>
-</div>
+<div class="p-6 flex flex-col gap-6">
 
-<!-- Stats -->
-<div class="grid grid-cols-3 gap-4 mb-6">
-  <div class="bg-white rounded-card border border-border-soft p-4">
-    <p class="text-xs text-gray-500 mb-1">Total recetas</p>
-    <p class="text-2xl font-bold text-gray-900">{{ recetas().length }}</p>
-  </div>
-  <div class="bg-white rounded-card border border-border-soft p-4">
-    <p class="text-xs text-gray-500 mb-1">Activas</p>
-    <p class="text-2xl font-bold text-green-600">{{ totalActivas() }}</p>
-  </div>
-  <div class="bg-white rounded-card border border-border-soft p-4">
-    <p class="text-xs text-gray-500 mb-1">Archivadas</p>
-    <p class="text-2xl font-bold text-amber-600">{{ totalArchivadas() }}</p>
-  </div>
-</div>
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Producción'}, {label:'Recetas'}]" />
 
-<!-- Filtros -->
-<div class="flex gap-2 mb-4">
-  @for (f of [['TODAS','Todas'],['ACTIVA','Activas'],['ARCHIVADA','Archivadas'],['INACTIVA','Inactivas']]; track f[0]) {
-    <button (click)="setFiltro(f[0])"
-      [class]="filtroEstado() === f[0]
-        ? 'px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-white'
-        : 'px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200'">
-      {{ f[1] }}
+  <!-- Header -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold leading-tight text-text-main">Recetas de Producción</h1>
+      <p class="mt-0.5 text-sm text-text-muted">Fórmulas que definen los insumos necesarios por lote</p>
+    </div>
+    <button (click)="abrirCrear()"
+      class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
+      Nueva receta
     </button>
-  }
-</div>
+  </div>
 
-<!-- Loading / Error -->
-@if (loading()) {
-  <div class="flex justify-center py-16 text-gray-400">
-    <mat-icon class="animate-spin">refresh</mat-icon>
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+
+    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
+      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10">
+        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-primary">menu_book</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs text-text-muted">Total recetas</p>
+        <p class="text-2xl font-bold text-text-main">{{ recetas().length }}</p>
+      </div>
+    </div>
+
+    <button (click)="setFiltro(filtroEstado() === 'ACTIVA' ? 'TODAS' : 'ACTIVA')"
+      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+      [class]="filtroEstado() === 'ACTIVA' ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">check_circle</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs text-text-muted">Activas</p>
+        <p class="text-2xl font-bold text-green-600">{{ totalActivas() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setFiltro(filtroEstado() === 'ARCHIVADA' ? 'TODAS' : 'ARCHIVADA')"
+      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+      [class]="filtroEstado() === 'ARCHIVADA' ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-amber-600">archive</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs text-text-muted">Archivadas</p>
+        <p class="text-2xl font-bold text-amber-600">{{ totalArchivadas() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setFiltro(filtroEstado() === 'INACTIVA' ? 'TODAS' : 'INACTIVA')"
+      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+      [class]="filtroEstado() === 'INACTIVA' ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-gray-500">block</mat-icon>
+      </div>
+      <div>
+        <p class="text-xs text-text-muted">Inactivas</p>
+        <p class="text-2xl font-bold text-text-main">{{ totalInactivas() }}</p>
+      </div>
+    </button>
+
   </div>
-} @else if (error()) {
-  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error() }}</div>
-} @else if (recetasFiltradas().length === 0) {
-  <div class="bg-white border border-border-soft rounded-card p-12 text-center text-gray-400">
-    <mat-icon class="text-4xl mb-2">menu_book</mat-icon>
-    <p class="text-sm">No hay recetas para mostrar.</p>
+
+  <!-- Barra de filtros -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="relative flex min-w-0 flex-1 items-center sm:max-w-xs">
+      <mat-icon fontSet="material-icons-outlined"
+        class="pointer-events-none absolute left-3 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
+      <input type="text" (input)="onSearch($event)" placeholder="Buscar receta, producto..."
+        class="h-10 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
+    </div>
+
+    <div class="flex gap-1 rounded-lg border border-border-soft bg-bg-card p-1">
+      @for (f of [['TODAS','Todas'],['ACTIVA','Activas'],['ARCHIVADA','Archivadas'],['INACTIVA','Inactivas']]; track f[0]) {
+        <button (click)="setFiltro(f[0])"
+          class="rounded-md px-3 py-1.5 text-xs font-medium transition"
+          [class]="filtroEstado() === f[0]
+            ? 'bg-primary text-white shadow-sm'
+            : 'text-text-muted hover:text-text-main hover:bg-bg-app'">
+          {{ f[1] }}
+        </button>
+      }
+    </div>
+
+    <span class="text-xs text-text-muted">
+      {{ recetasFiltradas().length }} receta{{ recetasFiltradas().length !== 1 ? 's' : '' }}
+    </span>
   </div>
-} @else {
-  <!-- Lista -->
-  <div class="grid grid-cols-1 gap-4">
-    @for (r of recetasFiltradas(); track r.id) {
-      <div class="bg-white border border-border-soft rounded-card p-4 hover:shadow-sm transition-shadow">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-semibold text-gray-900 truncate">{{ r.nombre }}</span>
-              <span [class]="'px-2 py-0.5 rounded-full text-xs font-medium ' + estadoBadge(r.estado)">
-                {{ r.estado }}
-              </span>
-              @if (r.version) {
-                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  v{{ r.version }}
+
+  <!-- Loading / Error -->
+  @if (loading()) {
+    <div class="flex justify-center py-16 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[36px]! h-9! w-9!">progress_activity</mat-icon>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{{ error() }}</div>
+  } @else if (recetasFiltradas().length === 0) {
+    <div class="flex flex-col items-center gap-3 rounded-card border border-border-soft bg-bg-card py-16 text-center text-text-muted shadow-sm">
+      <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">menu_book</mat-icon>
+      <p class="text-sm">{{ recetas().length === 0 ? 'No hay recetas registradas.' : 'Sin resultados para la búsqueda.' }}</p>
+      @if (recetas().length === 0) {
+        <button (click)="abrirCrear()"
+          class="flex h-9 items-center gap-1.5 rounded-btn bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
+          <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
+          Nueva receta
+        </button>
+      }
+    </div>
+  } @else {
+
+    <!-- Lista de recetas -->
+    <div class="flex flex-col gap-3">
+      @for (r of recetasFiltradas(); track r.id) {
+        <div class="rounded-card border border-border-soft bg-bg-card p-5 shadow-sm transition hover:shadow-md">
+          <div class="flex items-start justify-between gap-4">
+
+            <!-- Info principal -->
+            <div class="min-w-0 flex-1">
+
+              <!-- Nombre + badges -->
+              <div class="mb-1 flex flex-wrap items-center gap-2">
+                <span class="font-semibold text-text-main truncate">{{ r.nombre }}</span>
+                <span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"
+                  [class]="estadoBadge(r.estado).classes">
+                  {{ estadoBadge(r.estado).label }}
                 </span>
+                @if (r.version) {
+                  <span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                    v{{ r.version }}
+                  </span>
+                }
+                <!-- Stock listo indicator -->
+                @if (r.estado === 'ACTIVA') {
+                  @if (stockListo(r)) {
+                    <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[11px]! h-[11px]! w-[11px]!">inventory</mat-icon>
+                      Stock listo
+                    </span>
+                  } @else if (r.ingredientes.length > 0) {
+                    <span class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[11px]! h-[11px]! w-[11px]!">warning</mat-icon>
+                      Stock insuf.
+                    </span>
+                  }
+                }
+              </div>
+
+              <!-- Producto y presentación -->
+              <p class="mb-2 text-xs text-text-muted">
+                {{ r.nombreProducto }} — {{ r.nombrePresentacion }}
+              </p>
+
+              @if (r.descripcion) {
+                <p class="mb-2 line-clamp-1 text-sm text-text-muted">{{ r.descripcion }}</p>
               }
-            </div>
-            <p class="text-xs text-gray-500 mb-2">{{ r.nombreProducto }} — {{ r.nombrePresentacion }}</p>
-            @if (r.descripcion) {
-              <p class="text-sm text-gray-600 mb-2 line-clamp-1">{{ r.descripcion }}</p>
-            }
-            <div class="flex flex-wrap gap-3 text-xs text-gray-500">
-              <span class="flex items-center gap-1">
-                <mat-icon class="text-xs">output</mat-icon>
-                <strong>{{ r.rendimientoPorLote }}</strong> und/lote
-              </span>
-              <span class="flex items-center gap-1">
-                <mat-icon class="text-xs">science</mat-icon>
-                {{ r.ingredientes.length }} insumos
-              </span>
-            </div>
-            <!-- Ingredientes mini -->
-            @if (r.ingredientes.length > 0) {
-              <div class="mt-2 flex flex-wrap gap-1">
-                @for (ing of r.ingredientes; track ing.id) {
-                  <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-                    {{ ing.nombreMateriaPrima }} × {{ ing.cantidadPorLote }} {{ ing.unidadMedida }}
+
+              <!-- Métricas rápidas -->
+              <div class="mb-2 flex flex-wrap items-center gap-4 text-xs text-text-muted">
+                <span class="flex items-center gap-1">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">output</mat-icon>
+                  <strong class="text-text-main">{{ r.rendimientoPorLote }}</strong> und/lote
+                </span>
+                <span class="flex items-center gap-1">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">science</mat-icon>
+                  {{ r.ingredientes.length }} insumo{{ r.ingredientes.length !== 1 ? 's' : '' }}
+                </span>
+                @if (costoEstimado(r) > 0) {
+                  <span class="flex items-center gap-1">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">payments</mat-icon>
+                    Costo/lote: <strong class="text-text-main">{{ costoLabel(costoEstimado(r)) }}</strong>
                   </span>
                 }
               </div>
-            }
-          </div>
-          <!-- Acciones -->
-          <div class="flex items-center gap-2 shrink-0">
-            <button (click)="abrirEditar(r)"
-              class="grid h-7 w-7 place-items-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Editar receta">
-              <mat-icon class="text-[14px]">edit</mat-icon>
-            </button>
-            @if (r.estado === 'ACTIVA') {
-              <button (click)="abrirNuevaVersion(r)"
-                class="grid h-7 w-7 place-items-center rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors" title="Nueva versión">
-                <mat-icon class="text-[14px]">content_copy</mat-icon>
+
+              <!-- Ingredientes mini chips -->
+              @if (r.ingredientes.length > 0) {
+                <div class="flex flex-wrap gap-1.5">
+                  @for (ing of r.ingredientes; track ing.id) {
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                      [class]="ing.stockActual >= ing.cantidadPorLote
+                        ? 'bg-bg-app text-text-muted'
+                        : 'bg-red-50 text-red-600'">
+                      @if (ing.stockActual < ing.cantidadPorLote) {
+                        <mat-icon fontSet="material-icons-outlined" class="text-[10px]! h-[10px]! w-[10px]!">warning</mat-icon>
+                      }
+                      {{ ing.nombreMateriaPrima }} × {{ ing.cantidadPorLote }} {{ ing.unidadMedida }}
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex shrink-0 flex-wrap items-center gap-1.5">
+              <button (click)="abrirEditar(r)"
+                class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted transition hover:bg-bg-app hover:text-primary"
+                title="Editar receta">
+                <mat-icon fontSet="material-icons-outlined" class="text-[15px]! h-[15px]! w-[15px]!">edit</mat-icon>
               </button>
-              <button (click)="abrirCalculo(r)"
-                class="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-btn text-xs font-medium hover:bg-primary-hover transition-colors">
-                <mat-icon class="text-xs">play_arrow</mat-icon> Producir
-              </button>
-              <button (click)="pedirArchivar(r)"
-                class="px-3 py-1.5 border border-border-soft text-gray-600 rounded-btn text-xs hover:bg-gray-50 transition-colors">
-                Archivar
-              </button>
-            }
-            @if (r.estado === 'ARCHIVADA' || r.estado === 'INACTIVA') {
-              <button (click)="activar(r)"
-                class="px-3 py-1.5 border border-green-200 text-green-700 rounded-lg text-xs hover:bg-green-50 transition-colors">
-                Activar
-              </button>
-            }
+
+              @if (r.estado === 'ACTIVA') {
+                <button (click)="abrirNuevaVersion(r)"
+                  class="grid h-8 w-8 place-items-center rounded-lg border border-blue-200 text-blue-600 transition hover:bg-blue-50"
+                  title="Nueva versión">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[15px]! h-[15px]! w-[15px]!">content_copy</mat-icon>
+                </button>
+
+                <button (click)="abrirCalculo(r)"
+                  class="flex h-8 items-center gap-1 rounded-btn bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">play_arrow</mat-icon>
+                  Producir
+                </button>
+
+                <button (click)="pedirArchivar(r)"
+                  class="flex h-8 items-center rounded-btn border border-border-soft px-3 text-xs text-text-muted transition hover:bg-bg-app">
+                  Archivar
+                </button>
+              }
+
+              @if (r.estado === 'ARCHIVADA' || r.estado === 'INACTIVA') {
+                <button (click)="activar(r)"
+                  class="flex h-8 items-center rounded-btn border border-green-300 px-3 text-xs font-medium text-green-700 transition hover:bg-green-50">
+                  <mat-icon fontSet="material-icons-outlined" class="mr-1 text-[13px]! h-[13px]! w-[13px]!">refresh</mat-icon>
+                  Activar
+                </button>
+              }
+            </div>
+
           </div>
         </div>
-      </div>
-    }
-  </div>
-}
+      }
+    </div>
 
-<!-- Error de activar (inline) -->
+  }
+
+</div>
+
+<!-- Toast de error al activar -->
 @if (errorActivar()) {
-  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-xl border border-red-200 bg-white px-5 py-3 shadow-xl">
-    <mat-icon class="text-red-500 shrink-0">error_outline</mat-icon>
+  <div class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-red-200 bg-bg-card px-5 py-3 shadow-xl">
+    <mat-icon fontSet="material-icons-outlined" class="shrink-0 text-red-500">error_outline</mat-icon>
     <span class="text-sm text-red-700">{{ errorActivar() }}</span>
     <button (click)="errorActivar.set(null)" class="ml-2 text-red-400 hover:text-red-600">
-      <mat-icon class="text-[18px]">close</mat-icon>
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">close</mat-icon>
     </button>
   </div>
 }
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- Modal Crear Receta                                             -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: CREAR / EDITAR RECETA
+═══════════════════════════════════════════════════════ -->
 @if (modalCrear()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-2xl max-h-[90vh] flex flex-col">
-      <!-- header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
-        <h2 class="text-lg font-semibold text-gray-900">
-          {{ editRecetaId() ? 'Editar receta' : isNuevaVersion() ? 'Nueva versión de receta' : 'Nueva receta' }}
-        </h2>
-        <button (click)="cerrarCrear()" class="text-gray-400 hover:text-gray-600">
-          <mat-icon>close</mat-icon>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cerrarCrear()">
+    <div class="modal-enter flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">menu_book</mat-icon>
+          </div>
+          <h2 class="font-semibold text-text-main">
+            {{ editRecetaId() ? 'Editar receta' : isNuevaVersion() ? 'Nueva versión de receta' : 'Nueva receta' }}
+          </h2>
+        </div>
+        <button (click)="cerrarCrear()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
 
-      <div class="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+      <!-- Body scrollable -->
+      <div class="flex flex-col gap-4 overflow-y-auto p-6">
 
         @if (isNuevaVersion()) {
           <div class="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-sm text-blue-700">
-            <mat-icon class="text-[16px] mt-0.5 shrink-0">info</mat-icon>
-            <span>Se creará una nueva versión de la receta y la versión actual quedará <strong>archivada</strong> automáticamente.</span>
+            <mat-icon fontSet="material-icons-outlined" class="mt-0.5 shrink-0 text-[16px]! h-4! w-4!">info</mat-icon>
+            <span>Se creará una nueva versión y la versión actual quedará <strong>archivada</strong> automáticamente.</span>
           </div>
+        }
+
+        @if (formError()) {
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{{ formError() }}</div>
         }
 
         <!-- Nombre -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre <span class="text-red-500">*</span></label>
           <input type="text" [value]="formNombre()" (input)="onNombre($event)"
             placeholder="Ej: Receta Chips de Camote 50g"
-            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
+            class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
         </div>
+
         <!-- Presentación -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Presentación (producto final) *</label>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Presentación (producto final) <span class="text-red-500">*</span></label>
           <select (change)="onPresentacion($event)" [disabled]="!!editRecetaId() || isNuevaVersion()"
-            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary disabled:opacity-60 disabled:bg-gray-50">
+            class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20 disabled:opacity-60">
             <option value="">— Seleccionar —</option>
             @for (p of presentaciones(); track p.id) {
               <option [value]="p.id" [selected]="p.id === formPresentacionId()">{{ p.nombreProducto }} — {{ p.nombre }}</option>
             }
           </select>
         </div>
-        <!-- Rendimiento -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Rendimiento por lote (unidades producidas) *</label>
-          <input type="number" [value]="formRendimiento() ?? ''" (input)="onRendimiento($event)"
-            min="0.001" step="0.001" placeholder="Ej: 100"
-            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
-        </div>
-        <!-- Descripción -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-          <textarea [value]="formDescripcion()" (input)="onDescripcion($event)" rows="2"
-            placeholder="Notas opcionales sobre la receta..."
-            class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary resize-none"></textarea>
+
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Rendimiento -->
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Rendimiento por lote (unidades) <span class="text-red-500">*</span></label>
+            <input type="number" [value]="formRendimiento() ?? ''" (input)="onRendimiento($event)"
+              min="0.001" step="0.001" placeholder="Ej: 100"
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <!-- Descripción breve -->
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Descripción <span class="font-normal text-text-muted">(opcional)</span></label>
+            <input type="text" [value]="formDescripcion()" (input)="onDescripcion($event)"
+              placeholder="Notas opcionales..."
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
+          </div>
         </div>
 
         <!-- Ingredientes -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-sm font-medium text-gray-700">Ingredientes (insumos) *</label>
+          <div class="mb-2 flex items-center justify-between">
+            <label class="text-xs font-semibold text-text-main">Ingredientes (insumos) <span class="text-red-500">*</span></label>
             <button (click)="agregarIngrediente()"
-              class="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 font-medium">
-              <mat-icon class="text-xs">add_circle</mat-icon> Agregar
+              class="flex items-center gap-1 text-xs font-medium text-primary transition hover:text-primary-hover">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add_circle</mat-icon>
+              Agregar insumo
             </button>
           </div>
-          <div class="space-y-2">
+          <div class="flex flex-col gap-2">
             @for (ing of formIngredientes(); track $index; let i = $index) {
               <div class="flex items-center gap-2">
                 <select (change)="onIngredienteMp(i, $event)"
-                  class="flex-1 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary">
+                  class="h-10 flex-1 rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
                   <option value="">— Materia prima —</option>
                   @for (mp of materiasPrimas(); track mp.id) {
-                    <option [value]="mp.id" [selected]="mp.id === ing.materiaPrimaId">{{ mp.nombre }} ({{ mp.unidadMedida }})</option>
+                    <option [value]="mp.id" [selected]="mp.id === ing.materiaPrimaId">
+                      {{ mp.nombre }} ({{ mp.unidadMedida }}) · Stock: {{ mp.stock }}
+                    </option>
                   }
                 </select>
                 <input type="number" [value]="ing.cantidadPorLote ?? ''" (input)="onIngredienteCantidad(i, $event)"
-                  min="0.001" step="0.001" placeholder="Cantidad/lote"
-                  class="w-36 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
+                  min="0.001" step="0.001" placeholder="Cant./lote"
+                  class="h-10 w-32 rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
                 @if (formIngredientes().length > 1) {
-                  <button (click)="quitarIngrediente(i)" class="text-red-400 hover:text-red-600">
-                    <mat-icon>remove_circle_outline</mat-icon>
+                  <button (click)="quitarIngrediente(i)"
+                    class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-red-400 transition hover:bg-red-50 hover:text-red-600">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">remove_circle_outline</mat-icon>
                   </button>
                 }
               </div>
@@ -227,38 +362,39 @@
           </div>
         </div>
 
-        @if (formError()) {
-          <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-600">{{ formError() }}</div>
-        }
       </div>
 
-      <!-- footer -->
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-border-soft">
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cerrarCrear()"
-          class="px-4 py-2 border border-border-soft text-gray-600 rounded-btn text-sm hover:bg-gray-50 transition-colors">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="guardarReceta()" [disabled]="saving()"
-          class="px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors">
-          {{ saving() ? 'Guardando...' : editRecetaId() ? 'Actualizar' : isNuevaVersion() ? 'Crear versión' : 'Crear receta' }}
+          class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+          @if (saving()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Guardando...
+          } @else {
+            {{ editRecetaId() ? 'Actualizar' : isNuevaVersion() ? 'Crear versión' : 'Crear receta' }}
+          }
         </button>
       </div>
     </div>
   </div>
 }
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- Modal Calcular / Producir                                      -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!-- Modal Confirmar Archivar                                        -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: CONFIRMAR ARCHIVAR
+═══════════════════════════════════════════════════════ -->
 @if (recetaArchivar(); as r) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarArchivar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cancelarArchivar()">
+    <div class="modal-enter w-full max-w-[420px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pb-2 pt-7 text-center">
         <div class="grid h-12 w-12 place-items-center rounded-full bg-amber-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-amber-600">inventory_2</mat-icon>
+          <mat-icon fontSet="material-icons-outlined" class="text-amber-600">archive</mat-icon>
         </div>
         <h3 class="font-semibold text-text-main">Archivar receta</h3>
         <p class="text-sm text-text-muted">
@@ -269,80 +405,105 @@
           <p class="text-xs text-red-600">{{ errorArchivar() }}</p>
         }
       </div>
-      <div class="flex justify-center gap-3 border-t border-border-soft px-6 py-4 mt-3">
+      <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarArchivar()"
-          class="flex h-10 items-center rounded-lg border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarArchivar()" [disabled]="archivando()"
-          class="flex h-10 items-center rounded-lg bg-amber-500 px-5 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60">
-          {{ archivando() ? 'Archivando...' : 'Sí, archivar' }}
+          class="flex h-10 items-center gap-2 rounded-btn bg-amber-500 px-5 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:opacity-60">
+          @if (archivando()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Archivando...
+          } @else {
+            Sí, archivar
+          }
         </button>
       </div>
     </div>
   </div>
 }
 
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: CALCULAR / PRODUCIR
+═══════════════════════════════════════════════════════ -->
 @if (modalCalculo()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div class="bg-white rounded-modal shadow-[var(--shadow-modal)] modal-enter w-full max-w-lg max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-border-soft">
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-semibold text-gray-900">{{ recetaSeleccionada()?.nombre }}</h2>
-            @if (recetaSeleccionada()?.version) {
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">v{{ recetaSeleccionada()?.version }}</span>
-            }
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cerrarCalculo()">
+    <div class="modal-enter flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">calculate</mat-icon>
           </div>
-          <p class="text-xs text-gray-500">{{ recetaSeleccionada()?.nombrePresentacion }}</p>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold text-text-main">{{ recetaSeleccionada()?.nombre }}</h2>
+              @if (recetaSeleccionada()?.version) {
+                <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">v{{ recetaSeleccionada()?.version }}</span>
+              }
+            </div>
+            <p class="text-xs text-text-muted">{{ recetaSeleccionada()?.nombrePresentacion }}</p>
+          </div>
         </div>
-        <button (click)="cerrarCalculo()" class="text-gray-400 hover:text-gray-600">
-          <mat-icon>close</mat-icon>
+        <button (click)="cerrarCalculo()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
 
-      <div class="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+      <!-- Body -->
+      <div class="flex flex-col gap-4 overflow-y-auto p-6">
+
         <!-- Cantidad de lotes -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad de lotes a producir</label>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Cantidad de lotes a producir</label>
           <div class="flex gap-2">
             <input type="number" [value]="formLotes() ?? ''" (input)="onLotes($event)"
-              min="0.001" step="1" placeholder="Ej: 2"
-              class="flex-1 border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
-            <button (click)="calcular()" [disabled]="calculando()"
-              class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors">
-              {{ calculando() ? '...' : 'Calcular' }}
+              min="1" step="1" placeholder="Ej: 2"
+              class="h-10 flex-1 rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
+            <button (click)="calcular()" [disabled]="calculando() || !formLotes()"
+              class="flex h-10 items-center gap-2 rounded-btn bg-bg-app border border-border-soft px-4 text-sm font-semibold text-text-main transition hover:bg-primary hover:text-white hover:border-primary disabled:opacity-50">
+              @if (calculando()) {
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+              }
+              Calcular
             </button>
           </div>
-          <p class="text-xs text-gray-400 mt-1">
+          <p class="mt-1 text-xs text-text-muted">
             1 lote = {{ recetaSeleccionada()?.rendimientoPorLote }} unidades de {{ recetaSeleccionada()?.nombrePresentacion }}
           </p>
         </div>
 
         <!-- Resultado del cálculo -->
         @if (calculo(); as c) {
-          <div class="bg-gray-50 rounded-card border border-border-soft p-4 space-y-3">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500">Unidades esperadas</span>
-              <span class="font-semibold text-gray-900">{{ c.unidadesEsperadas }}</span>
+          <div class="rounded-card border border-border-soft bg-bg-app p-4">
+
+            <div class="mb-3 flex items-center justify-between text-sm">
+              <span class="text-text-muted">Unidades esperadas</span>
+              <span class="font-bold text-text-main">{{ c.unidadesEsperadas }} und</span>
             </div>
 
             <div class="border-t border-border-soft pt-3">
-              <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Insumos requeridos</p>
-              <div class="space-y-2">
+              <p class="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted">Insumos requeridos</p>
+              <div class="flex flex-col gap-2">
                 @for (ins of c.insumos; track ins.materiaPrimaId) {
                   <div class="flex items-center justify-between text-sm">
                     <div class="flex items-center gap-2">
-                      <mat-icon [class]="ins.suficiente ? 'text-green-500 text-xs' : 'text-red-500 text-xs'">
+                      <mat-icon fontSet="material-icons-outlined"
+                        class="text-[14px]! h-3.5! w-3.5!"
+                        [class]="ins.suficiente ? 'text-green-500' : 'text-red-500'">
                         {{ ins.suficiente ? 'check_circle' : 'cancel' }}
                       </mat-icon>
-                      <span class="text-gray-700">{{ ins.nombreMateriaPrima }}</span>
+                      <span class="text-text-main">{{ ins.nombreMateriaPrima }}</span>
                     </div>
                     <div class="text-right">
-                      <span class="font-medium" [class]="ins.suficiente ? 'text-gray-900' : 'text-red-600'">
+                      <span class="font-medium" [class]="ins.suficiente ? 'text-text-main' : 'text-red-600'">
                         {{ ins.cantidadNecesaria }} {{ ins.unidadMedida }}
                       </span>
-                      <span class="text-xs text-gray-400 ml-1">(stock: {{ ins.stockActual }})</span>
+                      <span class="ml-1 text-xs text-text-muted">(stock: {{ ins.stockActual }})</span>
                     </div>
                   </div>
                 }
@@ -350,35 +511,44 @@
             </div>
 
             @if (!c.stockSuficiente) {
-              <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-600">
-                Stock insuficiente para completar la producción.
+              <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+                Stock insuficiente para completar la producción con los lotes indicados.
               </div>
             } @else {
-              <div class="border-t border-border-soft pt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
+              <div class="mt-3 border-t border-border-soft pt-3">
+                <label class="mb-1.5 block text-xs font-semibold text-text-main">
+                  Observación <span class="font-normal text-text-muted">(opcional)</span>
+                </label>
                 <input type="text" [value]="formObservacion()" (input)="onObservacion($event)"
                   placeholder="Nota para la orden de producción..."
-                  class="w-full border border-border-soft rounded-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
               </div>
             }
           </div>
         }
 
         @if (calcError()) {
-          <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-600">{{ calcError() }}</div>
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{{ calcError() }}</div>
         }
+
       </div>
 
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-border-soft">
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cerrarCalculo()"
-          class="px-4 py-2 border border-border-soft text-gray-600 rounded-btn text-sm hover:bg-gray-50 transition-colors">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cerrar
         </button>
         @if (calculo()?.stockSuficiente) {
           <button (click)="producir()" [disabled]="produciendo()"
-            class="flex items-center gap-1 px-4 py-2 bg-primary text-white rounded-btn text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors">
-            <mat-icon class="text-sm">precision_manufacturing</mat-icon>
-            {{ produciendo() ? 'Creando OP...' : 'Crear orden de producción' }}
+            class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+            @if (produciendo()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+              Creando OP...
+            } @else {
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">precision_manufacturing</mat-icon>
+              Crear orden de producción
+            }
           </button>
         }
       </div>

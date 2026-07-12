@@ -331,10 +331,15 @@ export class ProductForm implements OnInit, CanComponentDeactivate {
       : this.productoService.crear(payload);
 
     request$.subscribe({
-      next: () => {
+      next: (saved) => {
         this.saving.set(false);
         this.form.markAsPristine();
-        this.router.navigate(['/productos']);
+        if (id) {
+          this.router.navigate(['/productos']);
+        } else {
+          // Tras crear: volver al formulario en modo edición para que el usuario vea el producto guardado
+          this.router.navigate(['/productos', (saved as any).id, 'editar']);
+        }
       },
       error: (err) => {
         this.saving.set(false);

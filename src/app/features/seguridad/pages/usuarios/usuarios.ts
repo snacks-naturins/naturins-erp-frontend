@@ -13,6 +13,7 @@ import { DepartamentoResponse } from '../../models/departamento.model';
 import { TipoDocumentoService } from '../../../../core/services/tipo-documento.service';
 import { TipoDocumentoResponse } from '../../../../core/models/tipo-documento.model';
 import { ArchivoService } from '../../../../core/services/archivo.service';
+import { PersonaService } from '../../../../core/services/persona.service';
 import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
@@ -24,12 +25,13 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
   templateUrl: './usuarios.html',
 })
 export class Usuarios implements OnInit {
-  private readonly svcUsuario = inject(UsuarioService);
-  private readonly svcRol     = inject(RolService);
-  private readonly svcDep     = inject(DepartamentoService);
-  private readonly svcTipoDoc = inject(TipoDocumentoService);
-  private readonly svcArchivo = inject(ArchivoService);
-  private readonly fb         = inject(FormBuilder);
+  private readonly svcUsuario  = inject(UsuarioService);
+  private readonly svcRol      = inject(RolService);
+  private readonly svcDep      = inject(DepartamentoService);
+  private readonly svcTipoDoc  = inject(TipoDocumentoService);
+  private readonly svcArchivo  = inject(ArchivoService);
+  private readonly svcPersona  = inject(PersonaService);
+  private readonly fb          = inject(FormBuilder);
 
   readonly loading  = signal(true);
   readonly saving   = signal(false);
@@ -40,17 +42,17 @@ export class Usuarios implements OnInit {
   readonly departamentos = signal<DepartamentoResponse[]>([]);
   readonly tiposDocs     = signal<TipoDocumentoResponse[]>([]);
 
-  readonly search           = signal('');
-  readonly searchDebounced  = debouncedSignal(this.search);
-  readonly filtroDep        = signal('');
-  readonly filtroRol    = signal('');
-  readonly filtroEstado = signal('');
+  readonly search          = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
+  readonly filtroDep       = signal('');
+  readonly filtroRol       = signal('');
+  readonly filtroEstado    = signal('');
 
   // ── Archivos wizard ───────────────────────────────────────────
-  readonly fotoPreview  = signal<string | null>(null);
-  readonly fotoArchivo  = signal<File | null>(null);
-  readonly cvArchivo    = signal<File | null>(null);
-  readonly cvNombre     = computed(() => this.cvArchivo()?.name ?? '');
+  readonly fotoPreview = signal<string | null>(null);
+  readonly fotoArchivo = signal<File | null>(null);
+  readonly cvArchivo   = signal<File | null>(null);
+  readonly cvNombre    = computed(() => this.cvArchivo()?.name ?? '');
 
   // ── Wizard crear ──────────────────────────────────────────────
   readonly wizardOpen = signal(false);
@@ -78,6 +80,15 @@ export class Usuarios implements OnInit {
 
   // ── Panel edición ─────────────────────────────────────────────
   readonly editandoUsuario = signal<UsuarioResponse | null>(null);
+  readonly loadingEditar   = signal(false);
+
+  readonly formEditarPersona = this.fb.group({
+    nombres:   ['', [Validators.required, Validators.maxLength(100)]],
+    apellidos: ['', [Validators.required, Validators.maxLength(100)]],
+    telefono:  ['', Validators.maxLength(15)],
+    correo:    ['', [Validators.email, Validators.maxLength(150)]],
+    direccion: ['', Validators.maxLength(255)],
+  });
 
   readonly formEditar = this.fb.group({
     password:       ['', [Validators.minLength(8), Validators.maxLength(50)]],
@@ -88,6 +99,14 @@ export class Usuarios implements OnInit {
   });
 
   readonly confirmDelete = signal<UsuarioResponse | null>(null);
+
+  readonly kpiActivos    = computed(() => this.usuarios().filter(u => u.estado === 'ACTIVO').length);
+  readonly kpiInactivos  = computed(() => this.usuarios().filter(u => u.estado === 'INACTIVO').length);
+  readonly kpiBloqueados = computed(() => this.usuarios().filter(u => u.estado === 'BLOQUEADO').length);
+
+  setFiltroEstado(v: string): void {
+    this.filtroEstado.set(this.filtroEstado() === v ? '' : v);
+  }
 
   // ── Filtrado + agrupación ─────────────────────────────────────
   readonly usuariosFiltrados = computed(() => {
@@ -121,14 +140,11 @@ export class Usuarios implements OnInit {
   cargar(): void {
     this.loading.set(true);
     this.error.set(null);
-    const noRoles:  RolResponse[]          = [];
-    const noDeps:   DepartamentoResponse[] = [];
-    const noDocs:   TipoDocumentoResponse[] = [];
     forkJoin([
       this.svcUsuario.listar(),
-      this.svcRol.listar().pipe(catchError(() => of(noRoles))),
-      this.svcDep.listar().pipe(catchError(() => of(noDeps))),
-      this.svcTipoDoc.listar().pipe(catchError(() => of(noDocs))),
+      this.svcRol.listar().pipe(catchError(() => of([] as RolResponse[]))),
+      this.svcDep.listar().pipe(catchError(() => of([] as DepartamentoResponse[]))),
+      this.svcTipoDoc.listar().pipe(catchError(() => of([] as TipoDocumentoResponse[]))),
     ]).subscribe({
       next: ([usuarios, roles, deps, tiposDocs]) => {
         this.usuarios.set(usuarios);
@@ -194,11 +210,7 @@ export class Usuarios implements OnInit {
         });
       })
     ).subscribe({
-      next: (p) => {
-        this.personaId.set(p.id);
-        this.saving.set(false);
-        this.wizardStep.set(2);
-      },
+      next: (p) => { this.personaId.set(p.id); this.saving.set(false); this.wizardStep.set(2); },
       error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Error al crear persona.'); },
     });
   }
@@ -224,6 +236,8 @@ export class Usuarios implements OnInit {
   // ── Editar ────────────────────────────────────────────────────
   abrirEditar(u: UsuarioResponse): void {
     this.editandoUsuario.set(u);
+    this.loadingEditar.set(true);
+    this.error.set(null);
     this.formEditar.reset({
       password:       '',
       rolId:          u.rolId,
@@ -231,20 +245,54 @@ export class Usuarios implements OnInit {
       urlAvatar:      u.urlAvatar ?? '',
       estado:         u.estado,
     });
+    this.svcPersona.obtenerPorId(u.personaId).subscribe({
+      next: (p) => {
+        this.formEditarPersona.reset({
+          nombres:   p.nombres,
+          apellidos: p.apellidos,
+          telefono:  p.telefono ?? '',
+          correo:    p.correo ?? '',
+          direccion: p.direccion ?? '',
+        });
+        this.loadingEditar.set(false);
+      },
+      error: () => {
+        this.formEditarPersona.reset({
+          nombres:   u.nombreCompleto.split(' ').slice(0, -2).join(' ') || u.nombreCompleto,
+          apellidos: '',
+          telefono:  u.telefono ?? '',
+          correo:    u.correo ?? '',
+          direccion: '',
+        });
+        this.loadingEditar.set(false);
+      },
+    });
   }
 
   guardarEdicion(): void {
     const u = this.editandoUsuario();
-    if (!u || this.formEditar.invalid || this.saving()) return;
+    if (!u || this.formEditar.invalid || this.formEditarPersona.invalid || this.saving()) return;
     this.saving.set(true);
-    const v = this.formEditar.value;
-    this.svcUsuario.actualizar(u.id, {
-      ...(v.password?.trim() ? { password: v.password.trim() } : {}),
-      rolId:          v.rolId!,
-      departamentoId: v.departamentoId || undefined,
-      urlAvatar:      v.urlAvatar || undefined,
-      estado:         v.estado as any,
-    }).subscribe({
+    const vU = this.formEditar.value;
+    const vP = this.formEditarPersona.value;
+
+    const updateUsuario$ = this.svcUsuario.actualizar(u.id, {
+      ...(vU.password?.trim() ? { password: vU.password.trim() } : {}),
+      rolId:          vU.rolId!,
+      departamentoId: vU.departamentoId || undefined,
+      urlAvatar:      vU.urlAvatar || undefined,
+      estado:         vU.estado as any,
+    });
+
+    const updatePersona$ = this.svcPersona.actualizar(u.personaId, {
+      nombres:   vP.nombres!,
+      apellidos: vP.apellidos!,
+      telefono:  vP.telefono || undefined,
+      correo:    vP.correo || undefined,
+      direccion: vP.direccion || undefined,
+    });
+
+    forkJoin([updateUsuario$, updatePersona$]).subscribe({
       next: () => { this.saving.set(false); this.editandoUsuario.set(null); this.cargar(); },
       error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Error al actualizar.'); },
     });
@@ -284,8 +332,8 @@ export class Usuarios implements OnInit {
   // ── Helpers ───────────────────────────────────────────────────
   estadoClasses(estado: string): string {
     switch (estado) {
-      case 'ACTIVO':   return 'bg-green-50 text-green-700';
-      case 'INACTIVO': return 'bg-gray-100 text-gray-500';
+      case 'ACTIVO':    return 'bg-green-50 text-green-700';
+      case 'INACTIVO':  return 'bg-gray-100 text-gray-500';
       case 'BLOQUEADO': return 'bg-red-50 text-red-600';
       default: return 'bg-gray-100 text-gray-500';
     }
@@ -297,8 +345,6 @@ export class Usuarios implements OnInit {
 
   colorAvatar(nombre: string): string {
     const colors = ['#7c3aed','#2563eb','#0891b2','#16a34a','#d97706','#dc2626','#db2777'];
-    const idx = nombre.charCodeAt(0) % colors.length;
-    return colors[idx];
+    return colors[nombre.charCodeAt(0) % colors.length];
   }
-
 }

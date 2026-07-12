@@ -11,15 +11,14 @@
       </p>
     </div>
     <div class="flex items-center gap-3">
-      <button (click)="exportar()" class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+      <button (click)="exportar()"
+        class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
         <mat-icon fontSet="material-icons-outlined">file_download</mat-icon>
         Exportar CSV
       </button>
       @if ('Inventario' | rbac:'crear') {
-        <button
-          routerLink="/productos/nuevo"
-          class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover"
-        >
+        <button routerLink="/productos/nuevo"
+          class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
           <mat-icon fontSet="material-icons-outlined">add</mat-icon>
           Crear producto
         </button>
@@ -27,214 +26,552 @@
     </div>
   </div>
 
-  <!-- Barra de filtros -->
-  <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <div class="relative flex min-w-[240px] flex-1 items-center">
-      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
-      <input
-        type="text"
-        (input)="onSearch($event)"
-        placeholder="Buscar producto o categoría..."
-        class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30"
-      />
+  <!-- ══ KPIs de alertas (clickables como filtro rápido) ══ -->
+  @if (!loading()) {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+
+      <!-- Sin stock -->
+      <button type="button" (click)="filtrarPorStock('SIN_STOCK')"
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroStock() === 'SIN_STOCK'
+          ? 'border-red-400 bg-red-50 shadow-md dark:bg-red-950/40'
+          : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Sin stock</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-red-400">inventory</mat-icon>
+        </div>
+        <p class="text-2xl font-bold" [class]="kpiSinStock() > 0 ? 'text-red-600' : 'text-text-muted'">
+          {{ kpiSinStock() }}
+        </p>
+        <p class="mt-0.5 text-[11px] text-text-muted">productos</p>
+      </button>
+
+      <!-- Stock crítico -->
+      <button type="button" (click)="filtrarPorStock('CRITICO')"
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroStock() === 'CRITICO'
+          ? 'border-orange-400 bg-orange-50 shadow-md dark:bg-orange-950/40'
+          : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Stock crítico</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-orange-400">warning</mat-icon>
+        </div>
+        <p class="text-2xl font-bold" [class]="kpiCritico() > 0 ? 'text-orange-600' : 'text-text-muted'">
+          {{ kpiCritico() }}
+        </p>
+        <p class="mt-0.5 text-[11px] text-text-muted">productos</p>
+      </button>
+
+      <!-- Stock bajo -->
+      <button type="button" (click)="filtrarPorStock('BAJO')"
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroStock() === 'BAJO'
+          ? 'border-amber-400 bg-amber-50 shadow-md dark:bg-amber-950/40'
+          : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Stock bajo</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-amber-400">trending_down</mat-icon>
+        </div>
+        <p class="text-2xl font-bold" [class]="kpiBajo() > 0 ? 'text-amber-600' : 'text-text-muted'">
+          {{ kpiBajo() }}
+        </p>
+        <p class="mt-0.5 text-[11px] text-text-muted">productos</p>
+      </button>
+
+      <!-- Vence pronto -->
+      <button type="button" (click)="filtrarPorStock('VENCE_PRONTO')"
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroStock() === 'VENCE_PRONTO'
+          ? 'border-amber-400 bg-amber-50 shadow-md dark:bg-amber-950/40'
+          : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Vence pronto</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px] text-amber-400">event_busy</mat-icon>
+        </div>
+        <p class="text-2xl font-bold" [class]="kpiVencePronto() > 0 ? 'text-amber-600' : 'text-text-muted'">
+          {{ kpiVencePronto() }}
+        </p>
+        <p class="mt-0.5 text-[11px] text-text-muted">lotes (≤ 30 días)</p>
+      </button>
+
     </div>
-    <select
-      class="h-11 rounded-input border border-border-soft bg-white px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-      [value]="filtroCategoria()"
-      (change)="filtroCategoria.set($any($event.target).value)">
+  }
+
+  <!-- Barra de filtros -->
+  <div class="flex flex-wrap items-center gap-3 rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+    <!-- Búsqueda -->
+    <div class="relative flex min-w-[200px] flex-1 items-center">
+      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
+      <input type="text" (input)="onSearch($event)" placeholder="Buscar producto o categoría..."
+        class="h-10 w-full rounded-input border border-border-soft bg-bg-app pl-11 pr-4 text-sm text-text-main outline-none transition focus:border-secondary focus:bg-bg-card focus:ring-2 focus:ring-secondary/30" />
+    </div>
+
+    <!-- Filtro categoría -->
+    <select class="h-10 rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+      [value]="filtroCategoria()" (change)="filtroCategoria.set($any($event.target).value)">
       <option value="">Todas las categorías</option>
       @for (cat of categoriasDisponibles(); track cat) {
         <option [value]="cat">{{ cat }}</option>
       }
     </select>
-    <select
-      class="h-11 rounded-input border border-border-soft bg-white px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
-      [value]="filtroEstado()"
-      (change)="filtroEstado.set($any($event.target).value)">
+
+    <!-- Filtro estado -->
+    <select class="h-10 rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+      [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)">
       <option value="">Todos los estados</option>
       <option value="ACTIVO">Activo</option>
       <option value="INACTIVO">Inactivo</option>
       <option value="DESCONTINUADO">Descontinuado</option>
     </select>
-    <span class="ml-auto text-xs text-text-muted">
-      Mostrando {{ filtrados().length }} de {{ productos().length }}
-    </span>
-    <select
-      class="h-9 rounded-input border border-border-soft bg-white px-2 text-xs text-text-muted outline-none"
-      [value]="PAGE_SIZE"
-      (change)="pagina.set(0)">
-      <option value="20">20 por pág.</option>
+
+    <!-- Filtro stock (sincronizado con KPI cards) -->
+    <select class="h-10 rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+      [value]="filtroStock()" (change)="filtroStock.set($any($event.target).value)">
+      <option value="">Todos los stocks</option>
+      <option value="SIN_STOCK">Sin stock</option>
+      <option value="CRITICO">Stock crítico</option>
+      <option value="BAJO">Stock bajo</option>
+      <option value="VENCE_PRONTO">Vence pronto</option>
+      <option value="VENCIDO">Lote vencido</option>
     </select>
+
+    <!-- Contador + page size -->
+    <span class="ml-auto text-xs text-text-muted whitespace-nowrap">
+      {{ filtrados().length }} de {{ productos().length }}
+    </span>
+    <select class="h-9 rounded-input border border-border-soft bg-bg-card px-2 text-xs text-text-muted outline-none transition hover:border-secondary"
+      [value]="pageSize()" (change)="pageSize.set(+$any($event.target).value)">
+      <option [value]="10">10 por pág.</option>
+      <option [value]="20">20 por pág.</option>
+      <option [value]="50">50 por pág.</option>
+      <option [value]="100">100 por pág.</option>
+    </select>
+
+    <!-- Toggle tabla / cards -->
+    <div class="flex overflow-hidden rounded-input border border-border-soft">
+      <button type="button" (click)="vistaGrid.set(false)" title="Vista tabla"
+        class="grid h-9 w-9 place-items-center transition"
+        [class]="!vistaGrid() ? 'bg-primary text-white' : 'bg-bg-card text-text-muted hover:bg-bg-app'">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]">table_rows</mat-icon>
+      </button>
+      <button type="button" (click)="vistaGrid.set(true)" title="Vista cuadrícula"
+        class="grid h-9 w-9 place-items-center transition"
+        [class]="vistaGrid() ? 'bg-primary text-white' : 'bg-bg-card text-text-muted hover:bg-bg-app'">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]">grid_view</mat-icon>
+      </button>
+    </div>
+
+    <!-- Limpiar filtros activos -->
+    @if (filtroCategoria() || filtroEstado() || filtroStock() || searchDebounced()) {
+      <button type="button"
+        (click)="filtroCategoria.set(''); filtroEstado.set(''); filtroStock.set(''); search.set('')"
+        class="flex items-center gap-1 rounded-lg border border-border-soft px-2.5 py-1.5 text-xs text-text-muted transition hover:bg-bg-app hover:text-red-500"
+        title="Limpiar filtros">
+        <mat-icon class="text-[14px]">filter_alt_off</mat-icon>
+        Limpiar
+      </button>
+    }
   </div>
 
-  <!-- Tabla -->
-  <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-          <th class="px-5 py-3 font-semibold">Código</th>
-          <th class="px-5 py-3 font-semibold">Producto</th>
-          <th class="px-5 py-3 font-semibold">Categoría</th>
-          <th class="px-5 py-3 text-right font-semibold">Stock</th>
-          <th class="px-5 py-3 text-center font-semibold">Estado</th>
-          <th class="px-5 py-3 text-center font-semibold">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          <tr>
-            <td colspan="6" class="px-5 py-12 text-center text-text-muted">
-              <mat-icon fontSet="material-icons-outlined" class="animate-spin align-middle">progress_activity</mat-icon>
-              Cargando productos...
-            </td>
+  <!-- ══════════════ VISTA TABLA ══════════════ -->
+  @if (!vistaGrid()) {
+    <div class="overflow-hidden rounded-table border border-border-soft bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+            <th class="px-5 py-3 font-semibold">Código</th>
+
+            <!-- Columna ordenable: Producto -->
+            <th class="cursor-pointer select-none px-5 py-3 font-semibold transition hover:text-text-main"
+              (click)="toggleSort('nombre')">
+              <div class="flex items-center gap-1">
+                Producto
+                <mat-icon class="text-[14px]">
+                  {{ sortCol() === 'nombre' ? (sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+                </mat-icon>
+              </div>
+            </th>
+
+            <!-- Columna ordenable: Categoría -->
+            <th class="cursor-pointer select-none px-5 py-3 font-semibold transition hover:text-text-main"
+              (click)="toggleSort('categoria')">
+              <div class="flex items-center gap-1">
+                Categoría
+                <mat-icon class="text-[14px]">
+                  {{ sortCol() === 'categoria' ? (sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+                </mat-icon>
+              </div>
+            </th>
+
+            <!-- Columna ordenable: Stock -->
+            <th class="cursor-pointer select-none px-5 py-3 text-right font-semibold transition hover:text-text-main"
+              (click)="toggleSort('stock')">
+              <div class="flex items-center justify-end gap-1">
+                Stock
+                <mat-icon class="text-[14px]">
+                  {{ sortCol() === 'stock' ? (sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+                </mat-icon>
+              </div>
+            </th>
+
+            <!-- Columna ordenable: Compra -->
+            <th class="cursor-pointer select-none px-5 py-3 text-right font-semibold transition hover:text-text-main"
+              (click)="toggleSort('precio')">
+              <div class="flex items-center justify-end gap-1">
+                Compra
+                <mat-icon class="text-[14px]">
+                  {{ sortCol() === 'precio' ? (sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}
+                </mat-icon>
+              </div>
+            </th>
+
+            <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <th class="px-5 py-3 text-center font-semibold">Acciones</th>
           </tr>
-        } @else if (error()) {
-          <tr>
-            <td colspan="6" class="px-5 py-12 text-center">
-              <mat-icon fontSet="material-icons-outlined" class="mb-1 text-[36px]! h-9! w-9! text-[#EF4444]">error_outline</mat-icon>
-              <p class="text-sm text-[#B91C1C]">{{ error() }}</p>
-            </td>
-          </tr>
-        } @else {
-          @for (p of paginados(); track p.id) {
-            <tr class="border-b border-border-soft transition last:border-0 hover:bg-[#FFF8EE]">
-              <td class="px-5 py-3 font-semibold text-primary">{{ codigo(p) }}</td>
-              <td class="px-5 py-3">
-                <div class="flex items-center gap-3">
-                  <div class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-bg-app">
-                    @if (p.urlImagen) {
-                      <img [src]="p.urlImagen" [alt]="p.nombre" class="h-full w-full object-cover" />
-                    } @else {
-                      <mat-icon fontSet="material-icons-outlined" class="text-text-muted">inventory_2</mat-icon>
-                    }
-                  </div>
-                  <span class="font-medium text-text-main">{{ p.nombre }}</span>
-                </div>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="7" class="px-5 py-12 text-center text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin align-middle">progress_activity</mat-icon>
+                Cargando productos...
               </td>
-              <td class="px-5 py-3 text-text-muted">{{ p.nombreCategoria || '—' }}</td>
-              <td class="px-5 py-3 text-right">
-                <div class="flex flex-col items-end leading-tight">
-                  <span class="font-semibold" [class]="stockDe(p.id).stock === 0 ? 'text-[#B91C1C]' : 'text-text-main'">
-                    {{ stockDe(p.id).stock }} u
-                  </span>
-                  @if (stockDe(p.id).lotes > 0) {
-                    <span class="text-xs"
-                      [class]="stockDe(p.id).vencido ? 'text-[#B91C1C]' : (stockDe(p.id).proxVence ? 'text-[#B45309]' : 'text-text-muted')">
-                      {{ stockDe(p.id).lotes }} lote{{ stockDe(p.id).lotes === 1 ? '' : 's' }}
-                      @if (stockDe(p.id).vencido) { · vencido }
-                      @else if (stockDe(p.id).proxVence) { · vence pronto }
+            </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="7" class="px-5 py-12 text-center">
+                <mat-icon fontSet="material-icons-outlined" class="mb-1 text-[36px]! h-9! w-9! text-red-500">error_outline</mat-icon>
+                <p class="text-sm text-red-700">{{ error() }}</p>
+              </td>
+            </tr>
+          } @else {
+            @for (p of paginados(); track p.id) {
+              <tr class="border-b border-border-soft transition last:border-0 hover:bg-bg-app">
+                <td class="px-5 py-3 font-mono text-xs font-bold text-primary">{{ codigo(p) }}</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <div class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-bg-app">
+                      @if (p.urlImagen) {
+                        <img [src]="p.urlImagen" [alt]="p.nombre" class="h-full w-full object-cover" />
+                      } @else {
+                        <mat-icon fontSet="material-icons-outlined" class="text-text-muted/40">inventory_2</mat-icon>
+                      }
+                    </div>
+                    <span class="font-medium text-text-main">{{ p.nombre }}</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3">
+                  @if (p.nombreCategoria) {
+                    <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                      [style]="catChipStyle(p.categoriaId)">
+                      <span class="h-1.5 w-1.5 rounded-full" [style]="catDotStyle(p.categoriaId)"></span>
+                      {{ p.nombreCategoria }}
                     </span>
                   } @else {
-                    <span class="text-xs text-text-muted">sin lotes</span>
+                    <span class="text-text-muted">—</span>
                   }
+                </td>
+                <td class="px-5 py-3 text-right">
+                  <div class="flex flex-col items-end leading-tight">
+                    <span class="font-semibold" [class]="stockBadge(p).text">{{ stockDe(p.id).stock }} u</span>
+                    @if (stockDe(p.id).lotes > 0) {
+                      <span class="text-xs"
+                        [class]="stockDe(p.id).vencido ? 'text-red-500' : (stockDe(p.id).proxVence ? 'text-amber-500' : 'text-text-muted')">
+                        {{ stockDe(p.id).lotes }} lote{{ stockDe(p.id).lotes === 1 ? '' : 's' }}
+                        @if (stockDe(p.id).vencido) { · vencido }
+                        @else if (stockDe(p.id).proxVence) { · vence pronto }
+                      </span>
+                    } @else {
+                      <span class="text-xs text-text-muted">sin lotes</span>
+                    }
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-right text-sm text-text-muted">
+                  {{ p.precioCompra != null ? 'S/ ' + p.precioCompra.toFixed(2) : '—' }}
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                    [class]="estado(p.estado).classes">
+                    <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
+                    {{ estado(p.estado).label }}
+                  </span>
+                </td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center justify-center gap-1">
+                    <button type="button" (click)="ver(p)"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-text-main" title="Ver">
+                      <mat-icon fontSet="material-icons-outlined">visibility</mat-icon>
+                    </button>
+                    <button type="button" [routerLink]="['/productos', p.id, 'editar']"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
+                      <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
+                    </button>
+                    <button type="button" (click)="pedirEliminar(p)"
+                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-100 hover:text-red-500" title="Eliminar">
+                      <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+
+            @if (filtrados().length === 0) {
+              <tr>
+                <td colspan="7">
+                  <app-empty-state icono="inventory_2" titulo="No hay productos" descripcion="Registra el primer producto para gestionar tu inventario." labelCta="Nuevo producto" (cta)="irNuevoProducto()" />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ══════════════ VISTA CARDS ══════════════ -->
+  @if (vistaGrid()) {
+    @if (loading()) {
+      <div class="flex items-center justify-center py-16 text-text-muted">
+        <mat-icon fontSet="material-icons-outlined" class="animate-spin text-4xl">progress_activity</mat-icon>
+      </div>
+    } @else if (error()) {
+      <div class="rounded-card border border-border-soft bg-bg-card p-8 text-center text-red-600">{{ error() }}</div>
+    } @else if (filtrados().length === 0) {
+      <div class="rounded-card border border-border-soft bg-bg-card">
+        <app-empty-state icono="inventory_2" titulo="No hay productos" descripcion="Registra el primer producto para gestionar tu inventario." labelCta="Nuevo producto" (cta)="irNuevoProducto()" />
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        @for (p of paginados(); track p.id) {
+          <div class="group flex flex-col overflow-hidden rounded-card border border-border-soft bg-bg-card shadow-sm transition-all hover:shadow-lg hover:border-primary/30">
+
+            <!-- Imagen -->
+            <div class="relative aspect-[4/3] overflow-hidden bg-bg-app">
+              @if (p.urlImagen) {
+                <img [src]="p.urlImagen" [alt]="p.nombre"
+                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              } @else {
+                <div class="flex h-full w-full items-center justify-center">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[52px]! h-14! w-14! text-text-muted/20">inventory_2</mat-icon>
                 </div>
-              </td>
-              <td class="px-5 py-3 text-center">
-                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium" [class]="estado(p.estado).classes">
+              }
+              <div class="absolute right-2 top-2">
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm"
+                  [class]="estado(p.estado).classes">
                   <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
                   {{ estado(p.estado).label }}
                 </span>
-              </td>
-              <td class="px-5 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  <button type="button" (click)="ver(p)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-text-main" title="Ver">
-                    <mat-icon fontSet="material-icons-outlined">visibility</mat-icon>
-                  </button>
-                  <button type="button" [routerLink]="['/productos', p.id, 'editar']" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary" title="Editar">
-                    <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
-                  </button>
-                  <button type="button" (click)="pedirEliminar(p)" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-[#FEE2E2] hover:text-[#EF4444]" title="Eliminar">
-                    <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
-                  </button>
+              </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="flex flex-1 flex-col gap-2 p-3">
+              <div class="flex items-center justify-between gap-1.5">
+                <span class="shrink-0 font-mono text-[11px] font-bold text-primary">{{ codigo(p) }}</span>
+                @if (p.nombreCategoria) {
+                  <span class="inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                    [style]="catChipStyle(p.categoriaId)">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full" [style]="catDotStyle(p.categoriaId)"></span>
+                    <span class="max-w-[70px] truncate">{{ p.nombreCategoria }}</span>
+                  </span>
+                }
+              </div>
+
+              <p class="line-clamp-2 text-sm font-semibold leading-snug text-text-main">{{ p.nombre }}</p>
+
+              <div class="mt-auto flex items-end justify-between border-t border-border-soft pt-2">
+                <div>
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                    [class]="stockBadge(p).bg + ' ' + stockBadge(p).text">
+                    {{ stockDe(p.id).stock }} u
+                  </span>
+                  @if (stockDe(p.id).lotes > 0) {
+                    <p class="mt-0.5 text-[10px] text-text-muted">
+                      {{ stockDe(p.id).lotes }} lote{{ stockDe(p.id).lotes > 1 ? 's' : '' }}
+                      @if (stockDe(p.id).vencido) { · <span class="text-red-500">vencido</span> }
+                      @else if (stockDe(p.id).proxVence) { · <span class="text-amber-500">vence pronto</span> }
+                    </p>
+                  } @else {
+                    <p class="mt-0.5 text-[10px] text-text-muted">sin lotes</p>
+                  }
                 </div>
-              </td>
-            </tr>
-          }
+                @if (p.precioCompra != null) {
+                  <div class="text-right">
+                    <p class="text-[10px] text-text-muted">Compra</p>
+                    <p class="text-sm font-semibold text-text-main">S/ {{ p.precioCompra.toFixed(2) }}</p>
+                  </div>
+                }
+              </div>
+            </div>
 
-          @if (filtrados().length === 0) {
-            <tr>
-              <td colspan="6">
-                <app-empty-state icono="inventory_2" titulo="No hay productos" descripcion="Registra el primer producto para gestionar tu inventario." labelCta="Nuevo producto" (cta)="irNuevoProducto()" />
-              </td>
-            </tr>
-          }
+            <!-- Acciones -->
+            <div class="flex items-center border-t border-border-soft bg-bg-app">
+              <button type="button" (click)="ver(p)" title="Ver"
+                class="flex flex-1 items-center justify-center gap-1 py-2 text-xs text-text-muted transition hover:bg-bg-card hover:text-text-main">
+                <mat-icon fontSet="material-icons-outlined" class="text-[14px]">visibility</mat-icon>
+                Ver
+              </button>
+              <div class="h-4 w-px shrink-0 bg-border-soft"></div>
+              <button type="button" [routerLink]="['/productos', p.id, 'editar']" title="Editar"
+                class="flex flex-1 items-center justify-center gap-1 py-2 text-xs text-text-muted transition hover:bg-bg-card hover:text-primary">
+                <mat-icon fontSet="material-icons-outlined" class="text-[14px]">edit</mat-icon>
+                Editar
+              </button>
+              <div class="h-4 w-px shrink-0 bg-border-soft"></div>
+              <button type="button" (click)="pedirEliminar(p)" title="Eliminar"
+                class="flex flex-1 items-center justify-center gap-1 py-2 text-xs text-text-muted transition hover:bg-red-50 hover:text-red-500">
+                <mat-icon fontSet="material-icons-outlined" class="text-[14px]">delete</mat-icon>
+                Eliminar
+              </button>
+            </div>
+
+          </div>
         }
-      </tbody>
-    </table>
-
-    <!-- Paginación -->
-    @if (totalPaginas() > 1) {
-      <div class="flex items-center justify-between border-t border-border-soft px-5 py-3 text-sm">
-        <span class="text-xs text-text-muted">
-          {{ pagina() * PAGE_SIZE + 1 }}–{{ pagina() * PAGE_SIZE + paginados().length }} de {{ filtrados().length }}
-        </span>
-        <div class="flex items-center gap-1">
-          <button (click)="pagina.set(0)" [disabled]="pagina() === 0"
-                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
-            <mat-icon class="text-[16px]">first_page</mat-icon>
-          </button>
-          <button (click)="pagina.set(pagina() - 1)" [disabled]="pagina() === 0"
-                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
-            <mat-icon class="text-[16px]">chevron_left</mat-icon>
-          </button>
-          <span class="px-2 text-xs font-medium text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
-          <button (click)="pagina.set(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()"
-                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
-            <mat-icon class="text-[16px]">chevron_right</mat-icon>
-          </button>
-          <button (click)="pagina.set(totalPaginas() - 1)" [disabled]="pagina() + 1 >= totalPaginas()"
-                  class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
-            <mat-icon class="text-[16px]">last_page</mat-icon>
-          </button>
-        </div>
       </div>
     }
-  </div>
+  }
+
+  <!-- ══ Paginación compartida ══ -->
+  @if (totalPaginas() > 1) {
+    <div class="flex items-center justify-between rounded-card border border-border-soft bg-bg-card px-5 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <span class="text-xs text-text-muted">
+        {{ pagina() * pageSize() + 1 }}–{{ pagina() * pageSize() + paginados().length }}
+        de {{ filtrados().length }}
+      </span>
+      <div class="flex items-center gap-1">
+        <button (click)="pagina.set(0)" [disabled]="pagina() === 0"
+          class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+          <mat-icon class="text-[16px]">first_page</mat-icon>
+        </button>
+        <button (click)="pagina.set(pagina() - 1)" [disabled]="pagina() === 0"
+          class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+          <mat-icon class="text-[16px]">chevron_left</mat-icon>
+        </button>
+        <span class="px-2 text-xs font-medium text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
+        <button (click)="pagina.set(pagina() + 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+          class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+          <mat-icon class="text-[16px]">chevron_right</mat-icon>
+        </button>
+        <button (click)="pagina.set(totalPaginas() - 1)" [disabled]="pagina() + 1 >= totalPaginas()"
+          class="grid h-7 w-7 place-items-center rounded-lg text-text-muted hover:bg-bg-app disabled:opacity-30">
+          <mat-icon class="text-[16px]">last_page</mat-icon>
+        </button>
+      </div>
+    </div>
+  }
+
 </div>
 
-<!-- ===== Modal: ver producto ===== -->
+<!-- ═══ Modal: ver producto ═══ -->
 @if (verTarget(); as p) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarVer()">
-    <div class="w-full max-w-[480px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+    <div class="w-full max-w-[520px] overflow-hidden rounded-modal border border-border-soft bg-bg-card shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+      (click)="$event.stopPropagation()">
+
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
-        <h3 class="text-lg font-semibold text-text-main">Detalle del producto</h3>
-        <button type="button" (click)="cerrarVer()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+        <h3 class="text-base font-semibold text-text-main">Detalle del producto</h3>
+        <button type="button" (click)="cerrarVer()"
+          class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
+
       <div class="flex flex-col gap-4 p-6">
-        <div class="flex items-center gap-4">
-          <div class="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-input bg-bg-app">
+        <div class="flex items-start gap-4">
+          <div class="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl border border-border-soft bg-bg-app">
             @if (p.urlImagen) {
               <img [src]="p.urlImagen" [alt]="p.nombre" class="h-full w-full object-cover" />
             } @else {
-              <mat-icon fontSet="material-icons-outlined" class="text-text-muted">inventory_2</mat-icon>
+              <mat-icon fontSet="material-icons-outlined" class="text-[36px]! h-9! w-9! text-text-muted/30">inventory_2</mat-icon>
             }
           </div>
-          <div>
-            <p class="text-base font-semibold text-text-main">{{ p.nombre }}</p>
-            <p class="text-sm text-text-muted">{{ codigo(p) }}</p>
+          <div class="min-w-0 flex-1">
+            <p class="text-lg font-bold leading-snug text-text-main">{{ p.nombre }}</p>
+            <p class="mt-0.5 font-mono text-xs text-primary">{{ codigo(p) }}</p>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                [class]="estado(p.estado).classes">
+                <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
+                {{ estado(p.estado).label }}
+              </span>
+              @if (p.nombreCategoria) {
+                <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                  [style]="catChipStyle(p.categoriaId)">
+                  <span class="h-1.5 w-1.5 rounded-full" [style]="catDotStyle(p.categoriaId)"></span>
+                  {{ p.nombreCategoria }}
+                </span>
+              }
+            </div>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p class="text-xs text-text-muted">Categoría</p>
-            <p class="font-medium text-text-main">{{ p.nombreCategoria || '—' }}</p>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-xl border border-border-soft bg-bg-app p-3">
+            <p class="mb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted">Stock total</p>
+            <p class="text-xl font-bold" [class]="stockBadge(p).text">{{ stockDe(p.id).stock }}</p>
+            <p class="text-[10px] text-text-muted">{{ stockDe(p.id).lotes }} lote{{ stockDe(p.id).lotes !== 1 ? 's' : '' }}</p>
           </div>
-          <div>
-            <p class="text-xs text-text-muted">Estado</p>
-            <span class="mt-0.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="estado(p.estado).classes">
-              <span class="h-1.5 w-1.5 rounded-full" [class]="estado(p.estado).dot"></span>
-              {{ estado(p.estado).label }}
+          <div class="rounded-xl border border-border-soft bg-bg-app p-3">
+            <p class="mb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted">Precio compra</p>
+            <p class="text-xl font-bold text-text-main">
+              {{ p.precioCompra != null ? 'S/ ' + p.precioCompra.toFixed(2) : '—' }}
+            </p>
+          </div>
+          <div class="rounded-xl border border-border-soft bg-bg-app p-3">
+            <p class="mb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted">Estado stock</p>
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+              [class]="stockBadge(p).bg + ' ' + stockBadge(p).text">
+              {{ stockBadge(p).label }}
             </span>
+            @if (p.stockMinimo != null) {
+              <p class="mt-1 text-[10px] text-text-muted">Mín: {{ p.stockMinimo }} u</p>
+            }
           </div>
         </div>
+
+        @if (p.descripcion) {
+          <p class="rounded-xl bg-bg-app px-4 py-3 text-sm leading-relaxed text-text-muted">{{ p.descripcion }}</p>
+        }
+
+        @if (p.caloriasXPorcion || p.proteinasXPorcion || p.carbohidratosXPorcion) {
+          <div class="rounded-xl border border-border-soft bg-bg-app px-4 py-3">
+            <p class="mb-2 text-[10px] font-semibold uppercase tracking-wide text-text-muted">Info nutricional / porción</p>
+            <div class="flex gap-4 text-center">
+              @if (p.caloriasXPorcion) {
+                <div><p class="text-sm font-bold text-text-main">{{ p.caloriasXPorcion }}</p><p class="text-[10px] text-text-muted">kcal</p></div>
+              }
+              @if (p.proteinasXPorcion) {
+                <div><p class="text-sm font-bold text-text-main">{{ p.proteinasXPorcion }}g</p><p class="text-[10px] text-text-muted">proteínas</p></div>
+              }
+              @if (p.carbohidratosXPorcion) {
+                <div><p class="text-sm font-bold text-text-main">{{ p.carbohidratosXPorcion }}g</p><p class="text-[10px] text-text-muted">carbos</p></div>
+              }
+              @if (p.grasasXPorcion) {
+                <div><p class="text-sm font-bold text-text-main">{{ p.grasasXPorcion }}g</p><p class="text-[10px] text-text-muted">grasas</p></div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (p.certificaciones) {
+          <div class="flex flex-wrap gap-1.5">
+            @for (cert of p.certificaciones.split(','); track cert) {
+              <span class="rounded-full border border-primary/30 bg-primary/8 px-2.5 py-0.5 text-[11px] font-medium text-primary">
+                {{ cert.trim() }}
+              </span>
+            }
+          </div>
+        }
       </div>
+
       <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
-        <button type="button" (click)="cerrarVer()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        <button type="button" (click)="cerrarVer()"
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cerrar
         </button>
-        <button type="button" [routerLink]="['/productos', p.id, 'editar']" class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <button type="button" [routerLink]="['/productos', p.id, 'editar']"
+          class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
           <mat-icon fontSet="material-icons-outlined">edit</mat-icon>
           Editar
         </button>
@@ -243,28 +580,32 @@
   </div>
 }
 
-<!-- ===== Modal: confirmar eliminación ===== -->
+<!-- ═══ Modal: confirmar eliminación ═══ -->
 @if (eliminarTarget(); as p) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
-    <div class="w-full max-w-[440px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+    <div class="w-full max-w-[440px] overflow-hidden rounded-modal border border-border-soft bg-bg-card shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+      (click)="$event.stopPropagation()">
       <div class="flex flex-col items-center gap-3 px-6 pt-6 text-center">
-        <div class="grid h-12 w-12 place-items-center rounded-full bg-[#FEE2E2]">
-          <mat-icon fontSet="material-icons-outlined" class="text-[#EF4444]">delete</mat-icon>
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
         </div>
         <h3 class="text-lg font-semibold text-text-main">Eliminar producto</h3>
         <p class="text-sm text-text-muted">
-          ¿Seguro que deseas eliminar <span class="font-semibold text-text-main">{{ p.nombre }}</span>?
+          ¿Seguro que deseas eliminar
+          <span class="font-semibold text-text-main">{{ p.nombre }}</span>?
           Esta acción no se puede deshacer.
         </p>
         @if (eliminarError()) {
-          <p class="text-xs text-[#c0392b]">{{ eliminarError() }}</p>
+          <p class="text-xs text-red-600">{{ eliminarError() }}</p>
         }
       </div>
       <div class="mt-5 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
-        <button type="button" (click)="cancelarEliminar()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+        <button type="button" (click)="cancelarEliminar()"
+          class="flex h-11 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
-        <button type="button" (click)="confirmarEliminar()" [disabled]="eliminando()" class="flex h-11 items-center gap-2 rounded-btn bg-[#EF4444] px-5 text-sm font-semibold text-white transition hover:bg-[#dc2626] disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="button" (click)="confirmarEliminar()" [disabled]="eliminando()"
+          class="flex h-11 items-center gap-2 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
           {{ eliminando() ? 'Eliminando...' : 'Sí, eliminar' }}
         </button>
       </div>

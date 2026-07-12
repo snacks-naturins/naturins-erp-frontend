@@ -26,10 +26,14 @@ export class MetodosPago implements OnInit {
   readonly confirmDelete = signal<MetodoPagoResponse | null>(null);
 
   readonly tipoSel = signal<string | null>(null);
+  readonly formError = signal<string | null>(null);
 
   readonly muestraQr            = computed(() => this.tipoSel() === 'YAPE' || this.tipoSel() === 'PLIN');
   readonly muestraTransferencia = computed(() => this.tipoSel() === 'TRANSFERENCIA');
   readonly muestraDescripcion   = computed(() => ['EFECTIVO', 'OTRO', 'TARJETA'].includes(this.tipoSel() ?? ''));
+
+  readonly totalActivos   = computed(() => this.metodos().filter(m => m.estado === 'ACTIVO').length);
+  readonly totalInactivos = computed(() => this.metodos().filter(m => m.estado === 'INACTIVO').length);
 
   readonly form = this.fb.group({
     nombre:              ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
@@ -56,6 +60,7 @@ export class MetodosPago implements OnInit {
   abrirCrear(): void {
     this.editandoId.set(null);
     this.tipoSel.set(null);
+    this.formError.set(null);
     this.form.reset({ nombre: '', tipo: '', estado: 'ACTIVO', descripcion: '', urlQr: '', numeroCelular: '', bancoNombre: '', numeroCuenta: '', cuentaInterbancaria: '' });
     this.modalOpen.set(true);
   }
@@ -63,6 +68,7 @@ export class MetodosPago implements OnInit {
   abrirEditar(m: MetodoPagoResponse): void {
     this.editandoId.set(m.id);
     this.tipoSel.set(m.tipo);
+    this.formError.set(null);
     this.form.reset({
       nombre:              m.nombre,
       tipo:                m.tipo ?? '',
@@ -109,7 +115,7 @@ export class MetodosPago implements OnInit {
 
     obs$.subscribe({
       next: () => { this.saving.set(false); this.modalOpen.set(false); this.cargar(); },
-      error: (err) => { this.saving.set(false); this.error.set(err?.error?.message ?? 'Error al guardar.'); },
+      error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'Error al guardar.'); },
     });
   }
 

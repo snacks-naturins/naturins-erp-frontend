@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+
 import { DepartamentoService } from '../../services/departamento.service';
 import { DepartamentoResponse } from '../../models/departamento.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 @Component({
   selector: 'app-departamentos',
@@ -19,6 +21,28 @@ export class Departamentos implements OnInit {
   readonly saving   = signal(false);
   readonly error    = signal<string | null>(null);
   readonly items    = signal<DepartamentoResponse[]>([]);
+
+  readonly search       = signal('');
+  readonly searchD      = debouncedSignal(this.search);
+  readonly filtroEstado = signal('');
+
+  readonly kpiActivos   = computed(() => this.items().filter(d => d.estado === 'ACTIVO').length);
+  readonly kpiInactivos = computed(() => this.items().filter(d => d.estado !== 'ACTIVO').length);
+
+  readonly filtrados = computed(() => {
+    const q = this.searchD().toLowerCase().trim();
+    const e = this.filtroEstado();
+    return this.items().filter(d => {
+      const matchQ = !q || d.nombre.toLowerCase().includes(q) || (d.descripcion ?? '').toLowerCase().includes(q);
+      const matchE = !e || d.estado === e;
+      return matchQ && matchE;
+    });
+  });
+
+  setFiltroEstado(v: string): void {
+    this.filtroEstado.set(this.filtroEstado() === v ? '' : v);
+  }
+
   readonly modalOpen     = signal(false);
   readonly editandoId    = signal<string | null>(null);
   readonly confirmDelete = signal<DepartamentoResponse | null>(null);
@@ -78,8 +102,23 @@ export class Departamentos implements OnInit {
   }
 
   estadoClasses(estado: string): string {
-    return estado === 'ACTIVO'
-      ? 'bg-green-50 text-green-700'
-      : 'bg-gray-100 text-gray-500';
+    return estado === 'ACTIVO' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500';
+  }
+
+  depColor(nombre: string): string {
+    const palettes = [
+      { bg: 'bg-blue-100',   text: 'text-blue-700',   hex: '#2563eb' },
+      { bg: 'bg-purple-100', text: 'text-purple-700',  hex: '#7c3aed' },
+      { bg: 'bg-orange-100', text: 'text-orange-700',  hex: '#d97706' },
+      { bg: 'bg-teal-100',   text: 'text-teal-700',    hex: '#0f766e' },
+      { bg: 'bg-pink-100',   text: 'text-pink-700',    hex: '#be185d' },
+      { bg: 'bg-indigo-100', text: 'text-indigo-700',  hex: '#4338ca' },
+    ];
+    return palettes[nombre.charCodeAt(0) % palettes.length].bg + ' ' + palettes[nombre.charCodeAt(0) % palettes.length].text;
+  }
+
+  depAccentColor(nombre: string): string {
+    const colors = ['#2563eb','#7c3aed','#d97706','#0f766e','#be185d','#4338ca'];
+    return colors[nombre.charCodeAt(0) % colors.length];
   }
 }

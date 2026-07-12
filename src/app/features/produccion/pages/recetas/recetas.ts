@@ -15,6 +15,8 @@ import {
 } from '../../models/receta.model';
 import { PresentacionResponse } from '../../../inventario/models/presentacion.model';
 import { MateriaPrimaResponse } from '../../../inventario/models/materia-prima.model';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 interface IngredienteForm {
   materiaPrimaId: string;
@@ -24,72 +26,122 @@ interface IngredienteForm {
 @Component({
   selector: 'app-recetas',
   standalone: true,
-  imports: [MatIconModule],
+  imports: [MatIconModule, BreadcrumbComponent],
   templateUrl: './recetas.html',
 })
 export class Recetas implements OnInit {
-  private readonly router = inject(Router);
-  private readonly recetaService = inject(RecetaService);
+  private readonly router            = inject(Router);
+  private readonly recetaService     = inject(RecetaService);
   private readonly presentacionService = inject(PresentacionService);
-  private readonly mpService = inject(MateriaPrimaService);
+  private readonly mpService         = inject(MateriaPrimaService);
 
-  // ── estado general ──────────────────────────────────────────────
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly recetas = signal<RecetaResponse[]>([]);
+  // ── estado general ─────────────────────────────────
+  readonly loading      = signal(true);
+  readonly error        = signal<string | null>(null);
+  readonly recetas      = signal<RecetaResponse[]>([]);
   readonly filtroEstado = signal<string>('TODAS');
+  readonly search          = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
 
-  // ── listas para selects ─────────────────────────────────────────
+  // ── listas para selects ────────────────────────────
   readonly presentaciones = signal<PresentacionResponse[]>([]);
   readonly materiasPrimas = signal<MateriaPrimaResponse[]>([]);
 
-  // ── modal crear/editar ───────────────────────────────────────────
-  readonly modalCrear       = signal(false);
-  readonly editRecetaId     = signal<string | null>(null);
-  readonly isNuevaVersion   = signal(false);
-  readonly versionSourceId  = signal<string | null>(null);
-  readonly saving           = signal(false);
-  readonly formError        = signal<string | null>(null);
+  // ── modal crear/editar ─────────────────────────────
+  readonly modalCrear      = signal(false);
+  readonly editRecetaId    = signal<string | null>(null);
+  readonly isNuevaVersion  = signal(false);
+  readonly versionSourceId = signal<string | null>(null);
+  readonly saving          = signal(false);
+  readonly formError       = signal<string | null>(null);
 
-  readonly formNombre = signal('');
-  readonly formDescripcion = signal('');
-  readonly formPresentacionId = signal('');
-  readonly formRendimiento = signal<number | null>(null);
-  readonly formIngredientes = signal<IngredienteForm[]>([{ materiaPrimaId: '', cantidadPorLote: null }]);
+  readonly formNombre          = signal('');
+  readonly formDescripcion     = signal('');
+  readonly formPresentacionId  = signal('');
+  readonly formRendimiento     = signal<number | null>(null);
+  readonly formIngredientes    = signal<IngredienteForm[]>([{ materiaPrimaId: '', cantidadPorLote: null }]);
 
-  // ── modal archivar ───────────────────────────────────────────────
+  // ── modal archivar ─────────────────────────────────
   readonly recetaArchivar = signal<RecetaResponse | null>(null);
-  readonly archivando = signal(false);
-  readonly errorArchivar = signal<string | null>(null);
-  readonly errorActivar = signal<string | null>(null);
+  readonly archivando     = signal(false);
+  readonly errorArchivar  = signal<string | null>(null);
+  readonly errorActivar   = signal<string | null>(null);
 
-  // ── modal calcular/producir ──────────────────────────────────────
-  readonly modalCalculo = signal(false);
-  readonly recetaSeleccionada = signal<RecetaResponse | null>(null);
-  readonly formLotes = signal<number | null>(null);
-  readonly calculo = signal<RecetaCalculoResponse | null>(null);
-  readonly calculando = signal(false);
-  readonly produciendo = signal(false);
-  readonly formObservacion = signal('');
-  readonly calcError = signal<string | null>(null);
+  // ── modal calcular/producir ────────────────────────
+  readonly modalCalculo        = signal(false);
+  readonly recetaSeleccionada  = signal<RecetaResponse | null>(null);
+  readonly formLotes           = signal<number | null>(null);
+  readonly calculo             = signal<RecetaCalculoResponse | null>(null);
+  readonly calculando          = signal(false);
+  readonly produciendo         = signal(false);
+  readonly formObservacion     = signal('');
+  readonly calcError           = signal<string | null>(null);
 
-  // ── computed ─────────────────────────────────────────────────────
+  // ── computed ───────────────────────────────────────
   readonly recetasFiltradas = computed(() => {
+    const q = this.searchDebounced().toLowerCase().trim();
     const f = this.filtroEstado();
-    return f === 'TODAS' ? this.recetas() : this.recetas().filter((r) => r.estado === f);
+    return this.recetas().filter((r) => {
+      if (f !== 'TODAS' && r.estado !== f) return false;
+      if (q && !r.nombre.toLowerCase().includes(q) &&
+               !(r.nombreProducto ?? '').toLowerCase().includes(q) &&
+               !(r.descripcion ?? '').toLowerCase().includes(q)) return false;
+      return true;
+    });
   });
+
   readonly totalActivas   = computed(() => this.recetas().filter((r) => r.estado === 'ACTIVA').length);
   readonly totalArchivadas = computed(() => this.recetas().filter((r) => r.estado === 'ARCHIVADA').length);
+  readonly totalInactivas = computed(() => this.recetas().filter((r) => r.estado === 'INACTIVA').length);
+
+  // ── mapa de materias primas ────────────────────────
+  private readonly mpMap = computed(() => {
+    const m = new Map<string, MateriaPrimaResponse>();
+    for (const mp of this.materiasPrimas()) m.set(mp.id, mp);
+    return m;
+  });
+
+  // ── helpers ───────────────────────────────────────
+  stockListo(r: RecetaResponse): boolean {
+    return r.ingredientes.length > 0 &&
+      r.ingredientes.every(i => i.stockActual >= i.cantidadPorLote);
+  }
+
+  costoEstimado(r: RecetaResponse): number {
+    return r.ingredientes.reduce((s, i) => {
+      const mp = this.mpMap().get(i.materiaPrimaId);
+      return s + (mp?.costoUnitario ?? 0) * i.cantidadPorLote;
+    }, 0);
+  }
+
+  costoLabel(v: number): string {
+    if (v === 0) return '—';
+    if (v >= 1000) return `S/ ${(v / 1000).toFixed(1)}K`;
+    return `S/ ${v.toFixed(2)}`;
+  }
+
+  estadoBadge(estado: string): { label: string; classes: string } {
+    const m: Record<string, { label: string; classes: string }> = {
+      ACTIVA:    { label: 'Activa',    classes: 'bg-green-100 text-green-700' },
+      INACTIVA:  { label: 'Inactiva',  classes: 'bg-gray-100 text-gray-600' },
+      ARCHIVADA: { label: 'Archivada', classes: 'bg-amber-100 text-amber-700' },
+    };
+    return m[estado] ?? { label: estado, classes: 'bg-gray-100 text-gray-600' };
+  }
+
+  nombreMp(id: string): string {
+    return this.mpMap().get(id)?.nombre ?? id;
+  }
 
   ngOnInit(): void {
     this.cargar();
     this.presentacionService.listar().subscribe({
       next: (d) => this.presentaciones.set(d),
-      error: () => { this.presentaciones.set([]); },
+      error: () => this.presentaciones.set([]),
     });
     this.mpService.listar().subscribe({
       next: (d) => this.materiasPrimas.set(d),
-      error: () => { this.materiasPrimas.set([]); },
+      error: () => this.materiasPrimas.set([]),
     });
   }
 
@@ -102,7 +154,10 @@ export class Recetas implements OnInit {
     });
   }
 
-  // ── modal crear/editar ───────────────────────────────────────────
+  onSearch(e: Event): void { this.search.set((e.target as HTMLInputElement).value); }
+  setFiltro(f: string): void { this.filtroEstado.set(f); }
+
+  // ── modal crear/editar ─────────────────────────────
   abrirCrear(): void {
     this.editRecetaId.set(null);
     this.isNuevaVersion.set(false);
@@ -166,13 +221,13 @@ export class Recetas implements OnInit {
   }
 
   guardarReceta(): void {
-    const nombre = this.formNombre().trim();
+    const nombre         = this.formNombre().trim();
     const presentacionId = this.formPresentacionId();
-    const rendimiento = this.formRendimiento();
-    const ings = this.formIngredientes();
+    const rendimiento    = this.formRendimiento();
+    const ings           = this.formIngredientes();
 
-    if (!nombre) { this.formError.set('El nombre es obligatorio.'); return; }
-    if (!presentacionId) { this.formError.set('Seleccione una presentación.'); return; }
+    if (!nombre)                   { this.formError.set('El nombre es obligatorio.'); return; }
+    if (!presentacionId)           { this.formError.set('Seleccione una presentación.'); return; }
     if (!rendimiento || rendimiento <= 0) { this.formError.set('El rendimiento debe ser mayor a cero.'); return; }
     if (ings.some((i) => !i.materiaPrimaId || !i.cantidadPorLote)) {
       this.formError.set('Complete todos los ingredientes.'); return;
@@ -191,7 +246,12 @@ export class Recetas implements OnInit {
     if (editId) {
       const dto: UpdateRecetaRequest = { nombre, descripcion: this.formDescripcion() || undefined, rendimientoPorLote: rendimiento, ingredientes };
       this.recetaService.actualizar(editId, dto).subscribe({
-        next: (r) => { this.saving.set(false); this.modalCrear.set(false); this.editRecetaId.set(null); this.recetas.update((list) => list.map((x) => x.id === r.id ? r : x)); },
+        next: (r) => {
+          this.saving.set(false);
+          this.modalCrear.set(false);
+          this.editRecetaId.set(null);
+          this.recetas.update((list) => list.map((x) => x.id === r.id ? r : x));
+        },
         error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo actualizar la receta.'); },
       });
       return;
@@ -215,17 +275,13 @@ export class Recetas implements OnInit {
         this.modalCrear.set(false);
         this.isNuevaVersion.set(false);
         this.versionSourceId.set(null);
-        if (padreId) {
-          this.cargar();
-        } else {
-          this.recetas.update((list) => [r, ...list]);
-        }
+        if (padreId) { this.cargar(); } else { this.recetas.update((list) => [r, ...list]); }
       },
       error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'No se pudo crear la receta.'); },
     });
   }
 
-  // ── acciones de lista ────────────────────────────────────────────
+  // ── acciones de lista ──────────────────────────────
   activar(r: RecetaResponse): void {
     this.errorActivar.set(null);
     this.recetaService.activar(r.id).subscribe({
@@ -247,7 +303,7 @@ export class Recetas implements OnInit {
     });
   }
 
-  // ── modal calcular/producir ──────────────────────────────────────
+  // ── modal calcular/producir ────────────────────────
   abrirCalculo(r: RecetaResponse): void {
     this.recetaSeleccionada.set(r);
     this.formLotes.set(null);
@@ -260,7 +316,7 @@ export class Recetas implements OnInit {
   cerrarCalculo(): void { this.modalCalculo.set(false); }
 
   calcular(): void {
-    const lotes = this.formLotes();
+    const lotes  = this.formLotes();
     const receta = this.recetaSeleccionada();
     if (!lotes || lotes <= 0 || !receta) { this.calcError.set('Ingrese una cantidad de lotes válida.'); return; }
     this.calculando.set(true);
@@ -273,45 +329,24 @@ export class Recetas implements OnInit {
 
   producir(): void {
     const receta = this.recetaSeleccionada();
-    const lotes = this.formLotes();
+    const lotes  = this.formLotes();
     if (!receta || !lotes) return;
-
     const dto: CrearProduccionDesdeRecetaRequest = {
       lotesAProducir: lotes,
       observacion: this.formObservacion() || undefined,
     };
     this.produciendo.set(true);
     this.recetaService.producir(receta.id, dto).subscribe({
-      next: (op) => {
-        this.produciendo.set(false);
-        this.modalCalculo.set(false);
-        this.router.navigate(['/produccion', op.id]);
-      },
-      error: (err) => {
-        this.produciendo.set(false);
-        this.calcError.set(err?.error?.message ?? 'No se pudo crear la orden.');
-      },
+      next: (op) => { this.produciendo.set(false); this.modalCalculo.set(false); this.router.navigate(['/produccion', op.id]); },
+      error: (err) => { this.produciendo.set(false); this.calcError.set(err?.error?.message ?? 'No se pudo crear la orden.'); },
     });
   }
 
-  // ── helpers ──────────────────────────────────────────────────────
-  estadoBadge(estado: string): string {
-    const m: Record<string, string> = {
-      ACTIVA:    'bg-green-100 text-green-700',
-      INACTIVA:  'bg-gray-100 text-gray-600',
-      ARCHIVADA: 'bg-amber-100 text-amber-700',
-    };
-    return m[estado] ?? 'bg-gray-100 text-gray-600';
-  }
-
-  nombreMp(id: string): string {
-    return this.materiasPrimas().find((m) => m.id === id)?.nombre ?? id;
-  }
-
-  onNombre(e: Event): void { this.formNombre.set((e.target as HTMLInputElement).value); }
-  onDescripcion(e: Event): void { this.formDescripcion.set((e.target as HTMLTextAreaElement).value); }
+  // ── event handlers ─────────────────────────────────
+  onNombre(e: Event): void       { this.formNombre.set((e.target as HTMLInputElement).value); }
+  onDescripcion(e: Event): void  { this.formDescripcion.set((e.target as HTMLTextAreaElement).value); }
   onPresentacion(e: Event): void { this.formPresentacionId.set((e.target as HTMLSelectElement).value); }
-  onRendimiento(e: Event): void {
+  onRendimiento(e: Event): void  {
     const v = parseFloat((e.target as HTMLInputElement).value);
     this.formRendimiento.set(isNaN(v) ? null : v);
   }
@@ -321,5 +356,4 @@ export class Recetas implements OnInit {
     this.calculo.set(null);
   }
   onObservacion(e: Event): void { this.formObservacion.set((e.target as HTMLInputElement).value); }
-  setFiltro(f: string): void { this.filtroEstado.set(f); }
 }

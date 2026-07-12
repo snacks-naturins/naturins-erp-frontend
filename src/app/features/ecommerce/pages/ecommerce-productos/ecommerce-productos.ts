@@ -22,12 +22,25 @@ export class EcommerceProductos implements OnInit {
   readonly searchDebounced = debouncedSignal(this.search);
   readonly toggling = signal<string | null>(null);
 
+  readonly visibilidadFiltro = signal('');
+
+  readonly totalVisibles = computed(() => this.productos().filter(p => p.visibleEcommerce).length);
+  readonly totalOcultos  = computed(() => this.productos().filter(p => !p.visibleEcommerce).length);
+  readonly totalActivos  = computed(() => this.productos().filter(p => p.estado === 'ACTIVO').length);
+
   readonly filtrados = computed(() => {
     const q = this.searchDebounced().toLowerCase().trim();
-    return this.productos().filter(
-      (p) => !q || p.nombre.toLowerCase().includes(q) || (p.nombreCategoria ?? '').toLowerCase().includes(q),
-    );
+    const v = this.visibilidadFiltro();
+    return this.productos().filter((p) => {
+      const matchQ = !q || p.nombre.toLowerCase().includes(q) || (p.nombreCategoria ?? '').toLowerCase().includes(q);
+      const matchV = v === 'visible' ? !!p.visibleEcommerce : v === 'oculto' ? !p.visibleEcommerce : true;
+      return matchQ && matchV;
+    });
   });
+
+  setVisibilidadFiltro(v: string): void {
+    this.visibilidadFiltro.set(this.visibilidadFiltro() === v ? '' : v);
+  }
 
   ngOnInit(): void { this.cargar(); }
 

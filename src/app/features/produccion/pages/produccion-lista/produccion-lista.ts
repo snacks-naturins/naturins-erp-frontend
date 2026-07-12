@@ -6,6 +6,7 @@ import { ProduccionService } from '../../services/produccion.service';
 import { ProduccionResponse } from '../../models/produccion.model';
 import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 @Component({
   selector: 'app-produccion-lista',
@@ -14,27 +15,42 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
   templateUrl: './produccion-lista.html',
 })
 export class ProduccionLista implements OnInit {
-  private readonly router = inject(Router);
+  private readonly router  = inject(Router);
   private readonly service = inject(ProduccionService);
 
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
-  readonly ops = signal<ProduccionResponse[]>([]);
-  readonly saving = signal(false);
+  readonly loading  = signal(true);
+  readonly error    = signal<string | null>(null);
+  readonly ops      = signal<ProduccionResponse[]>([]);
+  readonly saving   = signal(false);
   readonly formError = signal<string | null>(null);
   readonly modalOpen = signal(false);
-  readonly observacion = signal('');
-  readonly accionando = signal<string | null>(null);
+  readonly observacion      = signal('');
+  readonly accionando       = signal<string | null>(null);
   readonly mostrarCanceladas = signal(false);
 
-  readonly planificadas = computed(() => this.ops().filter((o) => o.estado === 'PLANIFICADA'));
-  readonly enProceso   = computed(() => this.ops().filter((o) => o.estado === 'EN_PROCESO'));
-  readonly completadas = computed(() => this.ops().filter((o) => o.estado === 'COMPLETADA'));
-  readonly canceladas  = computed(() => this.ops().filter((o) => o.estado === 'CANCELADA'));
+  // ── Búsqueda ───────────────────────────────────────
+  readonly search          = signal('');
+  readonly searchDebounced = debouncedSignal(this.search);
+
+  // ── Lista filtrada ─────────────────────────────────
+  readonly filtrados = computed(() => {
+    const q = this.searchDebounced().toLowerCase().trim();
+    if (!q) return this.ops();
+    return this.ops().filter(o =>
+      o.numeroOrden.toLowerCase().includes(q) ||
+      (o.observacion ?? '').toLowerCase().includes(q) ||
+      (o.nombreCompleto ?? o.nombreUsuario ?? '').toLowerCase().includes(q)
+    );
+  });
+
+  readonly planificadas = computed(() => this.filtrados().filter((o) => o.estado === 'PLANIFICADA'));
+  readonly enProceso    = computed(() => this.filtrados().filter((o) => o.estado === 'EN_PROCESO'));
+  readonly completadas  = computed(() => this.filtrados().filter((o) => o.estado === 'COMPLETADA'));
+  readonly canceladas   = computed(() => this.filtrados().filter((o) => o.estado === 'CANCELADA'));
 
   readonly opsPorEstado = computed(() => {
     const m = new Map<string, ProduccionResponse[]>();
-    for (const op of this.ops()) {
+    for (const op of this.filtrados()) {
       const list = m.get(op.estado) ?? [];
       list.push(op);
       m.set(op.estado, list);
@@ -42,14 +58,24 @@ export class ProduccionLista implements OnInit {
     return m;
   });
 
-  readonly kpiTotal      = computed(() => this.ops().filter(o => o.estado !== 'CANCELADA').length);
-  readonly kpiEnProceso  = computed(() => this.enProceso().length);
-  readonly kpiCompletadas = computed(() => this.completadas().length);
+  // ── KPIs ───────────────────────────────────────────
+  readonly kpiTotal       = computed(() => this.ops().filter(o => o.estado !== 'CANCELADA').length);
+  readonly kpiEnProceso   = computed(() => this.ops().filter(o => o.estado === 'EN_PROCESO').length);
+  readonly kpiCompletadas = computed(() => this.ops().filter(o => o.estado === 'COMPLETADA').length);
+  readonly kpiCostoTotal  = computed(() =>
+    this.ops().filter(o => o.estado === 'COMPLETADA').reduce((s, o) => s + (o.costoTotal ?? 0), 0)
+  );
+  readonly kpiCostoTexto = computed(() => {
+    const v = this.kpiCostoTotal();
+    if (v >= 1_000_000) return `S/ ${(v / 1_000_000).toFixed(1)}M`;
+    if (v >= 1000)      return `S/ ${(v / 1000).toFixed(1)}K`;
+    return `S/ ${v.toFixed(2)}`;
+  });
 
   readonly columnas = [
-    { estado: 'PLANIFICADA', label: 'Planificada', color: 'border-gray-300',  dot: 'bg-gray-400',  accionLabel: 'Iniciar',  accionIcon: 'play_arrow' },
-    { estado: 'EN_PROCESO',  label: 'En proceso',  color: 'border-amber-400', dot: 'bg-amber-400', accionLabel: null as string | null, accionIcon: null as string | null },
-    { estado: 'COMPLETADA',  label: 'Completada',  color: 'border-green-400', dot: 'bg-green-400', accionLabel: null as string | null, accionIcon: null as string | null },
+    { estado: 'PLANIFICADA', label: 'Planificada', color: 'border-gray-300',  dot: 'bg-gray-400',  accionLabel: 'Iniciar'        as string | null, accionIcon: 'play_arrow' as string | null },
+    { estado: 'EN_PROCESO',  label: 'En proceso',  color: 'border-amber-400', dot: 'bg-amber-400', accionLabel: null             as string | null, accionIcon: null         as string | null },
+    { estado: 'COMPLETADA',  label: 'Completada',  color: 'border-green-400', dot: 'bg-green-400', accionLabel: null             as string | null, accionIcon: null         as string | null },
   ];
 
   ngOnInit(): void { this.cargar(); }
@@ -65,6 +91,8 @@ export class ProduccionLista implements OnInit {
       error: () => { this.error.set('No se pudieron cargar las órdenes.'); this.loading.set(false); },
     });
   }
+
+  onSearch(e: Event): void { this.search.set((e.target as HTMLInputElement).value); }
 
   abrirNuevaOP(): void {
     this.observacion.set('');
@@ -93,13 +121,16 @@ export class ProduccionLista implements OnInit {
     event.stopPropagation();
     this.accionando.set(op.id);
     this.service.actualizar(op.id, { estado: 'EN_PROCESO' }).subscribe({
-      next: (updated) => {
-        this.ops.update(list => list.map(o => o.id === updated.id ? updated : o));
-        this.accionando.set(null);
-      },
+      next:  (updated) => { this.ops.update(list => list.map(o => o.id === updated.id ? updated : o)); this.accionando.set(null); },
       error: () => this.accionando.set(null),
     });
   }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }
+
+  diasEnProceso(op: ProduccionResponse): number | null {
+    const fecha = op.fechaModificacion ?? op.fechaProduccion;
+    if (!fecha || op.estado !== 'EN_PROCESO') return null;
+    return Math.round((Date.now() - new Date(fecha).getTime()) / 86_400_000);
+  }
 }

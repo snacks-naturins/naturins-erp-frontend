@@ -12,11 +12,12 @@ import {
   ZonaEstado,
 } from '../../models/almacen.model';
 import { LoteResponse } from '../../models/lote.model';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 
 @Component({
   selector: 'app-almacenes',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatIconModule, BreadcrumbComponent],
   templateUrl: './almacenes.html',
 })
 export class Almacenes implements OnInit {

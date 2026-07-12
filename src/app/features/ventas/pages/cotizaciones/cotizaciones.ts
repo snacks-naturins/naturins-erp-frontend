@@ -1,7 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { forkJoin, of } from 'rxjs';
+import { concatMap, toArray } from 'rxjs/operators';
+import { forkJoin, from, of } from 'rxjs';
 
 import { CotizacionService }          from '../../services/cotizacion.service';
 import { DetalleCotizacionService }    from '../../services/detalle-cotizacion.service';
@@ -11,6 +12,7 @@ import { PedidoService }               from '../../services/pedido.service';
 import { MetodoPagoService }           from '../../services/metodo-pago.service';
 
 import { CotizacionResponse }          from '../../models/cotizacion.model';
+import { DetalleCotizacionResponse }   from '../../models/detalle-cotizacion.model';
 import { PresentacionResponse }        from '../../../inventario/models/presentacion.model';
 import { ClienteResponse }             from '../../../clientes/models/cliente.model';
 import { MetodoPagoResponse }          from '../../models/metodo-pago.model';
@@ -63,11 +65,18 @@ export class Cotizaciones implements OnInit {
     });
   });
 
+  // ── KPIs de estado ────────────────────────────────────────
+  readonly totalBorradores = computed(() => this.cotizaciones().filter(c => c.estado === 'BORRADOR').length);
+  readonly totalEnviadas   = computed(() => this.cotizaciones().filter(c => c.estado === 'ENVIADA').length);
+  readonly totalAceptadas  = computed(() => this.cotizaciones().filter(c => c.estado === 'ACEPTADA').length);
+  readonly totalRechazadas = computed(() => this.cotizaciones().filter(c => c.estado === 'RECHAZADA').length);
+  readonly totalVencidas   = computed(() => this.cotizaciones().filter(c => c.estado === 'VENCIDA').length);
+
   // ── Formulario reactivo ──────────────────────────────────────
   readonly form = this.fb.nonNullable.group({
     clienteId: ['', Validators.required],
     incluyeIgv: [true],
-    descuento: [0 as number, [Validators.min(0)]],
+    descuento: [null as number | null, [Validators.min(0)]],
     observacion: [''],
     fechaVencimiento: [''],
   });
@@ -80,8 +89,9 @@ export class Cotizaciones implements OnInit {
   // ── Cliente dropdown ─────────────────────────────────────────
   readonly clienteSearch      = signal('');
   readonly clienteDropdown    = signal(false);
+  readonly clienteIdValue       = signal('');
   readonly clienteSeleccionado = computed(() =>
-    this.clientes().find((c) => c.id === this.form.controls.clienteId.value) ?? null);
+    this.clientes().find((c) => c.id === this.clienteIdValue()) ?? null);
   readonly clientesFiltrados  = computed(() => {
     const q = this.clienteSearch().toLowerCase().trim();
     return q ? this.clientes().filter((c) =>
@@ -102,7 +112,7 @@ export class Cotizaciones implements OnInit {
 
   readonly subTotal = computed(() =>
     this.lineas().reduce((s, l) => s + l.cantidad * l.precioUnitario, 0));
-  readonly descuentoVal = computed(() => this.form.controls.descuento.value);
+  readonly descuentoVal = computed(() => this.form.controls.descuento.value ?? 0);
   readonly incluyeIgvVal = computed(() => this.form.controls.incluyeIgv.value);
   readonly igv = computed(() =>
     this.incluyeIgvVal() ? Math.round(this.subTotal() * 0.18 * 100) / 100 : 0);
@@ -131,7 +141,9 @@ export class Cotizaciones implements OnInit {
   readonly deleteError  = signal<string | null>(null);
 
   // ── Detalle expandido ─────────────────────────────────────────
-  readonly detalleOpen  = signal<string | null>(null);
+  readonly detalleOpen    = signal<string | null>(null);
+  readonly detalleLineas  = signal<DetalleCotizacionResponse[]>([]);
+  readonly loadingDetalle = signal(false);
 
   // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void { this.cargar(); }
@@ -156,6 +168,7 @@ export class Cotizaciones implements OnInit {
     this.editId.set(c.id);
     this.resetForm();
     this.cargarCatalogosForm();
+    this.clienteIdValue.set(c.clienteId);
     this.form.patchValue({
       clienteId: c.clienteId,
       incluyeIgv: c.incluyeIgv,
@@ -185,10 +198,11 @@ export class Cotizaciones implements OnInit {
   }
 
   private resetForm(): void {
+    this.clienteIdValue.set('');
     this.form.reset({
       clienteId: '',
       incluyeIgv: true,
-      descuento: 0,
+      descuento: null,
       observacion: '',
       fechaVencimiento: '',
     });
@@ -214,11 +228,15 @@ export class Cotizaciones implements OnInit {
 
   // ── Cliente helpers ───────────────────────────────────────────
   seleccionarCliente(c: ClienteResponse): void {
+    this.clienteIdValue.set(c.id);
     this.form.patchValue({ clienteId: c.id, incluyeIgv: c.aplicaIgv });
     this.clienteSearch.set('');
     this.clienteDropdown.set(false);
   }
-  limpiarCliente(): void { this.form.controls.clienteId.setValue(''); }
+  limpiarCliente(): void {
+    this.clienteIdValue.set('');
+    this.form.controls.clienteId.setValue('');
+  }
 
   // ── Producto helpers ─────────────────────────────────────────
   agregarProducto(p: PresentacionResponse): void {
@@ -270,18 +288,19 @@ export class Cotizaciones implements OnInit {
           this.svcDet.porCotizacion(editId).subscribe({
             next: (existentes) => {
               const delete$ = existentes.length
-                ? forkJoin(existentes.map((d) => this.svcDet.eliminar(d.id)))
+                ? from(existentes).pipe(concatMap((d) => this.svcDet.eliminar(d.id)), toArray())
                 : of([] as unknown[]);
               delete$.subscribe({
                 next: () => {
-                  forkJoin(this.lineas().map((l) =>
-                    this.svcDet.crear({
+                  from(this.lineas()).pipe(
+                    concatMap((l) => this.svcDet.crear({
                       cotizacionId: editId,
                       presentacionProductoId: l.presentacion.id,
                       cantidad: l.cantidad,
                       precioUnitario: l.precioUnitario,
-                    })
-                  )).subscribe({
+                    })),
+                    toArray()
+                  ).subscribe({
                     next: () => { this.saving.set(false); this.view.set('list'); this.cargar(); },
                     error: (err) => { this.saving.set(false); this.formError.set(err?.error?.message ?? 'Error al guardar ítems.'); },
                   });
@@ -305,14 +324,15 @@ export class Cotizaciones implements OnInit {
       observacion: v.observacion || null,
     }).subscribe({
       next: (cot) => {
-        forkJoin(this.lineas().map((l) =>
-          this.svcDet.crear({
+        from(this.lineas()).pipe(
+          concatMap((l) => this.svcDet.crear({
             cotizacionId: cot.id,
             presentacionProductoId: l.presentacion.id,
             cantidad: l.cantidad,
             precioUnitario: l.precioUnitario,
-          })
-        )).subscribe({
+          })),
+          toArray()
+        ).subscribe({
           next: () => {
             this.saving.set(false);
             this.view.set('list');
@@ -362,6 +382,21 @@ export class Cotizaciones implements OnInit {
     this.svcCot.eliminar(t.id).subscribe({
       next: () => { this.deleting.set(false); this.deleteTarget.set(null); this.cotizaciones.update((l) => l.filter((x) => x.id !== t.id)); },
       error: (err) => { this.deleting.set(false); this.deleteError.set(err?.error?.message ?? 'Error al eliminar.'); },
+    });
+  }
+
+  // ── Ver detalle (expand row en la lista) ─────────────────────
+  verDetalle(c: CotizacionResponse): void {
+    if (this.detalleOpen() === c.id) {
+      this.detalleOpen.set(null);
+      return;
+    }
+    this.detalleOpen.set(c.id);
+    this.detalleLineas.set([]);
+    this.loadingDetalle.set(true);
+    this.svcDet.porCotizacion(c.id).subscribe({
+      next: (items) => { this.detalleLineas.set(items); this.loadingDetalle.set(false); },
+      error: () => this.loadingDetalle.set(false),
     });
   }
 
@@ -427,6 +462,10 @@ export class Cotizaciones implements OnInit {
         this.convertirError.set(err?.error?.message ?? 'Error al convertir la cotización.');
       },
     });
+  }
+
+  setEstadoFiltro(v: string): void {
+    this.estadoFiltro.set(this.estadoFiltro() === v ? '' : v);
   }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }

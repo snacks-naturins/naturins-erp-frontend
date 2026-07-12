@@ -597,7 +597,7 @@ mermasDelMes, lotesProximosAVencer, carritosActivos, valorInventario
 - El CV subido (`urlCv`) se guarda en la persona pero no hay forma de verlo/descargarlo desde la UI de empleados.
 
 ---
-
+![alt text](image.png)
 ### 2.18 Seguridad — Permisos RBAC (`/permisos-rbac`)
 
 **Qué hace bien:**

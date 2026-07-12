@@ -4,7 +4,7 @@
 <div class="-m-6 flex overflow-hidden" style="height: calc(100vh - 72px)">
 
   <!-- ── PANEL IZQUIERDO: lista ───────────────────────────── -->
-  <div class="flex w-[280px] shrink-0 flex-col border-r border-border-soft bg-white">
+  <div class="flex w-[280px] shrink-0 flex-col border-r border-border-soft bg-bg-card">
 
     <!-- Encabezado -->
     <div class="flex items-center justify-between border-b border-border-soft px-4 py-3">
@@ -24,7 +24,7 @@
         <mat-icon fontSet="material-icons-outlined"
           class="pointer-events-none absolute left-2.5 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
         <input type="text" (input)="onSearch($event)" placeholder="Buscar proveedor..."
-          class="h-9 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:bg-white" />
+          class="h-9 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
       </div>
     </div>
 
@@ -32,7 +32,7 @@
     <div class="flex-1 overflow-y-auto">
       @if (loading()) {
         <div class="flex h-32 items-center justify-center gap-2 text-text-muted">
-          <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+          <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
           <span class="text-sm">Cargando...</span>
         </div>
       } @else if (error()) {
@@ -40,10 +40,10 @@
       } @else {
         @for (p of filtrados(); track p.id) {
           <div (click)="seleccionar(p)"
-            class="flex cursor-pointer items-center gap-3 border-b border-border-soft px-4 py-3 transition hover:bg-amber-50"
-            [class.bg-amber-50]="proveedorSeleccionado()?.id === p.id"
-            [class.border-l-2]="proveedorSeleccionado()?.id === p.id"
-            [class.border-l-primary]="proveedorSeleccionado()?.id === p.id">
+            class="flex cursor-pointer items-center gap-3 border-b border-border-soft px-4 py-3 transition"
+            [class]="proveedorSeleccionado()?.id === p.id
+              ? 'border-l-2 border-l-primary bg-primary/5'
+              : 'hover:bg-bg-app'">
 
             <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-100">
               <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-amber-700">
@@ -53,9 +53,7 @@
 
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-semibold text-text-main">{{ nombreDisplay(p) }}</p>
-              <p class="truncate text-xs text-text-muted">
-                {{ p.rubro || 'Sin rubro' }}
-              </p>
+              <p class="truncate text-xs text-text-muted">{{ p.rubro || 'Sin rubro' }}</p>
             </div>
 
             <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -82,7 +80,7 @@
       <div class="flex flex-col gap-5 p-6">
 
         <!-- ─── Tarjeta ficha ──────────────────────────────── -->
-        <div class="rounded-card bg-white p-6 shadow-sm">
+        <div class="rounded-card border border-border-soft bg-bg-card p-6 shadow-sm">
 
           <!-- Header: avatar + info + editar -->
           <div class="flex items-start gap-4">
@@ -110,12 +108,12 @@
 
             <div class="flex shrink-0 gap-2">
               <button (click)="abrirEditar(sel)"
-                class="flex h-9 items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+                class="flex h-9 items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
                 <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">edit</mat-icon>
                 Editar
               </button>
               <button (click)="pedirEliminar(sel)"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-border-soft bg-white text-text-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-border-soft bg-bg-card text-text-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                 title="Eliminar proveedor">
                 <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">delete</mat-icon>
               </button>
@@ -125,7 +123,6 @@
           <!-- Info grid -->
           <div class="mt-5 grid grid-cols-3 gap-x-6 gap-y-4 border-t border-border-soft pt-5">
 
-            <!-- RUC -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">tag</mat-icon>
@@ -134,7 +131,6 @@
               <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.ruc || '—' }}</p>
             </div>
 
-            <!-- Razón social -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">business</mat-icon>
@@ -143,20 +139,18 @@
               <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.razonSocial || sel.nombreCompleto }}</p>
             </div>
 
-            <!-- Dirección (de Persona) -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">location_on</mat-icon>
                 Dirección
               </p>
               @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-gray-100"></span>
+                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-app"></span>
               } @else {
                 <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.direccion || '—' }}</p>
               }
             </div>
 
-            <!-- Contacto -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">person</mat-icon>
@@ -165,27 +159,25 @@
               <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.contacto || '—' }}</p>
             </div>
 
-            <!-- Correo (de Persona) -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">mail</mat-icon>
                 Correo
               </p>
               @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-gray-100"></span>
+                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-app"></span>
               } @else {
                 <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.correo || '—' }}</p>
               }
             </div>
 
-            <!-- Teléfono (de Persona) -->
             <div>
               <p class="flex items-center gap-1 text-xs text-text-muted">
                 <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">phone</mat-icon>
                 Teléfono
               </p>
               @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-24 animate-pulse rounded bg-gray-100"></span>
+                <span class="mt-0.5 block h-4 w-24 animate-pulse rounded bg-bg-app"></span>
               } @else {
                 <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.telefono || '—' }}</p>
               }
@@ -193,7 +185,6 @@
 
           </div>
 
-          <!-- Stats extra: días crédito -->
           @if (sel.diasCredito != null) {
             <div class="mt-4 flex items-center gap-2 rounded-lg bg-bg-app px-3 py-2">
               <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4! text-text-muted">schedule</mat-icon>
@@ -204,7 +195,7 @@
         </div>
 
         <!-- ─── Tabs ───────────────────────────────────────── -->
-        <div class="overflow-hidden rounded-card bg-white shadow-sm">
+        <div class="overflow-hidden rounded-card border border-border-soft bg-bg-card shadow-sm">
 
           <!-- Barra de tabs -->
           <div class="flex border-b border-border-soft px-4">
@@ -232,8 +223,8 @@
           <!-- ── Tab: Compras ────────────────────────────── -->
           @if (tabActiva() === 'compras') {
             @if (loadingCompras()) {
-              <div class="flex h-24 items-center justify-center gap-2 text-text-muted text-sm">
-                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]!">progress_activity</mat-icon>
+              <div class="flex h-24 items-center justify-center gap-2 text-sm text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]! text-primary">progress_activity</mat-icon>
                 Cargando órdenes...
               </div>
             } @else if (comprasProveedor().length === 0) {
@@ -245,7 +236,7 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
-                    <tr class="border-b border-border-soft bg-bg-app text-left text-xs font-semibold text-text-muted uppercase tracking-wide">
+                    <tr class="border-b border-border-soft bg-bg-app text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
                       <th class="px-4 py-2.5">N° Orden</th>
                       <th class="px-4 py-2.5">Fecha</th>
                       <th class="px-4 py-2.5 text-right">Total</th>
@@ -254,19 +245,19 @@
                   </thead>
                   <tbody>
                     @for (c of comprasProveedor(); track c.id) {
-                      <tr class="border-b border-border-soft last:border-0 hover:bg-bg-app transition">
-                        <td class="px-4 py-2.5 font-mono font-semibold text-primary text-xs">{{ c.numeroOrden }}</td>
-                        <td class="px-4 py-2.5 text-text-muted text-xs">{{ c.fechaCompra | slice:0:10 }}</td>
+                      <tr class="border-b border-border-soft last:border-0 transition hover:bg-bg-app">
+                        <td class="px-4 py-2.5 font-mono text-xs font-semibold text-primary">{{ c.numeroOrden }}</td>
+                        <td class="px-4 py-2.5 text-xs text-text-muted">{{ c.fechaCompra | slice:0:10 }}</td>
                         <td class="px-4 py-2.5 text-right font-semibold text-text-main">S/ {{ c.total.toFixed(2) }}</td>
                         <td class="px-4 py-2.5 text-center">
                           <span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold"
-                            [class]="c.estado === 'COMPLETADA' ? 'bg-green-50 text-green-700' :
-                                     c.estado === 'PENDIENTE'  ? 'bg-amber-50 text-amber-700' :
-                                     c.estado === 'CANCELADA'  ? 'bg-red-50 text-red-600'    :
-                                                                  'bg-blue-50 text-blue-700'">
-                            {{ c.estado === 'COMPLETADA' ? 'Completada' :
-                               c.estado === 'PENDIENTE'  ? 'Pendiente'  :
-                               c.estado === 'CANCELADA'  ? 'Cancelada'  : 'Parcial' }}
+                            [class]="c.estado === 'COMPLETADA'      ? 'bg-green-100 text-green-700' :
+                                     c.estado === 'PENDIENTE'       ? 'bg-amber-100 text-amber-700' :
+                                     c.estado === 'CANCELADA'       ? 'bg-red-100 text-red-600'    :
+                                                                       'bg-blue-100 text-blue-700'">
+                            {{ c.estado === 'COMPLETADA'      ? 'Completada' :
+                               c.estado === 'PENDIENTE'       ? 'Pendiente'  :
+                               c.estado === 'CANCELADA'       ? 'Cancelada'  : 'Parcial' }}
                           </span>
                         </td>
                       </tr>
@@ -281,7 +272,6 @@
           @if (tabActiva() === 'catalogo') {
             <div class="p-4">
 
-              <!-- Header catálogo -->
               <div class="mb-3 flex items-center justify-between">
                 <span class="text-xs text-text-muted">
                   {{ catalogo().length }} {{ catalogo().length === 1 ? 'producto' : 'productos' }} en catálogo
@@ -293,10 +283,9 @@
                 </button>
               </div>
 
-              <!-- Tabla catálogo -->
               @if (loadingCatalogo()) {
                 <div class="flex h-24 items-center justify-center gap-2 text-text-muted">
-                  <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
+                  <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
                   <span class="text-sm">Cargando...</span>
                 </div>
               } @else if (catalogo().length === 0) {
@@ -320,16 +309,15 @@
                     </thead>
                     <tbody>
                       @for (c of catalogo(); track c.id) {
-                        <tr class="border-b border-border-soft transition last:border-0 hover:bg-amber-50/50">
+                        <tr class="border-b border-border-soft last:border-0 transition hover:bg-bg-app">
                           <td class="px-3 py-2.5">
                             <div class="flex items-center gap-2.5">
-                              <!-- Miniatura -->
                               @if (c.imagenUrl) {
                                 <img [src]="c.imagenUrl" alt="{{ c.nombreMateriaPrima }}"
-                                  class="h-10 w-10 shrink-0 rounded-lg object-cover border border-border-soft" />
+                                  class="h-10 w-10 shrink-0 rounded-lg border border-border-soft object-cover" />
                               } @else {
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-app border border-border-soft">
-                                  <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4! text-text-muted opacity-50">image</mat-icon>
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border-soft bg-bg-app">
+                                  <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4! opacity-40 text-text-muted">image</mat-icon>
                                 </div>
                               }
                               <div>
@@ -387,7 +375,6 @@
       </div>
 
     } @else if (!loading()) {
-      <!-- Estado vacío: ninguno seleccionado -->
       <div class="flex h-full flex-col items-center justify-center gap-3 text-center text-text-muted">
         <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">local_shipping</mat-icon>
         <p class="text-sm">Selecciona un proveedor para ver su ficha</p>
@@ -406,13 +393,21 @@
      MODAL: CREAR / EDITAR PROVEEDOR
 ═══════════════════════════════════════════════════════ -->
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cerrarModal()">
-    <div class="max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
+    <div class="modal-enter max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
-      <div class="sticky top-0 flex items-center justify-between border-b border-border-soft bg-white px-6 py-4">
-        <h3 class="font-semibold text-text-main">{{ editId() ? 'Editar proveedor' : 'Nuevo proveedor' }}</h3>
+      <!-- Header sticky -->
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-border-soft bg-bg-card px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">
+              {{ editId() ? 'edit' : 'local_shipping' }}
+            </mat-icon>
+          </div>
+          <h3 class="font-semibold text-text-main">{{ editId() ? 'Editar proveedor' : 'Nuevo proveedor' }}</h3>
+        </div>
         <button (click)="cerrarModal()"
           class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
@@ -421,12 +416,16 @@
 
       <form [formGroup]="form" (ngSubmit)="guardar()">
         <div class="flex flex-col gap-4 p-6">
+
           @if (formError()) {
-            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ formError() }}</div>
+            <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <mat-icon fontSet="material-icons-outlined" class="shrink-0 text-[16px]! h-4! w-4!">error_outline</mat-icon>
+              {{ formError() }}
+            </div>
           }
 
           @if (editId()) {
-            <div class="rounded-lg bg-bg-app px-3 py-2 text-sm text-text-muted">
+            <div class="rounded-lg bg-bg-app px-3 py-2.5 text-sm text-text-muted">
               Persona vinculada: <span class="font-medium text-text-main">{{ editNombre() }}</span>
             </div>
           } @else {
@@ -435,7 +434,7 @@
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo de documento</label>
                 <select formControlName="tipoDocumentoId"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
                   <option value="" disabled>Selecciona</option>
                   @for (t of tiposDoc(); track t.id) {
                     <option [value]="t.id">{{ t.nombre }}</option>
@@ -445,37 +444,37 @@
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">N° de documento</label>
                 <input type="text" formControlName="numeroDocumento" placeholder="20512345678"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombres <span class="text-red-500">*</span></label>
                 <input type="text" formControlName="nombres"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Apellidos <span class="text-red-500">*</span></label>
                 <input type="text" formControlName="apellidos"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Teléfono</label>
                 <input type="text" formControlName="telefono"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-semibold text-text-main">Correo</label>
                 <input type="email" formControlName="correo"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Dirección</label>
               <input type="text" formControlName="direccion"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
           }
 
@@ -484,35 +483,35 @@
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">RUC</label>
               <input type="text" formControlName="ruc" placeholder="20512345678"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Rubro</label>
               <input type="text" formControlName="rubro" placeholder="Insumos, empaques..."
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Razón social</label>
             <input type="text" formControlName="razonSocial" placeholder="Distribuidora ... S.A.C."
-              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Persona de contacto</label>
               <input type="text" formControlName="contacto"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Días de crédito</label>
               <input type="number" formControlName="diasCredito" placeholder="30"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
               <option value="SUSPENDIDO">Suspendido</option>
@@ -521,14 +520,20 @@
           </div>
         </div>
 
-        <div class="sticky bottom-0 flex justify-end gap-3 border-t border-border-soft bg-white px-6 py-4">
+        <!-- Footer sticky -->
+        <div class="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-border-soft bg-bg-card px-6 py-4">
           <button type="button" (click)="cerrarModal()"
-            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="saving()"
             class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
-            {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar' : 'Crear proveedor') }}
+            @if (saving()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+              Guardando...
+            } @else {
+              {{ editId() ? 'Actualizar' : 'Crear proveedor' }}
+            }
           </button>
         </div>
       </form>
@@ -540,15 +545,20 @@
      MODAL: AGREGAR / EDITAR ÍTEM DE CATÁLOGO
 ═══════════════════════════════════════════════════════ -->
 @if (modalCatalogo()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cerrarModalCatalogo()">
-    <div class="w-full max-w-[500px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
+    <div class="modal-enter w-full max-w-[500px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
-        <h3 class="font-semibold text-text-main">
-          {{ editCatalogoId() ? 'Editar producto del catálogo' : 'Agregar al catálogo' }}
-        </h3>
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">inventory_2</mat-icon>
+          </div>
+          <h3 class="font-semibold text-text-main">
+            {{ editCatalogoId() ? 'Editar producto del catálogo' : 'Agregar al catálogo' }}
+          </h3>
+        </div>
         <button (click)="cerrarModalCatalogo()"
           class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
@@ -557,13 +567,14 @@
 
       <form [formGroup]="formCatalogo" (ngSubmit)="guardarCatalogo()">
         <div class="flex flex-col gap-4 p-6">
+
           @if (formCatalogoError()) {
-            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <mat-icon fontSet="material-icons-outlined" class="shrink-0 text-[16px]! h-4! w-4!">error_outline</mat-icon>
               {{ formCatalogoError() }}
             </div>
           }
 
-          <!-- Materia prima: etiqueta al editar / select al crear -->
           @if (editCatalogoId()) {
             <div class="rounded-lg bg-bg-app px-3 py-2.5 text-sm">
               <span class="text-xs text-text-muted">Materia prima:</span>
@@ -576,7 +587,7 @@
                 Materia prima <span class="text-red-500">*</span>
               </label>
               <select formControlName="materiaPrimaId"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
                 <option value="" disabled>Selecciona una materia prima</option>
                 @for (mp of materiasPrimas(); track mp.id) {
                   <option [value]="mp.id">{{ mp.nombre }} ({{ mp.unidadMedida }})</option>
@@ -588,19 +599,17 @@
             </div>
           }
 
-          <!-- Imagen del producto -->
+          <!-- Imagen -->
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Imagen del producto</label>
             <div class="flex items-center gap-3">
-              <!-- Preview -->
               <div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border-soft bg-bg-app">
                 @if (uploadingImagen()) {
                   <div class="flex h-full items-center justify-center">
-                    <mat-icon fontSet="material-icons-outlined" class="animate-spin text-text-muted">progress_activity</mat-icon>
+                    <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
                   </div>
                 } @else if (previewImagen()) {
-                  <img [src]="previewImagen()" alt="Preview"
-                    class="h-full w-full object-cover" />
+                  <img [src]="previewImagen()" alt="Preview" class="h-full w-full object-cover" />
                   <button type="button" (click)="quitarImagen()"
                     class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-white shadow"
                     title="Quitar imagen">
@@ -613,11 +622,9 @@
                   </div>
                 }
               </div>
-
-              <!-- Upload button -->
               <div class="flex flex-col gap-1.5">
                 <label
-                  class="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border-soft bg-white px-3 text-sm font-medium text-text-main transition hover:bg-bg-app"
+                  class="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border-soft bg-bg-card px-3 text-sm font-medium text-text-main transition hover:bg-bg-app"
                   [class.opacity-60]="uploadingImagen()">
                   <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">upload</mat-icon>
                   {{ uploadingImagen() ? 'Subiendo...' : 'Subir imagen' }}
@@ -632,17 +639,15 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="mb-1.5 block text-xs font-semibold text-text-main">
-                Precio referencial (S/)
-              </label>
+              <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio referencial (S/)</label>
               <input type="number" step="0.01" formControlName="precioCompra" placeholder="Dejar vacío si no aplica"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               <p class="mt-1 text-[11px] text-text-muted">El precio final se define en cada orden de compra.</p>
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Cantidad mínima</label>
               <input type="number" step="0.001" formControlName="cantidadMinimaCompra" placeholder="Sin mínimo"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
 
@@ -650,19 +655,18 @@
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Tiempo entrega (días)</label>
               <input type="number" formControlName="tiempoEntregaDias" placeholder="Ej. 5"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
               <select formControlName="estado"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
                 <option value="ACTIVO">Activo</option>
                 <option value="INACTIVO">Inactivo</option>
               </select>
             </div>
           </div>
 
-          <!-- Es principal -->
           <label class="flex cursor-pointer items-center gap-3">
             <input type="checkbox" formControlName="esPrincipal"
               class="h-4 w-4 rounded border-border-soft accent-primary" />
@@ -676,24 +680,29 @@
               </label>
               <input type="text" formControlName="motivo"
                 [placeholder]="editCatalogoId() ? 'Ej. Renegociación anual' : 'Ej. Cotización inicial'"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-text-main">Observación</label>
               <input type="text" formControlName="observacion" placeholder="Notas adicionales..."
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
         </div>
 
         <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
           <button type="button" (click)="cerrarModalCatalogo()"
-            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="savingCatalogo()"
             class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
-            {{ savingCatalogo() ? 'Guardando...' : (editCatalogoId() ? 'Actualizar' : 'Agregar') }}
+            @if (savingCatalogo()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+              Guardando...
+            } @else {
+              {{ editCatalogoId() ? 'Actualizar' : 'Agregar' }}
+            }
           </button>
         </div>
       </form>
@@ -705,9 +714,9 @@
      MODAL: CONFIRMAR ELIMINAR PROVEEDOR
 ═══════════════════════════════════════════════════════ -->
 @if (deleteTarget(); as t) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cancelarEliminar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
+    <div class="modal-enter w-full max-w-[420px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
       <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
         <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
@@ -724,12 +733,17 @@
       </div>
       <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarEliminar()"
-          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
-          {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
+          class="flex h-10 items-center gap-2 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          @if (deleting()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Eliminando...
+          } @else {
+            Sí, eliminar
+          }
         </button>
       </div>
     </div>

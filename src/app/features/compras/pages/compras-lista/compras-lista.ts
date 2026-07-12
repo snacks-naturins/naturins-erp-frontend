@@ -10,11 +10,14 @@ import { ProveedorResponse } from '../../../proveedores/models/proveedor.model';
 import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
 import { exportToCsv } from '../../../../shared/utils/export-csv';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+
+type SortDir = 'asc' | 'desc';
 
 @Component({
   selector: 'app-compras-lista',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MatIconModule, FechaPipe],
+  imports: [ReactiveFormsModule, RouterLink, MatIconModule, FechaPipe, BreadcrumbComponent],
   templateUrl: './compras-lista.html',
 })
 export class ComprasLista implements OnInit {
@@ -30,34 +33,63 @@ export class ComprasLista implements OnInit {
   readonly search = signal('');
   readonly searchDebounced = debouncedSignal(this.search);
   readonly filtroEstado = signal<string>('TODOS');
-  readonly fechaDesde = signal('');
-  readonly fechaHasta = signal('');
+  readonly fechaDesde   = signal('');
+  readonly fechaHasta   = signal('');
+
+  // ── Ordenamiento ───────────────────────────────────────────
+  readonly sortCol = signal('');
+  readonly sortDir = signal<SortDir>('asc');
 
   readonly filtrados = computed(() => {
     const q      = this.searchDebounced().toLowerCase().trim();
     const estado = this.filtroEstado();
     const desde  = this.fechaDesde();
     const hasta  = this.fechaHasta();
-    return this.items().filter((c) => {
-      const matchQ = !q || c.numeroOrden.toLowerCase().includes(q) || c.nombreProveedor.toLowerCase().includes(q);
-      const matchE = estado === 'TODOS' || c.estado === estado;
+    const col    = this.sortCol();
+    const dir    = this.sortDir();
+
+    let list = this.items().filter((c) => {
+      if (q && !c.numeroOrden.toLowerCase().includes(q) && !c.nombreProveedor.toLowerCase().includes(q)) return false;
+      if (estado !== 'TODOS' && c.estado !== estado) return false;
       const fecha = (c.fechaCompra ?? '').slice(0, 10);
-      const matchDesde = !desde || fecha >= desde;
-      const matchHasta = !hasta || fecha <= hasta;
-      return matchQ && matchE && matchDesde && matchHasta;
+      if (desde && fecha < desde) return false;
+      if (hasta && fecha > hasta) return false;
+      return true;
     });
+
+    if (col) {
+      list = [...list].sort((a, b) => {
+        let va: string | number, vb: string | number;
+        switch (col) {
+          case 'orden':     va = a.numeroOrden;     vb = b.numeroOrden;     break;
+          case 'proveedor': va = a.nombreProveedor.toLowerCase(); vb = b.nombreProveedor.toLowerCase(); break;
+          case 'fecha':     va = a.fechaCompra;     vb = b.fechaCompra;     break;
+          case 'total':     va = a.total;            vb = b.total;           break;
+          default: return 0;
+        }
+        if (va < vb) return dir === 'asc' ? -1 : 1;
+        if (va > vb) return dir === 'asc' ?  1 : -1;
+        return 0;
+      });
+    }
+    return list;
   });
 
   // ── Stats ──────────────────────────────────────────────────
-  readonly totalPendientes = computed(
-    () => this.items().filter((c) => c.estado === 'PENDIENTE').length,
+  readonly totalPendientes  = computed(() => this.items().filter((c) => c.estado === 'PENDIENTE').length);
+  readonly totalParciales   = computed(() => this.items().filter((c) => c.estado === 'RECIBIDA_PARCIAL').length);
+  readonly totalCompletadas = computed(() => this.items().filter((c) => c.estado === 'COMPLETADA').length);
+  readonly totalCanceladas  = computed(() => this.items().filter((c) => c.estado === 'CANCELADA').length);
+
+  readonly kpiValorTotal = computed(() =>
+    this.items().filter(c => c.estado === 'COMPLETADA').reduce((s, c) => s + (c.total ?? 0), 0)
   );
-  readonly totalCompletadas = computed(
-    () => this.items().filter((c) => c.estado === 'COMPLETADA').length,
-  );
-  readonly totalCanceladas = computed(
-    () => this.items().filter((c) => c.estado === 'CANCELADA').length,
-  );
+  readonly kpiValorTexto = computed(() => {
+    const v = this.kpiValorTotal();
+    if (v >= 1_000_000) return `S/ ${(v / 1_000_000).toFixed(1)}M`;
+    if (v >= 1000)      return `S/ ${(v / 1000).toFixed(1)}K`;
+    return `S/ ${v.toFixed(2)}`;
+  });
 
   // ── Modal nueva OC ─────────────────────────────────────────
   readonly modalOpen = signal(false);
@@ -96,7 +128,21 @@ export class ComprasLista implements OnInit {
   }
 
   setFiltroEstado(e: string): void {
-    this.filtroEstado.set(e);
+    this.filtroEstado.set(this.filtroEstado() === e ? 'TODOS' : e);
+  }
+
+  toggleSort(col: string): void {
+    if (this.sortCol() === col) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortCol.set(col);
+      this.sortDir.set('asc');
+    }
+  }
+
+  sortIcon(col: string): string {
+    if (this.sortCol() !== col) return 'unfold_more';
+    return this.sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
   // ── Modal ──────────────────────────────────────────────────

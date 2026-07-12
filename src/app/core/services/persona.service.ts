@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { CreatePersonaRequest, PersonaResponse } from '../models/persona.model';
+import { CreatePersonaRequest, PersonaResponse, UpdatePersonaRequest } from '../models/persona.model';
 
 @Injectable({ providedIn: 'root' })
 export class PersonaService {
@@ -20,5 +20,9 @@ export class PersonaService {
 
   obtenerPorId(id: string): Observable<PersonaResponse> {
     return this.http.get<PersonaResponse>(`${this.API_URL}/${id}`);
+  }
+
+  actualizar(id: string, dto: UpdatePersonaRequest): Observable<PersonaResponse> {
+    return this.http.put<PersonaResponse>(`${this.API_URL}/${id}`, dto);
   }
 }

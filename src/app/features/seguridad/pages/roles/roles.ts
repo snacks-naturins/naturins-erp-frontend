@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+
 import { RolService } from '../../services/rol.service';
 import { RolResponse } from '../../models/rol.model';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { debouncedSignal } from '../../../../shared/utils/debounce';
 
 @Component({
   selector: 'app-roles',
@@ -19,6 +21,28 @@ export class Roles implements OnInit {
   readonly saving   = signal(false);
   readonly error    = signal<string | null>(null);
   readonly items    = signal<RolResponse[]>([]);
+
+  readonly search       = signal('');
+  readonly searchD      = debouncedSignal(this.search);
+  readonly filtroEstado = signal('');
+
+  readonly kpiActivos   = computed(() => this.items().filter(r => r.estado === 'ACTIVO').length);
+  readonly kpiInactivos = computed(() => this.items().filter(r => r.estado !== 'ACTIVO').length);
+
+  readonly filtrados = computed(() => {
+    const q = this.searchD().toLowerCase().trim();
+    const e = this.filtroEstado();
+    return this.items().filter(r => {
+      const matchQ = !q || r.nombre.toLowerCase().includes(q) || (r.descripcion ?? '').toLowerCase().includes(q);
+      const matchE = !e || r.estado === e;
+      return matchQ && matchE;
+    });
+  });
+
+  setFiltroEstado(v: string): void {
+    this.filtroEstado.set(this.filtroEstado() === v ? '' : v);
+  }
+
   readonly modalOpen     = signal(false);
   readonly editandoId    = signal<string | null>(null);
   readonly confirmDelete = signal<RolResponse | null>(null);

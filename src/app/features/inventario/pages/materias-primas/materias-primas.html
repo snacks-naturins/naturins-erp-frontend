@@ -1,25 +1,41 @@
-<div class="flex flex-col gap-6">
+<div class="p-6 flex flex-col gap-6">
 
-  <!-- ── Encabezado ─────────────────────────────────────────── -->
+  <app-breadcrumb [items]="[{ label: 'Inventario' }, { label: 'Materias Primas' }]" />
+
+  <!-- ── Encabezado ───────────────────────────────────────── -->
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-text-main">Materias Primas</h1>
+      <h1 class="text-[28px] font-bold leading-tight text-text-main">Materias Primas</h1>
       <p class="mt-0.5 text-sm text-text-muted">Insumos y materiales usados en producción</p>
     </div>
-    @if ('Materia Prima' | rbac:'crear') {
-      <button (click)="abrirCrear()"
-        class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
-        Nueva materia prima
-      </button>
-    }
+    <div class="flex items-center gap-2">
+      @if (!loading() && !error() && filtrados().length > 0) {
+        <button (click)="exportar()"
+          class="flex h-10 items-center gap-2 rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">download</mat-icon>
+          Exportar
+        </button>
+      }
+      @if ('Materia Prima' | rbac:'crear') {
+        <button (click)="abrirCrear()"
+          class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
+          Nueva materia prima
+        </button>
+      }
+    </div>
   </div>
 
-  <!-- ── Stat cards ──────────────────────────────────────────── -->
+  <!-- ── KPI cards (clickables) ──────────────────────────── -->
   @if (!loading() && !error()) {
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
 
-      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
+      <!-- Activas -->
+      <button (click)="setFiltroEstado('ACTIVO')"
+        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+        [class]="filtroEstado() === 'ACTIVO'
+          ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+          : 'border-border-soft bg-bg-card'">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">grass</mat-icon>
         </div>
@@ -27,9 +43,14 @@
           <p class="text-2xl font-bold text-text-main">{{ totalActivas() }}</p>
           <p class="text-xs text-text-muted">Activas</p>
         </div>
-      </div>
+      </button>
 
-      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
+      <!-- Inactivas -->
+      <button (click)="setFiltroEstado('INACTIVO')"
+        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+        [class]="filtroEstado() === 'INACTIVO'
+          ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40'
+          : 'border-border-soft bg-bg-card'">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-gray-500">block</mat-icon>
         </div>
@@ -37,9 +58,14 @@
           <p class="text-2xl font-bold text-text-main">{{ totalInactivas() }}</p>
           <p class="text-xs text-text-muted">Inactivas</p>
         </div>
-      </div>
+      </button>
 
-      <div class="flex items-center gap-4 rounded-card bg-white p-5 shadow-sm">
+      <!-- Agotadas -->
+      <button (click)="setFiltroEstado('AGOTADO')"
+        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+        [class]="filtroEstado() === 'AGOTADO'
+          ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
+          : 'border-border-soft bg-bg-card'">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-red-100">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-red-500">remove_shopping_cart</mat-icon>
         </div>
@@ -47,10 +73,16 @@
           <p class="text-2xl font-bold text-text-main">{{ totalAgotadas() }}</p>
           <p class="text-xs text-text-muted">Agotadas</p>
         </div>
-      </div>
+      </button>
 
-      <div class="flex items-center gap-4 rounded-card p-5 shadow-sm"
-        [class]="bajoMinimo() > 0 ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-white'">
+      <!-- Bajo mínimo -->
+      <button (click)="setFiltroEstado('BAJO_MINIMO')"
+        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
+        [class]="filtroEstado() === 'BAJO_MINIMO'
+          ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
+          : bajoMinimo() > 0
+            ? 'border-amber-200 bg-amber-50/60 dark:bg-amber-900/10'
+            : 'border-border-soft bg-bg-card'">
         <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
           [class]="bajoMinimo() > 0 ? 'bg-amber-100' : 'bg-bg-app'">
           <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]!"
@@ -62,12 +94,18 @@
           </p>
           <p class="text-xs text-text-muted">Bajo mínimo</p>
         </div>
-      </div>
+      </button>
 
     </div>
+
+    <!-- Resumen: valor total de inventario -->
+    <p class="text-sm text-text-muted">
+      Valor total del inventario:&ensp;
+      <span class="font-semibold text-text-main">{{ kpiValorTexto() }}</span>
+    </p>
   }
 
-  <!-- ── Barra de filtros ────────────────────────────────────── -->
+  <!-- ── Barra de filtros ─────────────────────────────────── -->
   @if (!loading() && !error()) {
     <div class="flex flex-wrap items-center gap-3">
 
@@ -75,16 +113,16 @@
         <mat-icon fontSet="material-icons-outlined"
           class="pointer-events-none absolute left-3 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
         <input type="text" (input)="onSearch($event)" placeholder="Buscar materia prima..."
-          class="h-10 w-full rounded-input border border-border-soft bg-white pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          class="h-10 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
       </div>
 
-      <div class="flex gap-1 rounded-lg border border-border-soft bg-white p-1">
+      <div class="flex gap-1 rounded-lg border border-border-soft bg-bg-card p-1">
         @for (opt of [['TODOS','Todos'],['ACTIVO','Activos'],['INACTIVO','Inactivos'],['AGOTADO','Agotados']]; track opt[0]) {
           <button (click)="setFiltroEstado(opt[0])"
             class="rounded-md px-3 py-1.5 text-xs font-medium transition"
             [class]="filtroEstado() === opt[0]
               ? 'bg-primary text-white shadow-sm'
-              : 'text-text-muted hover:text-text-main'">
+              : 'text-text-muted hover:text-text-main hover:bg-bg-app'">
             {{ opt[1] }}
           </button>
         }
@@ -96,7 +134,7 @@
     </div>
   }
 
-  <!-- ── Carga / error ───────────────────────────────────────── -->
+  <!-- ── Carga / error ────────────────────────────────────── -->
   @if (loading()) {
     <div class="flex h-40 items-center justify-center gap-2 text-text-muted">
       <mat-icon fontSet="material-icons-outlined" class="animate-spin">progress_activity</mat-icon>
@@ -106,8 +144,8 @@
     <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</div>
   } @else {
 
-    <!-- ── Tabla ────────────────────────────────────────────── -->
-    <div class="overflow-hidden rounded-table bg-white shadow-sm">
+    <!-- ── Tabla ──────────────────────────────────────────── -->
+    <div class="overflow-hidden rounded-table border border-border-soft bg-bg-card shadow-sm">
       @if (filtrados().length === 0) {
         <div class="flex flex-col items-center gap-3 py-20 text-center text-text-muted">
           <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">grass</mat-icon>
@@ -127,17 +165,32 @@
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-border-soft bg-bg-app text-left text-xs text-text-muted">
-                <th class="px-5 py-3 font-semibold">Nombre</th>
-                <th class="px-5 py-3 font-semibold">Unidad</th>
-                <th class="px-5 py-3 font-semibold text-right">Stock actual</th>
-                <th class="px-5 py-3 font-semibold text-right">Costo unitario</th>
-                <th class="px-5 py-3 text-center font-semibold">Estado</th>
-                <th class="px-5 py-3 text-center font-semibold">Acciones</th>
+                <th class="px-5 py-3">
+                  <button (click)="toggleSort('nombre')" class="flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-text-main">
+                    Nombre
+                    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">{{ sortIcon('nombre') }}</mat-icon>
+                  </button>
+                </th>
+                <th class="px-5 py-3 font-semibold uppercase tracking-wide">Unidad</th>
+                <th class="px-5 py-3 text-right">
+                  <button (click)="toggleSort('stock')" class="ml-auto flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-text-main">
+                    Stock actual
+                    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">{{ sortIcon('stock') }}</mat-icon>
+                  </button>
+                </th>
+                <th class="px-5 py-3 text-right">
+                  <button (click)="toggleSort('costo')" class="ml-auto flex items-center gap-1 font-semibold uppercase tracking-wide hover:text-text-main">
+                    Costo unitario
+                    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">{{ sortIcon('costo') }}</mat-icon>
+                  </button>
+                </th>
+                <th class="px-5 py-3 text-center font-semibold uppercase tracking-wide">Estado</th>
+                <th class="px-5 py-3 text-center font-semibold uppercase tracking-wide">Acciones</th>
               </tr>
             </thead>
             <tbody>
               @for (m of filtrados(); track m.id) {
-                <tr class="border-b border-border-soft transition last:border-0 hover:bg-green-50/40">
+                <tr class="border-b border-border-soft transition last:border-0 hover:bg-bg-app">
 
                   <!-- Nombre -->
                   <td class="px-5 py-3.5">
@@ -172,7 +225,7 @@
                     <span class="ml-1 text-xs text-text-muted">{{ m.unidadMedida }}</span>
                     @if (m.stockMinimo != null) {
                       <div class="mt-1 flex items-center justify-end gap-1">
-                        <div class="h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
+                        <div class="h-1.5 w-20 overflow-hidden rounded-full bg-bg-app">
                           <div class="h-full rounded-full transition-all"
                             [class]="nivelStock(m) === 'critico' ? 'bg-red-500' : nivelStock(m) === 'bajo' ? 'bg-amber-400' : 'bg-green-500'"
                             [style.width.%]="m.stockMinimo > 0 ? Math.min(100, (m.stock / m.stockMinimo) * 100) : 100">
@@ -200,12 +253,12 @@
                   <td class="px-5 py-3.5">
                     <div class="flex items-center justify-center gap-1">
                       <button (click)="abrirAjustarStock(m)"
-                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-amber-50 hover:text-amber-600"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-amber-100 hover:text-amber-600"
                         title="Ajustar stock">
                         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">tune</mat-icon>
                       </button>
                       <button (click)="verKardex(m)"
-                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-blue-50 hover:text-blue-600"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-blue-100 hover:text-blue-600"
                         title="Ver Kardex">
                         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">receipt_long</mat-icon>
                       </button>
@@ -215,7 +268,7 @@
                         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">edit</mat-icon>
                       </button>
                       <button (click)="pedirEliminar(m)"
-                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-100 hover:text-red-500"
                         title="Eliminar">
                         <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">delete</mat-icon>
                       </button>
@@ -238,15 +291,20 @@
      MODAL: CREAR / EDITAR
 ═══════════════════════════════════════════════════════ -->
 @if (modalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 py-8"
+  <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 py-8 backdrop-blur-sm"
     (click)="cerrarModal()">
-    <div class="w-full max-w-[480px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
+    <div class="modal-enter w-full max-w-[480px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
 
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
-        <h3 class="font-semibold text-text-main">
-          {{ editId() ? 'Editar materia prima' : 'Nueva materia prima' }}
-        </h3>
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">grass</mat-icon>
+          </div>
+          <h3 class="font-semibold text-text-main">
+            {{ editId() ? 'Editar materia prima' : 'Nueva materia prima' }}
+          </h3>
+        </div>
         <button (click)="cerrarModal()"
           class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
@@ -275,7 +333,7 @@
                 Nombre <span class="text-red-500">*</span>
               </label>
               <input type="text" formControlName="nombre" placeholder="Ej. Avena en hojuelas"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
               @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
                 <small class="mt-1 block text-xs text-red-600">El nombre es requerido.</small>
               }
@@ -288,7 +346,7 @@
               Unidad de medida <span class="text-red-500">*</span>
             </label>
             <select formControlName="unidadMedida"
-              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
               <option value="" disabled>Selecciona</option>
               @for (u of ['kg','g','L','mL','unidad']; track u) {
                 <option [value]="u">{{ u }}</option>
@@ -305,7 +363,7 @@
                   Stock inicial <span class="text-red-500">*</span>
                 </label>
                 <input type="number" step="0.001" min="0" formControlName="stock" placeholder="0"
-                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
                 <p class="mt-1 text-[11px] text-text-muted">Ajusta el stock con movimientos.</p>
               </div>
             }
@@ -316,13 +374,13 @@
                 Costo unitario (S/) <span class="text-red-500">*</span>
               </label>
               <input type="number" step="0.01" min="0" formControlName="costoUnitario" placeholder="0.00"
-                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20" />
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
             </div>
 
           </div>
 
           <!-- Alertas de stock -->
-          <div class="rounded-lg border border-amber-100 bg-amber-50/50 p-4">
+          <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-4">
             <p class="mb-3 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
               <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">warning</mat-icon>
               Alertas de stock <span class="font-normal text-text-muted">(opcional)</span>
@@ -331,13 +389,13 @@
               <div>
                 <label class="mb-1.5 block text-xs font-medium text-text-main">Stock mínimo</label>
                 <input type="number" step="0.001" min="0" formControlName="stockMinimo" placeholder="Ej. 10"
-                  class="h-10 w-full rounded-input border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200" />
                 <p class="mt-1 text-[11px] text-text-muted">Alerta amarilla</p>
               </div>
               <div>
                 <label class="mb-1.5 block text-xs font-medium text-text-main">Stock crítico</label>
                 <input type="number" step="0.001" min="0" formControlName="stockCritico" placeholder="Ej. 3"
-                  class="h-10 w-full rounded-input border border-border-soft bg-white px-3 text-sm outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-200" />
+                  class="h-10 w-full rounded-input border border-border-soft bg-bg-card px-3 text-sm text-text-main outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-200" />
                 <p class="mt-1 text-[11px] text-text-muted">Alerta roja</p>
               </div>
             </div>
@@ -347,7 +405,7 @@
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
             <select formControlName="estado"
-              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
             </select>
@@ -357,12 +415,17 @@
 
         <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
           <button type="button" (click)="cerrarModal()"
-            class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="saving()"
             class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
-            {{ saving() ? 'Guardando...' : (editId() ? 'Actualizar' : 'Crear') }}
+            @if (saving()) {
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+              Guardando...
+            } @else {
+              {{ editId() ? 'Actualizar' : 'Crear' }}
+            }
           </button>
         </div>
       </form>
@@ -375,11 +438,11 @@
      MODAL: CONFIRMAR ELIMINAR
 ═══════════════════════════════════════════════════════ -->
 @if (deleteTarget(); as t) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cancelarEliminar()">
-    <div class="w-full max-w-[420px] overflow-hidden rounded-modal modal-enter bg-white shadow-[var(--shadow-modal)]"
+    <div class="modal-enter w-full max-w-[420px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
       (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+      <div class="flex flex-col items-center gap-3 px-6 pb-2 pt-7 text-center">
         <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
           <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
         </div>
@@ -394,67 +457,107 @@
       </div>
       <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
         <button (click)="cancelarEliminar()"
-          class="flex h-10 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-10 items-center rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
-          {{ deleting() ? 'Eliminando...' : 'Sí, eliminar' }}
+          class="flex h-10 items-center gap-2 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          @if (deleting()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Eliminando...
+          } @else {
+            Sí, eliminar
+          }
         </button>
       </div>
     </div>
   </div>
 }
 
-<!-- Modal ajustar stock -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: AJUSTAR STOCK
+═══════════════════════════════════════════════════════ -->
 @if (ajusteTarget(); as m) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarAjuste()">
-    <div class="w-full max-w-[400px] overflow-hidden rounded-modal bg-white shadow-[0_20px_40px_rgba(0,0,0,0.15)]" (click)="$event.stopPropagation()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cerrarAjuste()">
+    <div class="modal-enter w-full max-w-[400px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+
       <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
-        <div>
-          <h3 class="text-base font-semibold text-text-main">Ajustar stock</h3>
-          <p class="text-xs text-text-muted">{{ m.nombre }} · Stock actual: <span class="font-medium text-text-main">{{ stockLabel(m.stock) }} {{ m.unidadMedida }}</span></p>
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-amber-100">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-amber-600">tune</mat-icon>
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-text-main">Ajustar stock</h3>
+            <p class="text-xs text-text-muted">
+              {{ m.nombre }} · Stock: <span class="font-medium text-text-main">{{ stockLabel(m.stock) }} {{ m.unidadMedida }}</span>
+            </p>
+          </div>
         </div>
         <button (click)="cerrarAjuste()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
           <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
+
       <div class="flex flex-col gap-4 p-6">
         @if (errorAjuste()) {
-          <div class="rounded-lg border border-[#f5c6cb] bg-[#fdecea] px-3 py-2 text-sm text-[#b71c1c]">{{ errorAjuste() }}</div>
+          <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ errorAjuste() }}</div>
         }
+
         <div>
           <label class="mb-1.5 block text-xs font-semibold text-text-main">Tipo de ajuste</label>
           <div class="grid grid-cols-2 gap-2">
             <button (click)="ajusteTipo.set('AJUSTE_POSITIVO')"
               class="flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition"
-              [class]="ajusteTipo() === 'AJUSTE_POSITIVO' ? 'border-[#15803D] bg-[#DCFCE7] text-[#15803D]' : 'border-border-soft text-text-muted hover:bg-bg-app'">
-              <mat-icon fontSet="material-icons-outlined" class="text-[16px]">add_circle</mat-icon> Entrada (+)
+              [class]="ajusteTipo() === 'AJUSTE_POSITIVO'
+                ? 'border-green-400 bg-green-100 text-green-700'
+                : 'border-border-soft text-text-muted hover:bg-bg-app'">
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">add_circle</mat-icon>
+              Entrada (+)
             </button>
             <button (click)="ajusteTipo.set('AJUSTE_NEGATIVO')"
               class="flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition"
-              [class]="ajusteTipo() === 'AJUSTE_NEGATIVO' ? 'border-[#B91C1C] bg-[#FEE2E2] text-[#B91C1C]' : 'border-border-soft text-text-muted hover:bg-bg-app'">
-              <mat-icon fontSet="material-icons-outlined" class="text-[16px]">remove_circle</mat-icon> Salida (−)
+              [class]="ajusteTipo() === 'AJUSTE_NEGATIVO'
+                ? 'border-red-400 bg-red-100 text-red-700'
+                : 'border-border-soft text-text-muted hover:bg-bg-app'">
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">remove_circle</mat-icon>
+              Salida (−)
             </button>
           </div>
         </div>
+
         <div>
           <label class="mb-1.5 block text-xs font-semibold text-text-main">Cantidad</label>
           <input type="number" step="0.001" min="0.001"
             [value]="ajusteCantidad()" (input)="ajusteCantidad.set(+$any($event.target).value)"
-            class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+            class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
         </div>
+
         <div>
-          <label class="mb-1.5 block text-xs font-semibold text-text-main">Observación <span class="font-normal text-text-muted">(opcional)</span></label>
-          <input type="text" [value]="ajusteObs()" (input)="ajusteObs.set($any($event.target).value)" placeholder="Motivo del ajuste"
-            class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3.5 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">
+            Observación <span class="font-normal text-text-muted">(opcional)</span>
+          </label>
+          <input type="text"
+            [value]="ajusteObs()" (input)="ajusteObs.set($any($event.target).value)"
+            placeholder="Motivo del ajuste"
+            class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
         </div>
       </div>
+
       <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
-        <button (click)="cerrarAjuste()" class="flex h-11 items-center rounded-btn border border-border-soft bg-white px-5 text-sm font-semibold text-text-main hover:bg-bg-app">Cancelar</button>
+        <button (click)="cerrarAjuste()"
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main hover:bg-bg-app">
+          Cancelar
+        </button>
         <button (click)="guardarAjuste()" [disabled]="savingAjuste() || ajusteCantidad() <= 0"
-          class="flex h-11 items-center rounded-btn bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60">
-          {{ savingAjuste() ? 'Registrando...' : 'Registrar ajuste' }}
+          class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60">
+          @if (savingAjuste()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Registrando...
+          } @else {
+            Registrar ajuste
+          }
         </button>
       </div>
     </div>

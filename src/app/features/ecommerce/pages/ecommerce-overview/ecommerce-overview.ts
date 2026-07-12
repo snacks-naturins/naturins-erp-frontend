@@ -6,11 +6,12 @@ import { PedidoService } from '../../../ventas/services/pedido.service';
 import { CuponService } from '../../services/cupon.service';
 import { BannerService } from '../../services/banner.service';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
+import { FechaPipe } from '../../../../shared/pipes/fecha.pipe';
 
 @Component({
   selector: 'app-ecommerce-overview',
   standalone: true,
-  imports: [MatIconModule, RouterLink, BreadcrumbComponent],
+  imports: [MatIconModule, RouterLink, BreadcrumbComponent, FechaPipe],
   templateUrl: './ecommerce-overview.html',
 })
 export class EcommerceOverview implements OnInit {
@@ -44,6 +45,12 @@ export class EcommerceOverview implements OnInit {
       count: this.pedidosEcommerce().filter((p) => p.estado === e).length,
     }));
   });
+
+  readonly pedidosRecientes = computed(() =>
+    [...this.pedidosEcommerce()]
+      .sort((a, b) => (b.fechaCreacion ?? '').localeCompare(a.fechaCreacion ?? ''))
+      .slice(0, 6)
+  );
 
   ngOnInit(): void {
     let pendientes = 3;

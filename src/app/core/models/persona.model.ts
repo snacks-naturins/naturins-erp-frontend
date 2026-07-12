@@ -25,3 +25,11 @@ export interface CreatePersonaRequest {
   correo?: string;
   estado: EstadoPersona;
 }
+
+export interface UpdatePersonaRequest {
+  nombres: string;
+  apellidos: string;
+  telefono?: string;
+  correo?: string;
+  direccion?: string;
+}

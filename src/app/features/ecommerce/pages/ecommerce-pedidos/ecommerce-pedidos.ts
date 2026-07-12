@@ -16,38 +16,47 @@ import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/br
 export class EcommercePedidos implements OnInit {
   private readonly svc = inject(PedidoService);
 
-  readonly loading  = signal(true);
-  readonly error    = signal<string | null>(null);
-  readonly todos    = signal<PedidoResponse[]>([]);
-  readonly search   = signal('');
-  readonly searchDebounced = debouncedSignal(this.search);
-  readonly accionando  = signal<string | null>(null);
-  readonly detalleOpen = signal<PedidoResponse | null>(null);
+  readonly loading      = signal(true);
+  readonly error        = signal<string | null>(null);
+  readonly todos        = signal<PedidoResponse[]>([]);
+  readonly search       = signal('');
+  readonly searchD      = debouncedSignal(this.search);
+  readonly estadoFiltro = signal('');
+  readonly accionando   = signal<string | null>(null);
+  readonly detalleOpen  = signal<PedidoResponse | null>(null);
+
+  readonly kpiTotal      = computed(() => this.todos().length);
+  readonly kpiActivos    = computed(() =>
+    this.todos().filter(p => !['ENTREGADO', 'CANCELADO', 'DEVUELTO'].includes(p.estado)).length);
+  readonly kpiEntregados = computed(() =>
+    this.todos().filter(p => p.estado === 'ENTREGADO').length);
+  readonly kpiVentas     = computed(() =>
+    this.todos()
+      .filter(p => p.estado !== 'CANCELADO' && p.estado !== 'DEVUELTO')
+      .reduce((s, p) => s + (Number(p.total) || 0), 0));
 
   readonly pedidos = computed(() => {
-    const q = this.searchDebounced().toLowerCase().trim();
-    return this.todos().filter(
-      (p) => !q || p.numeroPedido.toLowerCase().includes(q) || p.nombreCliente.toLowerCase().includes(q),
-    );
+    const q = this.searchD().toLowerCase().trim();
+    const e = this.estadoFiltro();
+    return this.todos().filter(p => {
+      const matchQ = !q || p.numeroPedido.toLowerCase().includes(q) || (p.nombreCliente ?? '').toLowerCase().includes(q);
+      const matchE = !e || (e === 'activos'
+        ? !['ENTREGADO', 'CANCELADO', 'DEVUELTO'].includes(p.estado)
+        : p.estado === e);
+      return matchQ && matchE;
+    });
   });
 
-  readonly kpiTotal = computed(() => this.todos().length);
-  readonly kpiActivos = computed(() =>
-    this.todos().filter((p) => !['ENTREGADO', 'CANCELADO', 'DEVUELTO'].includes(p.estado)).length);
-  readonly kpiVentas = computed(() =>
-    this.todos()
-      .filter((p) => p.estado !== 'CANCELADO' && p.estado !== 'DEVUELTO')
-      .reduce((s, p) => s + (Number(p.total) || 0), 0));
+  setEstadoFiltro(v: string): void {
+    this.estadoFiltro.set(this.estadoFiltro() === v ? '' : v);
+  }
 
   ngOnInit(): void { this.cargar(); }
 
   cargar(): void {
     this.loading.set(true);
     this.svc.listar().subscribe({
-      next: (d) => {
-        this.todos.set(d.filter((p) => p.canal === 'ECOMMERCE'));
-        this.loading.set(false);
-      },
+      next: (d) => { this.todos.set(d.filter(p => p.canal === 'ECOMMERCE')); this.loading.set(false); },
       error: () => { this.error.set('No se pudieron cargar los pedidos.'); this.loading.set(false); },
     });
   }
@@ -76,6 +85,15 @@ export class EcommercePedidos implements OnInit {
     });
   }
 
+  estadoLabel(e: string): string {
+    const map: Record<string, string> = {
+      NUEVO: 'Nuevo', CONFIRMADO: 'Confirmado', EN_PREPARACION: 'En preparación',
+      LISTO_DESPACHO: 'Para despacho', ENTREGADO: 'Entregado',
+      CANCELADO: 'Cancelado', DEVUELTO: 'Devuelto',
+    };
+    return map[e] ?? e;
+  }
+
   estadoColor(e: string): string {
     const map: Record<string, string> = {
       NUEVO: 'bg-blue-100 text-blue-700',
@@ -87,6 +105,19 @@ export class EcommercePedidos implements OnInit {
       DEVUELTO: 'bg-red-100 text-red-600',
     };
     return map[e] ?? 'bg-gray-100 text-gray-500';
+  }
+
+  estadoDot(e: string): string {
+    const map: Record<string, string> = {
+      NUEVO: 'bg-blue-500', CONFIRMADO: 'bg-amber-500', EN_PREPARACION: 'bg-orange-500',
+      LISTO_DESPACHO: 'bg-yellow-500', ENTREGADO: 'bg-green-500',
+      CANCELADO: 'bg-gray-400', DEVUELTO: 'bg-red-400',
+    };
+    return map[e] ?? 'bg-gray-400';
+  }
+
+  pagadoLabel(e: string): string {
+    return { PAGADO: 'Pagado', PARCIAL: 'Parcial', PENDIENTE: 'Pendiente', VENCIDO: 'Vencido' }[e] ?? e;
   }
 
   pagadoColor(e: string): string {
@@ -104,10 +135,11 @@ export class EcommercePedidos implements OnInit {
   }
 
   accionLabel(estado: string): string {
-    const map: Record<string, string> = {
-      NUEVO: 'Confirmar', CONFIRMADO: 'Preparar', EN_PREPARACION: 'Despachar', LISTO_DESPACHO: 'Entregar',
-    };
-    return map[estado] ?? '';
+    return { NUEVO: 'Confirmar', CONFIRMADO: 'Preparar', EN_PREPARACION: 'Despachar', LISTO_DESPACHO: 'Entregar' }[estado] ?? '';
+  }
+
+  accionIcon(estado: string): string {
+    return { NUEVO: 'check_circle', CONFIRMADO: 'inventory', EN_PREPARACION: 'local_shipping', LISTO_DESPACHO: 'done_all' }[estado] ?? 'arrow_forward';
   }
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }

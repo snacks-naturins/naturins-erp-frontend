@@ -1,32 +1,100 @@
 <!-- ═══ VISTA LISTA ═══ -->
 @if (view() === 'list') {
-<div class="flex flex-col gap-5">
+<div class="flex flex-col gap-6">
 
   <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Ventas'}, {label:'Cotizaciones'}]" />
 
+  <!-- Header -->
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <h1 class="text-[28px] font-bold text-text-main">Cotizaciones</h1>
-      <p class="text-sm text-text-muted">Propuestas de venta enviadas a clientes</p>
+      <h1 class="text-[28px] font-bold leading-tight text-text-main">Cotizaciones</h1>
+      <p class="mt-0.5 text-sm text-text-muted">Propuestas de venta enviadas a clientes</p>
     </div>
     @if ('Cotizaciones' | rbac:'crear') {
       <button (click)="abrirNueva()"
-        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-        <mat-icon>add</mat-icon> Nueva cotización
+        class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">add</mat-icon>
+        Nueva cotización
       </button>
     }
   </div>
 
+  <!-- KPI cards -->
+  <div class="grid grid-cols-2 gap-4 xl:grid-cols-5">
+
+    <button (click)="setEstadoFiltro('BORRADOR')"
+      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
+      [class]="estadoFiltro() === 'BORRADOR' ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gray-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-gray-500">draft</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] text-text-muted">Borradores</p>
+        <p class="text-xl font-bold text-gray-600">{{ totalBorradores() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setEstadoFiltro('ENVIADA')"
+      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ENVIADA' ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-blue-600">send</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] text-text-muted">Enviadas</p>
+        <p class="text-xl font-bold text-blue-600">{{ totalEnviadas() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setEstadoFiltro('ACEPTADA')"
+      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ACEPTADA' ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-green-600">check_circle</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] text-text-muted">Aceptadas</p>
+        <p class="text-xl font-bold text-green-600">{{ totalAceptadas() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setEstadoFiltro('RECHAZADA')"
+      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
+      [class]="estadoFiltro() === 'RECHAZADA' ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-red-500">cancel</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] text-text-muted">Rechazadas</p>
+        <p class="text-xl font-bold text-red-500">{{ totalRechazadas() }}</p>
+      </div>
+    </button>
+
+    <button (click)="setEstadoFiltro('VENCIDA')"
+      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
+      [class]="estadoFiltro() === 'VENCIDA' ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20' : 'border-border-soft bg-bg-card'">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-100">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-orange-600">schedule</mat-icon>
+      </div>
+      <div>
+        <p class="text-[11px] text-text-muted">Vencidas</p>
+        <p class="text-xl font-bold text-orange-600">{{ totalVencidas() }}</p>
+      </div>
+    </button>
+
+  </div>
+
   <!-- Filtros -->
-  <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <div class="relative flex min-w-[220px] flex-1 items-center">
-      <mat-icon class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="relative flex min-w-0 flex-1 items-center sm:max-w-xs">
+      <mat-icon fontSet="material-icons-outlined"
+        class="pointer-events-none absolute left-3 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
       <input type="text" placeholder="Buscar por número o cliente..."
         [value]="search()"
         (input)="search.set($any($event.target).value)"
-        class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+        class="h-10 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="flex gap-1 rounded-lg border border-border-soft bg-bg-card p-1">
       @for (chip of [
         { v: '', l: 'Todos' },
         { v: 'BORRADOR', l: 'Borrador' },
@@ -35,188 +103,362 @@
         { v: 'RECHAZADA', l: 'Rechazada' },
         { v: 'VENCIDA', l: 'Vencida' }
       ]; track chip.v) {
-        <button type="button" (click)="estadoFiltro.set(chip.v)"
-          class="rounded-full px-3 py-1 text-xs font-semibold transition"
-          [class]="estadoFiltro() === chip.v ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">
+        <button type="button" (click)="setEstadoFiltro(chip.v)"
+          class="rounded-md px-3 py-1.5 text-xs font-medium transition"
+          [class]="estadoFiltro() === chip.v
+            ? 'bg-primary text-white shadow-sm'
+            : 'text-text-muted hover:text-text-main hover:bg-bg-app'">
           {{ chip.l }}
         </button>
       }
     </div>
-    <span class="ml-auto text-xs text-text-muted">{{ filtradas().length }} resultado(s)</span>
+    <span class="text-xs text-text-muted">{{ filtradas().length }} resultado{{ filtradas().length !== 1 ? 's' : '' }}</span>
   </div>
 
   @if (accionError()) {
-    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-      <mat-icon class="text-[18px]">error</mat-icon> {{ accionError() }}
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! shrink-0">error_outline</mat-icon>
+      {{ accionError() }}
     </div>
   }
 
   <!-- Tabla -->
-  <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-          <th class="px-5 py-3 font-semibold">Número</th>
-          <th class="px-5 py-3 font-semibold">Cliente</th>
-          <th class="px-5 py-3 text-right font-semibold">Total</th>
-          <th class="px-5 py-3 text-center font-semibold">IGV</th>
-          <th class="px-5 py-3 text-center font-semibold">Estado</th>
-          <th class="px-5 py-3 text-center font-semibold">Fecha</th>
-          <th class="px-5 py-3 text-center font-semibold">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          <tr><td colspan="7" class="px-5 py-12 text-center text-text-muted">
-            <mat-icon class="animate-spin align-middle">progress_activity</mat-icon> Cargando...
-          </td></tr>
-        } @else if (filtradas().length === 0) {
-          <tr><td colspan="7">
-            <app-empty-state icono="description" titulo="No hay cotizaciones" descripcion="Crea la primera cotización para un cliente." labelCta="Nueva cotización" (cta)="abrirNueva()" />
-          </td></tr>
-        } @else {
-          @for (c of filtradas(); track c.id) {
-            <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
-              <td class="px-5 py-3 font-semibold text-primary">{{ c.numeroCotizacion }}</td>
-              <td class="px-5 py-3 text-text-main">{{ c.nombreCliente }}</td>
-              <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(c.total) }}</td>
-              <td class="px-5 py-3 text-center">
-                @if (c.incluyeIgv) {
-                  <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">+18%</span>
-                } @else {
-                  <span class="text-xs text-text-muted">No</span>
-                }
-              </td>
-              <td class="px-5 py-3 text-center">
-                <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium" [class]="estadoInfo(c.estado).classes">
-                  {{ estadoInfo(c.estado).label }}
-                </span>
-              </td>
-              <td class="px-5 py-3 text-center text-xs text-text-muted">{{ c.fechaCreacion | fecha }}</td>
-              <td class="px-5 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  @if (c.estado === 'BORRADOR') {
-                    <button (click)="abrirEditar(c)"
-                      title="Editar cotización"
-                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-amber-50 hover:text-amber-600 transition">
-                      <mat-icon class="text-[18px]">edit</mat-icon>
-                    </button>
-                    <button (click)="enviar(c)" [disabled]="accionando() === c.id"
-                      title="Enviar al cliente"
-                      class="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50">
-                      <mat-icon class="text-[14px]">send</mat-icon> Enviar
-                    </button>
-                  }
-                  @if (c.estado === 'ENVIADA') {
-                    <button (click)="aceptar(c)" [disabled]="accionando() === c.id"
-                      title="Marcar aceptada"
-                      class="flex items-center gap-1 rounded-lg bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50">
-                      <mat-icon class="text-[14px]">check</mat-icon>
-                    </button>
-                    <button (click)="rechazar(c)" [disabled]="accionando() === c.id"
-                      title="Marcar rechazada"
-                      class="flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50">
-                      <mat-icon class="text-[14px]">close</mat-icon>
-                    </button>
-                  }
-                  @if (c.estado === 'ACEPTADA') {
-                    <button (click)="abrirConvertir(c)" [disabled]="accionando() === c.id"
-                      title="Convertir a pedido"
-                      class="flex items-center gap-1 rounded-lg bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50">
-                      <mat-icon class="text-[14px]">shopping_bag</mat-icon> Convertir
-                    </button>
-                  }
-                  @if (c.estado === 'BORRADOR') {
-                    <button (click)="pedirEliminar(c)"
-                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-red-50 hover:text-red-500 transition">
-                      <mat-icon class="text-[18px]">delete</mat-icon>
-                    </button>
-                  }
-                </div>
-              </td>
+  <div class="overflow-hidden rounded-table border border-border-soft bg-bg-card shadow-sm">
+    @if (loading()) {
+      <div class="flex items-center justify-center gap-3 py-16 text-text-muted">
+        <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
+        <span class="text-sm">Cargando cotizaciones...</span>
+      </div>
+    } @else if (filtradas().length === 0) {
+      <div class="py-4">
+        <app-empty-state icono="description" titulo="No hay cotizaciones"
+          descripcion="Crea la primera cotización para un cliente."
+          labelCta="Nueva cotización" (cta)="abrirNueva()" />
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <th class="px-5 py-3">Número</th>
+              <th class="px-5 py-3">Cliente</th>
+              <th class="px-5 py-3 text-right">Total</th>
+              <th class="px-5 py-3 text-center">IGV</th>
+              <th class="px-5 py-3 text-center">Estado</th>
+              <th class="px-5 py-3 text-center">Fecha</th>
+              <th class="px-5 py-3 text-center">Acciones</th>
             </tr>
-          }
-        }
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            @for (c of filtradas(); track c.id) {
+              <tr class="border-b border-border-soft transition hover:bg-bg-app"
+                [class.bg-primary/5]="detalleOpen() === c.id">
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <button type="button" (click)="verDetalle(c)" title="Ver detalle"
+                      class="grid h-6 w-6 shrink-0 place-items-center rounded transition"
+                      [class]="detalleOpen() === c.id ? 'text-primary' : 'text-text-muted hover:text-primary'">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[15px]! h-[15px]! w-[15px]!">
+                        {{ detalleOpen() === c.id ? 'expand_less' : 'expand_more' }}
+                      </mat-icon>
+                    </button>
+                    <span class="font-mono text-xs font-bold text-primary">{{ c.numeroCotizacion }}</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3 font-medium text-text-main">{{ c.nombreCliente }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(c.total) }}</td>
+                <td class="px-5 py-3 text-center">
+                  @if (c.incluyeIgv) {
+                    <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">+18%</span>
+                  } @else {
+                    <span class="text-xs text-text-muted">No</span>
+                  }
+                </td>
+                <td class="px-5 py-3 text-center">
+                  <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [class]="estadoInfo(c.estado).classes">
+                    {{ estadoInfo(c.estado).label }}
+                  </span>
+                </td>
+                <td class="px-5 py-3 text-center text-xs text-text-muted">{{ c.fechaCreacion | fecha }}</td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center justify-center gap-1">
+
+                    @if (c.estado === 'BORRADOR') {
+                      <button (click)="abrirEditar(c)" title="Editar"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">edit</mat-icon>
+                      </button>
+                      <button (click)="enviar(c)" [disabled]="accionando() === c.id" title="Enviar al cliente"
+                        class="flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">send</mat-icon>
+                        Enviar
+                      </button>
+                    }
+
+                    @if (c.estado === 'ENVIADA') {
+                      <button (click)="aceptar(c)" [disabled]="accionando() === c.id" title="Marcar aceptada"
+                        class="flex items-center gap-1 rounded-lg bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 transition hover:bg-green-100 disabled:opacity-50">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">check</mat-icon>
+                        Aceptar
+                      </button>
+                      <button (click)="rechazar(c)" [disabled]="accionando() === c.id" title="Rechazar"
+                        class="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">close</mat-icon>
+                        Rechazar
+                      </button>
+                    }
+
+                    @if (c.estado === 'ACEPTADA') {
+                      <button (click)="abrirConvertir(c)" [disabled]="accionando() === c.id" title="Convertir a pedido"
+                        class="flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 transition hover:bg-purple-100 disabled:opacity-50">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">shopping_bag</mat-icon>
+                        Convertir
+                      </button>
+                    }
+
+                    @if (c.estado === 'BORRADOR') {
+                      <button (click)="pedirEliminar(c)" title="Eliminar"
+                        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">delete</mat-icon>
+                      </button>
+                    }
+
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Fila expandible: detalle de productos -->
+              @if (detalleOpen() === c.id) {
+                <tr class="border-b border-border-soft">
+                  <td colspan="7" class="bg-bg-app px-5 py-4">
+
+                    @if (loadingDetalle()) {
+                      <div class="flex items-center gap-2 text-sm text-text-muted">
+                        <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4! text-primary">progress_activity</mat-icon>
+                        Cargando productos...
+                      </div>
+                    } @else {
+
+                      <div class="flex flex-col gap-3">
+                        <!-- Tabla productos -->
+                        <div class="overflow-hidden rounded-lg border border-border-soft bg-bg-card">
+                          <table class="w-full text-xs">
+                            <thead>
+                              <tr class="border-b border-border-soft bg-bg-app text-left text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                                <th class="px-4 py-2">Producto / Presentación</th>
+                                <th class="px-4 py-2 text-center">Cantidad</th>
+                                <th class="px-4 py-2 text-right">P. Unit.</th>
+                                <th class="px-4 py-2 text-right">Subtotal</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @if (detalleLineas().length === 0) {
+                                <tr>
+                                  <td colspan="4" class="px-4 py-3 text-center text-text-muted">Sin productos registrados</td>
+                                </tr>
+                              }
+                              @for (l of detalleLineas(); track l.id) {
+                                <tr class="border-b border-border-soft last:border-0">
+                                  <td class="px-4 py-2.5 font-medium text-text-main">{{ l.nombrePresentacionProducto }}</td>
+                                  <td class="px-4 py-2.5 text-center text-text-muted">{{ l.cantidad }}</td>
+                                  <td class="px-4 py-2.5 text-right text-text-muted">{{ formatMonto(l.precioUnitario) }}</td>
+                                  <td class="px-4 py-2.5 text-right font-semibold text-text-main">{{ formatMonto(l.subtotal) }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <!-- Resumen financiero -->
+                        <div class="flex justify-end">
+                          <div class="w-52 rounded-lg border border-border-soft bg-bg-card px-4 py-3 text-xs">
+                            @let sub = detalleLineas().reduce((s, l) => s + l.subtotal, 0);
+                            <div class="flex justify-between py-1 text-text-muted">
+                              <span>Subtotal</span><span class="font-medium text-text-main">{{ formatMonto(sub) }}</span>
+                            </div>
+                            @if (c.incluyeIgv) {
+                              <div class="flex justify-between py-1 text-text-muted">
+                                <span class="flex items-center gap-1">
+                                  IGV
+                                  <span class="rounded bg-blue-100 px-1 text-[10px] text-blue-700">18%</span>
+                                </span>
+                                <span class="font-medium text-text-main">{{ formatMonto(+(sub * 0.18).toFixed(2)) }}</span>
+                              </div>
+                            }
+                            @if ((c.descuento ?? 0) > 0) {
+                              <div class="flex justify-between py-1 text-text-muted">
+                                <span>Descuento</span>
+                                <span class="font-medium text-green-600">−{{ formatMonto(c.descuento ?? 0) }}</span>
+                              </div>
+                            }
+                            <div class="mt-1 flex justify-between border-t border-border-soft pt-2 font-bold text-text-main">
+                              <span>TOTAL</span>
+                              <span class="text-primary">{{ formatMonto(c.total) }}</span>
+                            </div>
+                            @if (!c.incluyeIgv) {
+                              <p class="mt-1.5 text-[10px] text-text-muted">Precios sin IGV</p>
+                            } @else {
+                              <p class="mt-1.5 text-[10px] text-text-muted">IGV incluido en el total</p>
+                            }
+                          </div>
+                        </div>
+
+                        <!-- Observación si existe -->
+                        @if (c.observacion) {
+                          <p class="text-xs text-text-muted">
+                            <span class="font-semibold text-text-main">Obs:</span> {{ c.observacion }}
+                          </p>
+                        }
+                        @if (c.fechaVencimiento) {
+                          <p class="text-xs text-text-muted">
+                            <span class="font-semibold text-text-main">Válida hasta:</span> {{ c.fechaVencimiento | fecha }}
+                          </p>
+                        }
+                      </div>
+
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   </div>
 </div>
 
 <!-- ═══ MODAL: CONVERTIR A PEDIDO ═══ -->
 @if (convertirTarget(); as cot) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cerrarConvertir()">
-    <div class="w-full max-w-[420px] rounded-modal bg-white p-6 shadow-2xl" (click)="$event.stopPropagation()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cerrarConvertir()">
+    <div class="modal-enter w-full max-w-[440px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+
       @if (convertirExitoNum()) {
         <!-- Estado éxito -->
-        <div class="text-center">
-          <div class="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100">
-            <mat-icon class="text-green-600 text-[28px]!">check_circle</mat-icon>
+        <div class="flex flex-col items-center gap-3 px-8 py-8 text-center">
+          <div class="grid h-14 w-14 place-items-center rounded-full bg-green-100">
+            <mat-icon fontSet="material-icons-outlined" class="text-[28px]! h-7! w-7! text-green-600">check_circle</mat-icon>
           </div>
           <h3 class="text-lg font-bold text-text-main">¡Pedido creado!</h3>
-          <p class="mt-1 text-sm text-text-muted">
-            Pedido <span class="font-semibold text-primary">{{ convertirExitoNum() }}</span> generado desde la cotización <span class="font-semibold">{{ cot.numeroCotizacion }}</span>.
+          <p class="text-sm text-text-muted">
+            Pedido <span class="font-semibold text-primary">{{ convertirExitoNum() }}</span> generado desde <span class="font-semibold text-text-main">{{ cot.numeroCotizacion }}</span>.
           </p>
-          <p class="mt-2 text-xs text-text-muted">Ve a <strong>Pedidos</strong> para agregar los productos y confirmar el despacho.</p>
-          <button (click)="cerrarConvertir()" class="mt-5 w-full rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">
+          <p class="text-xs text-text-muted">Ve a <strong class="text-text-main">Pedidos</strong> para confirmar el despacho.</p>
+          <button (click)="cerrarConvertir()"
+            class="mt-2 w-full rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover">
             Cerrar
           </button>
         </div>
       } @else {
-        <!-- Formulario conversión -->
-        <div class="mb-4 grid h-12 w-12 place-items-center rounded-full bg-purple-100">
-          <mat-icon class="text-purple-600">shopping_bag</mat-icon>
-        </div>
-        <h3 class="text-lg font-bold text-text-main">Convertir a pedido</h3>
-        <p class="mt-0.5 text-sm text-text-muted">
-          {{ cot.numeroCotizacion }} · {{ cot.nombreCliente }} · <span class="font-semibold text-text-main">{{ formatMonto(cot.total) }}</span>
-        </p>
-        <div class="mt-4">
-          <label class="mb-1.5 block text-xs font-semibold text-text-main">Método de pago <span class="text-red-500">*</span></label>
-          @if (metodosPago().length === 0) {
-            <p class="text-xs text-text-muted">Cargando métodos de pago...</p>
-          } @else {
-            <select class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              [value]="metodoPagoConvId()"
-              (change)="metodoPagoConvId.set($any($event.target).value)">
-              @for (m of metodosPago(); track m.id) {
-                <option [value]="m.id">{{ m.nombre }}</option>
-              }
-            </select>
-          }
-        </div>
-        @if (convertirError()) {
-          <p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{{ convertirError() }}</p>
-        }
-        <div class="mt-5 flex justify-end gap-3">
-          <button (click)="cerrarConvertir()" class="rounded-btn border border-border-soft px-4 py-2 text-sm font-semibold hover:bg-bg-app">Cancelar</button>
-          <button (click)="confirmarConvertir()" [disabled]="convirtiendo() || !metodoPagoConvId()"
-            class="flex items-center gap-1.5 rounded-btn bg-purple-600 px-5 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60">
-            @if (convirtiendo()) {
-              <mat-icon class="animate-spin text-[16px]!">refresh</mat-icon> Creando...
-            } @else {
-              <mat-icon class="text-[16px]!">shopping_bag</mat-icon> Crear pedido
-            }
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+          <div class="flex items-center gap-3">
+            <div class="grid h-9 w-9 place-items-center rounded-xl bg-purple-100">
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-purple-700">shopping_bag</mat-icon>
+            </div>
+            <div>
+              <h3 class="font-semibold text-text-main">Convertir a pedido</h3>
+              <p class="text-xs text-text-muted">{{ cot.numeroCotizacion }} · {{ cot.nombreCliente }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarConvertir()"
+            class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+            <mat-icon fontSet="material-icons-outlined">close</mat-icon>
           </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex flex-col gap-4 px-6 py-5">
+          <div class="flex items-center justify-between rounded-lg bg-bg-app px-4 py-2.5">
+            <span class="text-xs text-text-muted">Total de la cotización</span>
+            <span class="font-bold text-text-main">{{ formatMonto(cot.total) }}</span>
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">
+              Método de pago <span class="text-red-500">*</span>
+            </label>
+            @if (metodosPago().length === 0) {
+              <div class="flex items-center gap-2 text-xs text-text-muted">
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[14px]! h-3.5! w-3.5! text-primary">progress_activity</mat-icon>
+                Cargando métodos de pago...
+              </div>
+            } @else {
+              <select
+                class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20"
+                [value]="metodoPagoConvId()"
+                (change)="metodoPagoConvId.set($any($event.target).value)">
+                @for (m of metodosPago(); track m.id) {
+                  <option [value]="m.id">{{ m.nombre }}</option>
+                }
+              </select>
+            }
+          </div>
+
+          @if (convertirError()) {
+            <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              <mat-icon fontSet="material-icons-outlined" class="shrink-0 text-[14px]! h-3.5! w-3.5!">error_outline</mat-icon>
+              {{ convertirError() }}
+            </div>
+          }
+
+          <div class="flex justify-end gap-3 pt-1">
+            <button (click)="cerrarConvertir()"
+              class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+              Cancelar
+            </button>
+            <button (click)="confirmarConvertir()" [disabled]="convirtiendo() || !metodoPagoConvId()"
+              class="flex h-10 items-center gap-2 rounded-btn bg-purple-600 px-5 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:opacity-60">
+              @if (convirtiendo()) {
+                <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+                Creando...
+              } @else {
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">shopping_bag</mat-icon>
+                Crear pedido
+              }
+            </button>
+          </div>
         </div>
       }
     </div>
   </div>
 }
 
-<!-- Modal eliminar -->
+<!-- ═══ MODAL: ELIMINAR ═══ -->
 @if (deleteTarget(); as t) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="cancelarEliminar()">
-    <div class="w-full max-w-[400px] rounded-modal bg-white p-6 shadow-2xl text-center" (click)="$event.stopPropagation()">
-      <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-red-100">
-        <mat-icon class="text-red-500">delete</mat-icon>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    (click)="cancelarEliminar()">
+    <div class="modal-enter w-full max-w-[400px] overflow-hidden rounded-modal bg-bg-card shadow-[var(--shadow-modal)]"
+      (click)="$event.stopPropagation()">
+      <div class="flex flex-col items-center gap-3 px-6 pt-7 pb-2 text-center">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-500">delete</mat-icon>
+        </div>
+        <h3 class="font-semibold text-text-main">Eliminar cotización</h3>
+        <p class="text-sm text-text-muted">
+          ¿Eliminar <span class="font-semibold text-text-main">{{ t.numeroCotizacion }}</span>?
+          Esta acción no se puede deshacer.
+        </p>
+        @if (deleteError()) {
+          <p class="text-xs text-red-600">{{ deleteError() }}</p>
+        }
       </div>
-      <h3 class="text-lg font-bold text-text-main">Eliminar cotización</h3>
-      <p class="mt-1 text-sm text-text-muted">¿Eliminar <span class="font-semibold">{{ t.numeroCotizacion }}</span>?</p>
-      @if (deleteError()) { <p class="mt-2 text-xs text-red-600">{{ deleteError() }}</p> }
-      <div class="mt-5 flex justify-center gap-3">
-        <button (click)="cancelarEliminar()" class="rounded-btn border border-border-soft px-5 py-2 text-sm font-semibold hover:bg-bg-app">Cancelar</button>
-        <button (click)="confirmarEliminar()" [disabled]="deleting()" class="rounded-btn bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
-          {{ deleting() ? 'Eliminando...' : 'Eliminar' }}
+      <div class="mt-3 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
+        <button (click)="cancelarEliminar()"
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button (click)="confirmarEliminar()" [disabled]="deleting()"
+          class="flex h-10 items-center gap-2 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          @if (deleting()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[16px]! h-4! w-4!">progress_activity</mat-icon>
+            Eliminando...
+          } @else {
+            Eliminar
+          }
         </button>
       </div>
     </div>
@@ -226,14 +468,16 @@
 
 <!-- ═══ VISTA FORMULARIO ═══ -->
 @if (view() === 'form') {
-<div class="flex h-[calc(100vh-80px)] gap-0 overflow-hidden rounded-card shadow-[0_2px_10px_rgba(0,0,0,0.08)]">
+<div class="flex h-[calc(100vh-80px)] gap-0 overflow-hidden rounded-card border border-border-soft shadow-sm">
 
   <!-- Panel izquierdo: formulario -->
-  <div class="flex w-[45%] flex-col bg-white border-r border-border-soft overflow-y-auto">
+  <div class="flex w-[45%] shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-bg-card">
+
     <!-- Header -->
-    <div class="flex items-center gap-3 border-b border-border-soft px-5 py-4 shrink-0">
-      <button (click)="volver()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
-        <mat-icon>arrow_back</mat-icon>
+    <div class="flex shrink-0 items-center gap-3 border-b border-border-soft px-5 py-4">
+      <button (click)="volver()"
+        class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined">arrow_back</mat-icon>
       </button>
       <div>
         <h2 class="font-bold text-text-main">{{ editId() ? 'Editar cotización' : 'Nueva cotización' }}</h2>
@@ -242,236 +486,285 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="guardar()">
-    <div class="flex flex-col gap-5 p-5">
-      @if (formError()) {
-        <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          <mat-icon class="text-[18px]">error</mat-icon> {{ formError() }}
-        </div>
-      }
+      <div class="flex flex-col gap-5 p-5">
 
-      <!-- Cliente -->
-      <div>
-        <label class="mb-1.5 block text-xs font-semibold text-text-main">Cliente <span class="text-red-500">*</span></label>
-        @if (clienteSeleccionado(); as cli) {
-          <div class="flex items-center gap-3 rounded-input border border-primary bg-primary/5 px-3 py-2">
-            <mat-icon class="text-primary text-[18px]">person</mat-icon>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-text-main truncate">{{ cli.nombreCompleto }}</p>
-              @if (cli.ruc) { <p class="text-xs text-text-muted">RUC: {{ cli.ruc }}</p> }
-            </div>
-            <button type="button" (click)="limpiarCliente()" class="text-gray-400 hover:text-red-500">
-              <mat-icon class="text-[16px]">close</mat-icon>
-            </button>
+        @if (formError()) {
+          <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <mat-icon fontSet="material-icons-outlined" class="shrink-0 text-[16px]! h-4! w-4!">error_outline</mat-icon>
+            {{ formError() }}
           </div>
-        } @else {
-          @if (clienteDropdown()) {
-            <div class="fixed inset-0 z-40" (click)="clienteDropdown.set(false)"></div>
+        }
+
+        <!-- Cliente -->
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">
+            Cliente <span class="text-red-500">*</span>
+          </label>
+          @if (clienteSeleccionado(); as cli) {
+            <div class="flex items-center gap-3 rounded-input border border-primary bg-primary/5 px-3 py-2">
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary">person</mat-icon>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-text-main">{{ cli.nombreCompleto }}</p>
+                @if (cli.ruc) { <p class="text-xs text-text-muted">RUC: {{ cli.ruc }}</p> }
+              </div>
+              <button type="button" (click)="limpiarCliente()"
+                class="text-text-muted transition hover:text-red-500">
+                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">close</mat-icon>
+              </button>
+            </div>
+          } @else {
+            @if (clienteDropdown()) {
+              <div class="fixed inset-0 z-40" (click)="clienteDropdown.set(false)"></div>
+            }
+            <div class="relative">
+              <div class="flex items-center gap-2 rounded-input border border-border-soft px-3 py-2 transition focus-within:border-primary">
+                <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
+                <input type="text" placeholder="Buscar cliente..."
+                  class="flex-1 bg-transparent text-sm text-text-main outline-none"
+                  [value]="clienteSearch()"
+                  (input)="clienteSearch.set($any($event.target).value)"
+                  (click)="clienteDropdown.set(true)" />
+              </div>
+              @if (clienteDropdown()) {
+                <div class="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-card border border-border-soft bg-bg-card shadow-xl">
+                  @if (clientesFiltrados().length === 0) {
+                    <p class="py-4 text-center text-sm text-text-muted">Sin resultados</p>
+                  }
+                  @for (c of clientesFiltrados(); track c.id) {
+                    <button type="button" (click)="seleccionarCliente(c)"
+                      class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-bg-app">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary/60">
+                        {{ c.tipoCliente === 'EMPRESA' ? 'business' : 'person' }}
+                      </mat-icon>
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-medium text-text-main">{{ c.nombreCompleto }}</p>
+                        @if (c.ruc) { <p class="text-xs text-text-muted">RUC: {{ c.ruc }}</p> }
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Agregar productos -->
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">
+            Productos <span class="text-red-500">*</span>
+          </label>
+          @if (productoDropdown()) {
+            <div class="fixed inset-0 z-40" (click)="productoDropdown.set(false)"></div>
           }
           <div class="relative">
-            <div class="flex items-center gap-2 rounded-input border border-border-soft px-3 py-2 focus-within:border-primary">
-              <mat-icon class="text-text-muted text-[18px]">search</mat-icon>
-              <input type="text" placeholder="Buscar cliente..." class="flex-1 outline-none text-sm bg-transparent"
-                [value]="clienteSearch()"
-                (input)="clienteSearch.set($any($event.target).value)"
-                (click)="clienteDropdown.set(true)" />
+            <div class="flex items-center gap-2 rounded-input border border-border-soft px-3 py-2 transition focus-within:border-primary">
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
+              <input type="text" placeholder="Buscar presentación..."
+                class="flex-1 bg-transparent text-sm text-text-main outline-none"
+                [value]="productoSearch()"
+                (input)="productoSearch.set($any($event.target).value)"
+                (click)="productoDropdown.set(true)" />
             </div>
-            @if (clienteDropdown()) {
-              <div class="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-card border border-border-soft bg-white shadow-xl">
-                @if (clientesFiltrados().length === 0) {
+            @if (productoDropdown()) {
+              <div class="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-card border border-border-soft bg-bg-card shadow-xl">
+                @if (productosFiltrados().length === 0) {
                   <p class="py-4 text-center text-sm text-text-muted">Sin resultados</p>
                 }
-                @for (c of clientesFiltrados(); track c.id) {
-                  <button type="button" (click)="seleccionarCliente(c)"
-                    class="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50">
-                    <mat-icon class="text-primary/60 text-[18px]">{{ c.tipoCliente === 'EMPRESA' ? 'business' : 'person' }}</mat-icon>
-                    <div class="min-w-0">
-                      <p class="text-sm font-medium text-text-main truncate">{{ c.nombreCompleto }}</p>
-                      @if (c.ruc) { <p class="text-xs text-text-muted">RUC: {{ c.ruc }}</p> }
+                @for (p of productosFiltrados(); track p.id) {
+                  <button type="button" (click)="agregarProducto(p)"
+                    class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-bg-app">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-primary/60">inventory_2</mat-icon>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-medium text-text-main">{{ p.nombreProducto }}</p>
+                      <p class="text-xs text-text-muted">{{ p.nombre }}</p>
                     </div>
+                    <span class="shrink-0 text-sm font-semibold text-primary">{{ formatMonto(p.precioVenta) }}</span>
                   </button>
                 }
               </div>
             }
           </div>
-        }
-      </div>
 
-      <!-- Agregar productos -->
-      <div>
-        <label class="mb-1.5 block text-xs font-semibold text-text-main">Productos <span class="text-red-500">*</span></label>
-        @if (productoDropdown()) {
-          <div class="fixed inset-0 z-40" (click)="productoDropdown.set(false)"></div>
-        }
-        <div class="relative">
-          <div class="flex items-center gap-2 rounded-input border border-border-soft px-3 py-2 focus-within:border-primary">
-            <mat-icon class="text-text-muted text-[18px]">search</mat-icon>
-            <input type="text" placeholder="Buscar presentación..." class="flex-1 outline-none text-sm bg-transparent"
-              [value]="productoSearch()"
-              (input)="productoSearch.set($any($event.target).value)"
-              (click)="productoDropdown.set(true)" />
-          </div>
-          @if (productoDropdown()) {
-            <div class="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-card border border-border-soft bg-white shadow-xl">
-              @if (productosFiltrados().length === 0) {
-                <p class="py-4 text-center text-sm text-text-muted">Sin resultados</p>
-              }
-              @for (p of productosFiltrados(); track p.id) {
-                <button type="button" (click)="agregarProducto(p)"
-                  class="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50">
-                  <mat-icon class="text-primary/60 text-[18px]">inventory_2</mat-icon>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-text-main truncate">{{ p.nombreProducto }}</p>
-                    <p class="text-xs text-text-muted">{{ p.nombre }}</p>
+          <!-- Líneas -->
+          @if (lineas().length > 0) {
+            <div class="mt-3 flex flex-col gap-2">
+              @for (l of lineas(); track l.presentacion.id; let i = $index) {
+                <div class="flex items-center gap-2 rounded-lg border border-border-soft bg-bg-app px-3 py-2">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-xs font-medium text-text-main">{{ l.presentacion.nombreProducto }}</p>
+                    <p class="text-[11px] text-text-muted">{{ l.presentacion.nombre }}</p>
                   </div>
-                  <span class="text-sm font-semibold text-primary shrink-0">{{ formatMonto(p.precioVenta) }}</span>
-                </button>
+                  <input type="number" min="1" step="1" [value]="l.cantidad"
+                    (input)="setCantidad(i, +$any($event.target).value)"
+                    class="h-8 w-16 rounded-lg border border-border-soft bg-bg-card px-2 text-center text-sm text-text-main outline-none transition focus:border-primary" />
+                  <span class="text-xs text-text-muted">×</span>
+                  <input type="number" min="0" step="0.01" [value]="l.precioUnitario"
+                    (input)="setPrecio(i, +$any($event.target).value)"
+                    class="h-8 w-20 rounded-lg border border-border-soft bg-bg-card px-2 text-right text-sm text-text-main outline-none transition focus:border-primary" />
+                  <span class="w-20 shrink-0 text-right text-sm font-semibold text-text-main">
+                    {{ formatMonto(l.cantidad * l.precioUnitario) }}
+                  </span>
+                  <button type="button" (click)="quitarLinea(i)"
+                    class="text-text-muted transition hover:text-red-500">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">close</mat-icon>
+                  </button>
+                </div>
               }
             </div>
           }
         </div>
 
-        <!-- Líneas -->
-        @if (lineas().length > 0) {
-          <div class="mt-3 flex flex-col gap-2">
-            @for (l of lineas(); track l.presentacion.id; let i = $index) {
-              <div class="flex items-center gap-2 rounded-lg border border-border-soft bg-bg-app px-3 py-2">
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-medium text-text-main truncate">{{ l.presentacion.nombreProducto }}</p>
-                  <p class="text-[11px] text-text-muted">{{ l.presentacion.nombre }}</p>
-                </div>
-                <input type="number" min="1" step="1" [value]="l.cantidad"
-                  (input)="setCantidad(i, +$any($event.target).value)"
-                  class="h-8 w-16 rounded-lg border border-border-soft bg-white px-2 text-center text-sm outline-none focus:border-primary" />
-                <span class="text-xs text-text-muted">×</span>
-                <input type="number" min="0" step="0.01" [value]="l.precioUnitario"
-                  (input)="setPrecio(i, +$any($event.target).value)"
-                  class="h-8 w-20 rounded-lg border border-border-soft bg-white px-2 text-right text-sm outline-none focus:border-primary" />
-                <span class="w-20 text-right text-sm font-semibold text-text-main">{{ formatMonto(l.cantidad * l.precioUnitario) }}</span>
-                <button (click)="quitarLinea(i)" class="text-red-400 hover:text-red-600">
-                  <mat-icon class="text-[16px]">close</mat-icon>
-                </button>
-              </div>
-            }
+        <!-- IGV toggle -->
+        <div class="flex items-center gap-3 rounded-lg border border-border-soft bg-bg-app p-3">
+          <span class="flex-1 text-sm font-medium text-text-main">IGV incluido (18%)</span>
+          <button type="button" (click)="form.controls.incluyeIgv.setValue(!form.controls.incluyeIgv.value)"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+            [class]="form.controls.incluyeIgv.value ? 'bg-primary' : 'bg-gray-300'">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
+              [class]="form.controls.incluyeIgv.value ? 'translate-x-6' : 'translate-x-1'"></span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Descuento (S/)</label>
+            <input type="number" min="0" step="0.01" formControlName="descuento"
+              placeholder="0.00"
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
           </div>
-        }
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-text-main">Vence el</label>
+            <input type="date" formControlName="fechaVencimiento" [min]="hoyISO()"
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-text-main">Observaciones</label>
+          <textarea rows="2" formControlName="observacion"
+            placeholder="Ej. Precio válido por 15 días. No incluye despacho."
+            class="w-full resize-none rounded-input border border-border-soft bg-bg-app px-3 py-2 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20"></textarea>
+        </div>
+
       </div>
 
-      <!-- Configuración -->
-      <div class="flex items-center gap-3 rounded-lg border border-border-soft p-3">
-        <span class="text-sm font-medium text-text-main flex-1">IGV incluido (18%)</span>
-        <button type="button" (click)="form.controls.incluyeIgv.setValue(!form.controls.incluyeIgv.value)"
-          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-          [class]="form.controls.incluyeIgv.value ? 'bg-primary' : 'bg-gray-300'">
-          <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
-            [class]="form.controls.incluyeIgv.value ? 'translate-x-6' : 'translate-x-1'"></span>
+      <!-- Botones -->
+      <div class="flex shrink-0 items-center justify-between gap-3 border-t border-border-soft px-5 py-4">
+        <button type="button" (click)="volver()"
+          class="flex h-10 items-center rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="!canGuardar"
+          class="flex h-10 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50">
+          @if (saving()) {
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]! h-[18px]! w-[18px]!">progress_activity</mat-icon>
+            Guardando...
+          } @else {
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]!">save</mat-icon>
+            {{ editId() ? 'Actualizar' : 'Guardar borrador' }}
+          }
         </button>
       </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="mb-1.5 block text-xs font-semibold text-text-main">Descuento (S/)</label>
-          <input type="number" min="0" step="0.01" formControlName="descuento"
-            class="h-10 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
-        </div>
-        <div>
-          <label class="mb-1.5 block text-xs font-semibold text-text-main">Vence el</label>
-          <input type="date" formControlName="fechaVencimiento" [min]="hoyISO()"
-            class="h-10 w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
-        </div>
-      </div>
-
-      <div>
-        <label class="mb-1.5 block text-xs font-semibold text-text-main">Observaciones</label>
-        <textarea rows="2" formControlName="observacion"
-          placeholder="Ej. Precio válido por 15 días. No incluye despacho."
-          class="w-full rounded-input border border-border-soft bg-[#FAFAFA] px-3 py-2 text-sm outline-none resize-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"></textarea>
-      </div>
-    </div>
-
-    <!-- Botones -->
-    <div class="mt-auto flex items-center justify-between gap-3 border-t border-border-soft px-5 py-4 shrink-0">
-      <button type="button" (click)="volver()" class="rounded-btn border border-border-soft px-5 py-2.5 text-sm font-semibold text-text-main hover:bg-bg-app">
-        Cancelar
-      </button>
-      <button type="submit" [disabled]="!canGuardar"
-        class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
-        @if (saving()) {
-          <mat-icon class="animate-spin text-[18px]">refresh</mat-icon> Guardando...
-        } @else {
-          <mat-icon class="text-[18px]">save</mat-icon> {{ editId() ? 'Actualizar' : 'Guardar borrador' }}
-        }
-      </button>
-    </div>
     </form>
   </div>
 
-  <!-- Panel derecho: preview de cotización (se imprime) -->
-  <div class="flex flex-1 flex-col bg-[#F5F5F0] overflow-y-auto">
-    <div class="flex items-center justify-between border-b border-border-soft bg-white px-5 py-3 shrink-0">
+  <!-- Panel derecho: preview -->
+  <div class="flex flex-1 flex-col overflow-y-auto bg-bg-app">
+
+    <div class="flex shrink-0 items-center justify-between border-b border-border-soft bg-bg-card px-5 py-3">
       <span class="text-sm font-semibold text-text-main">Vista previa</span>
       <button (click)="imprimirPreview()"
-        class="flex items-center gap-2 rounded-lg border border-border-soft px-3 py-1.5 text-xs font-medium text-text-muted hover:bg-bg-app">
-        <mat-icon class="text-[16px]">print</mat-icon> Imprimir / PDF
+        class="flex items-center gap-2 rounded-lg border border-border-soft bg-bg-card px-3 py-1.5 text-xs font-medium text-text-muted transition hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">print</mat-icon>
+        Imprimir / PDF
       </button>
     </div>
 
-    <!-- Documento -->
-    <div id="cotizacion-preview" class="m-5 rounded-card bg-white p-8 shadow-sm text-[13px]">
+    <!-- Documento (fondo blanco intencionalmente para simular papel) -->
+    <div id="cotizacion-preview" class="m-5 rounded-card bg-white p-8 text-[13px] shadow-sm">
+
       <!-- Cabecera empresa -->
-      <div class="flex items-start justify-between mb-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <mat-icon class="text-white text-[20px]">eco</mat-icon>
-          </div>
-          <div>
-            <p class="font-bold text-text-main text-base">Naturin's S.A.C.</p>
-            <p class="text-xs text-text-muted">RUC 20xxxxxxxxx</p>
-          </div>
+      <div class="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 286.49 92.42"
+            style="height:40px;width:auto;display:block;shape-rendering:geometricPrecision">
+            <style>.cnp0{fill:#733702;fill-rule:nonzero}.cnp1{fill:#F21905;fill-rule:nonzero}.cnp2{fill:#97BF04;fill-rule:nonzero}</style>
+            <path class="cnp0" d="M109.32 19.2c-1.34,0 -2.51,-0.22 -3.52,-0.67 -1,-0.45 -1.79,-1.02 -2.35,-1.71 -0.55,-0.7 -0.83,-1.42 -0.83,-2.18 0,-0.43 0.13,-0.78 0.4,-1.06 0.26,-0.27 0.62,-0.41 1.07,-0.41 0.43,0 0.74,0.12 0.95,0.37 0.21,0.25 0.39,0.54 0.54,0.87 0.26,0.53 0.68,1 1.25,1.4 0.58,0.41 1.37,0.61 2.38,0.61 0.59,0 1.13,-0.08 1.63,-0.23 0.5,-0.16 0.9,-0.42 1.2,-0.79 0.3,-0.37 0.45,-0.85 0.45,-1.43 0,-0.52 -0.14,-0.94 -0.4,-1.26 -0.27,-0.33 -0.67,-0.63 -1.2,-0.91 -0.53,-0.27 -1.2,-0.56 -2.01,-0.87 -0.62,-0.24 -1.25,-0.5 -1.88,-0.78 -0.64,-0.27 -1.21,-0.6 -1.73,-0.99 -0.51,-0.38 -0.93,-0.88 -1.25,-1.49 -0.32,-0.61 -0.47,-1.37 -0.47,-2.28 0,-1.1 0.24,-2.02 0.74,-2.76 0.5,-0.74 1.18,-1.3 2.03,-1.68 0.85,-0.37 1.8,-0.56 2.87,-0.56 0.81,0 1.55,0.1 2.22,0.31 0.67,0.2 1.25,0.49 1.76,0.86 0.51,0.37 0.9,0.78 1.19,1.24 0.28,0.45 0.44,0.94 0.47,1.45 0.02,0.43 -0.1,0.79 -0.36,1.07 -0.26,0.29 -0.61,0.43 -1.05,0.43 -0.38,0 -0.65,-0.08 -0.82,-0.23 -0.16,-0.16 -0.33,-0.4 -0.5,-0.73 -0.24,-0.51 -0.59,-0.91 -1.04,-1.21 -0.46,-0.29 -1.05,-0.43 -1.79,-0.43 -0.52,0 -0.98,0.08 -1.38,0.25 -0.41,0.17 -0.72,0.41 -0.94,0.71 -0.23,0.3 -0.34,0.68 -0.34,1.15 0,0.57 0.17,1.03 0.52,1.38 0.34,0.35 0.79,0.65 1.35,0.89 0.56,0.24 1.16,0.49 1.82,0.74 0.79,0.33 1.5,0.66 2.15,0.98 0.64,0.33 1.2,0.7 1.66,1.11 0.47,0.41 0.82,0.9 1.07,1.46 0.25,0.56 0.37,1.21 0.37,1.97 0,1.13 -0.25,2.11 -0.77,2.92 -0.51,0.82 -1.24,1.44 -2.18,1.86 -0.93,0.42 -2.03,0.63 -3.28,0.63z"/>
+            <path class="cnp0" d="M129.99 10.34l0 7.21c0,0.43 -0.13,0.79 -0.41,1.08 -0.28,0.3 -0.63,0.44 -1.06,0.44 -0.45,0 -0.8,-0.14 -1.08,-0.44 -0.28,-0.29 -0.41,-0.65 -0.41,-1.08l0 -6.81c0,-0.87 -0.24,-1.56 -0.72,-2.06 -0.48,-0.51 -1.14,-0.77 -1.99,-0.77 -0.6,0 -1.13,0.13 -1.59,0.39 -0.47,0.25 -0.83,0.6 -1.08,1.04 -0.26,0.44 -0.39,0.95 -0.39,1.51l0 6.7c0,0.43 -0.14,0.79 -0.43,1.08 -0.28,0.3 -0.64,0.44 -1.07,0.44 -0.43,0 -0.78,-0.14 -1.06,-0.44 -0.29,-0.29 -0.43,-0.65 -0.43,-1.08l0 -10.77c0,-0.43 0.14,-0.79 0.43,-1.07 0.28,-0.28 0.63,-0.43 1.06,-0.43 0.42,0 0.77,0.15 1.06,0.43 0.29,0.28 0.44,0.64 0.44,1.07l0 0.31c0.4,-0.52 0.84,-0.92 1.32,-1.23 0.75,-0.47 1.61,-0.71 2.57,-0.71 0.93,0 1.76,0.2 2.5,0.6 0.74,0.39 1.31,0.98 1.73,1.75 0.4,0.78 0.61,1.72 0.61,2.84z"/>
+            <path class="cnp0" d="M137.52 16.62c0.62,0 1.18,-0.13 1.68,-0.38 0.5,-0.26 0.9,-0.62 1.2,-1.09 0.3,-0.46 0.45,-0.98 0.45,-1.57l0 -1.21c0,-0.03 -0.02,-0.05 -0.04,-0.06 -0.03,-0.01 -0.07,0.01 -0.14,0.06 -0.23,0.16 -0.51,0.28 -0.84,0.36 -0.34,0.09 -0.68,0.16 -1.04,0.21 -0.37,0.05 -0.71,0.11 -1.04,0.18 -0.8,0.15 -1.4,0.38 -1.79,0.67 -0.38,0.29 -0.58,0.68 -0.58,1.16 0,0.46 0.17,0.86 0.51,1.18 0.33,0.33 0.88,0.49 1.63,0.49zm-0.51 2.58c-0.86,0 -1.64,-0.16 -2.33,-0.49 -0.7,-0.33 -1.25,-0.79 -1.67,-1.38 -0.41,-0.59 -0.62,-1.3 -0.62,-2.12 0,-1.21 0.41,-2.17 1.22,-2.9 0.8,-0.73 2.12,-1.22 3.94,-1.46 0.62,-0.09 1.17,-0.17 1.66,-0.26 0.49,-0.08 0.88,-0.22 1.17,-0.42 0.3,-0.2 0.44,-0.49 0.44,-0.87 0,-0.3 -0.08,-0.58 -0.23,-0.82 -0.16,-0.24 -0.39,-0.43 -0.71,-0.57 -0.32,-0.13 -0.73,-0.2 -1.22,-0.2 -0.67,0 -1.19,0.12 -1.56,0.37 -0.37,0.25 -0.67,0.53 -0.89,0.84 -0.17,0.22 -0.38,0.4 -0.63,0.54 -0.25,0.14 -0.53,0.21 -0.84,0.21 -0.41,0 -0.74,-0.12 -0.98,-0.34 -0.24,-0.22 -0.36,-0.52 -0.36,-0.9 0,-0.4 0.13,-0.79 0.39,-1.17 0.25,-0.39 0.61,-0.74 1.08,-1.06 0.46,-0.32 1.02,-0.57 1.67,-0.76 0.66,-0.19 1.37,-0.28 2.14,-0.28 1.17,0 2.13,0.21 2.88,0.64 0.74,0.43 1.3,1.02 1.67,1.78 0.37,0.75 0.55,1.61 0.55,2.57l0 5.55c0,0.18 0.03,0.32 0.07,0.41 0.04,0.08 0.14,0.14 0.3,0.18 0.25,0.07 0.49,0.21 0.72,0.44 0.22,0.22 0.33,0.52 0.33,0.9 0,0.39 -0.15,0.73 -0.46,1.02 -0.31,0.28 -0.74,0.42 -1.29,0.42 -0.65,-0.02 -1.16,-0.19 -1.51,-0.51 -0.35,-0.33 -0.56,-0.74 -0.63,-1.24l0 -0.28 -0.08 0c-0.46,0.68 -1.02,1.22 -1.67,1.59 -0.65,0.38 -1.5,0.57 -2.55,0.57z"/>
+            <path class="cnp0" d="M152.66 19.2c-1.23,0 -2.32,-0.31 -3.26,-0.93 -0.93,-0.62 -1.66,-1.46 -2.19,-2.52 -0.52,-1.07 -0.78,-2.26 -0.78,-3.59 0,-1.34 0.26,-2.53 0.78,-3.58 0.53,-1.05 1.26,-1.88 2.21,-2.5 0.94,-0.62 2.04,-0.92 3.29,-0.92 0.93,0 1.74,0.15 2.43,0.46 0.68,0.31 1.22,0.7 1.61,1.17 0.38,0.47 0.59,0.96 0.6,1.46 0.02,0.44 -0.11,0.78 -0.38,1.02 -0.28,0.23 -0.61,0.34 -0.98,0.34 -0.28,0 -0.51,-0.05 -0.69,-0.15 -0.18,-0.1 -0.33,-0.23 -0.45,-0.39 -0.17,-0.29 -0.43,-0.57 -0.77,-0.83 -0.34,-0.27 -0.82,-0.4 -1.44,-0.4 -0.66,0 -1.22,0.17 -1.69,0.52 -0.47,0.36 -0.84,0.86 -1.1,1.51 -0.25,0.65 -0.38,1.42 -0.38,2.29 0,1.36 0.29,2.42 0.87,3.17 0.59,0.76 1.38,1.14 2.37,1.14 0.74,0 1.31,-0.18 1.7,-0.54 0.4,-0.36 0.69,-0.77 0.88,-1.21 0.16,-0.26 0.32,-0.48 0.49,-0.67 0.17,-0.19 0.42,-0.29 0.75,-0.29 0.41,0 0.75,0.15 1.02,0.44 0.26,0.29 0.39,0.66 0.37,1.11 0,0.38 -0.13,0.79 -0.37,1.25 -0.25,0.45 -0.61,0.88 -1.06,1.29 -0.46,0.4 -1.01,0.73 -1.65,0.98 -0.64,0.25 -1.37,0.37 -2.18,0.37z"/>
+            <path class="cnp0" d="M171.61 17.57c0,0.42 -0.15,0.77 -0.44,1.06 -0.29,0.3 -0.63,0.44 -1.03,0.44 -0.24,0 -0.47,-0.06 -0.7,-0.18 -0.22,-0.12 -0.39,-0.29 -0.51,-0.49l-4.01 -5.78 -1.61 1.3 0 3.63c0,0.43 -0.15,0.79 -0.44,1.08 -0.29,0.3 -0.64,0.44 -1.05,0.44 -0.42,0 -0.77,-0.14 -1.06,-0.44 -0.3,-0.29 -0.44,-0.65 -0.44,-1.08l0 -16.05c0,-0.43 0.14,-0.79 0.44,-1.07 0.29,-0.29 0.64,-0.43 1.06,-0.43 0.41,0 0.76,0.14 1.05,0.43 0.29,0.28 0.44,0.64 0.44,1.07l0 8.63 5.44 -4.43c0.25,-0.22 0.58,-0.34 0.95,-0.34 0.41,0 0.76,0.14 1.04,0.42 0.29,0.29 0.43,0.64 0.43,1.05 0,0.48 -0.17,0.86 -0.51,1.14l-3.46 2.8 4.12 5.96c0.2,0.26 0.29,0.54 0.29,0.84z"/>
+            <path class="cnp0" d="M178.72 19.28c-1.15,0 -2.13,-0.2 -2.95,-0.58 -0.82,-0.39 -1.44,-0.85 -1.88,-1.39 -0.44,-0.55 -0.67,-1.06 -0.68,-1.54 0,-0.38 0.12,-0.71 0.36,-0.99 0.24,-0.28 0.58,-0.42 1.03,-0.42 0.34,0 0.62,0.07 0.84,0.23 0.21,0.15 0.37,0.31 0.47,0.46 0.35,0.5 0.76,0.9 1.24,1.2 0.48,0.3 1.06,0.45 1.75,0.45 0.69,0 1.2,-0.14 1.52,-0.41 0.33,-0.28 0.49,-0.62 0.49,-1.03 0,-0.35 -0.11,-0.63 -0.33,-0.87 -0.23,-0.23 -0.55,-0.43 -0.97,-0.59 -0.42,-0.16 -0.92,-0.33 -1.51,-0.5 -0.55,-0.17 -1.08,-0.36 -1.61,-0.56 -0.52,-0.19 -1,-0.44 -1.43,-0.74 -0.43,-0.3 -0.77,-0.68 -1.03,-1.12 -0.26,-0.45 -0.39,-1.01 -0.39,-1.68 0,-0.75 0.21,-1.44 0.62,-2.06 0.41,-0.62 0.99,-1.11 1.73,-1.48 0.74,-0.37 1.61,-0.56 2.6,-0.56 0.96,0 1.8,0.17 2.52,0.49 0.71,0.33 1.26,0.74 1.66,1.23 0.39,0.49 0.59,0.99 0.59,1.5 0.02,0.38 -0.08,0.7 -0.28,0.95 -0.21,0.25 -0.52,0.37 -0.93,0.37 -0.31,0 -0.59,-0.07 -0.83,-0.22 -0.24,-0.15 -0.43,-0.31 -0.59,-0.5 -0.12,-0.19 -0.27,-0.38 -0.44,-0.57 -0.17,-0.19 -0.4,-0.35 -0.68,-0.49 -0.28,-0.14 -0.66,-0.2 -1.12,-0.2 -0.6,0 -1.07,0.12 -1.41,0.38 -0.33,0.26 -0.5,0.59 -0.5,0.98 0,0.36 0.13,0.65 0.39,0.85 0.26,0.21 0.62,0.39 1.09,0.56 0.48,0.16 1.06,0.36 1.74,0.6 0.59,0.19 1.12,0.4 1.61,0.62 0.49,0.22 0.92,0.49 1.29,0.79 0.37,0.3 0.66,0.65 0.87,1.05 0.2,0.41 0.31,0.89 0.31,1.46 0,0.77 -0.19,1.49 -0.57,2.15 -0.38,0.66 -0.95,1.19 -1.72,1.58 -0.76,0.4 -1.72,0.6 -2.87,0.6z"/>
+            <path class="cnp1" d="M63.93 84.76c2.72,0 4.58,-1.58 4.58,-2.72l0 -7.38c0,-0.42 -0.21,-0.78 -0.72,-0.78 -1.36,0 -3,0.5 -4.58,1.36 -2.29,1.07 -4.58,2.65 -4.58,5.15 0,2.86 2.15,4.37 5.3,4.37zm6.73 4.22c-2.58,1.79 -5.8,3.44 -10.81,3.44 -7.23,0 -12.39,-4.01 -12.39,-10.52 0,-8.6 6.09,-11.32 16.4,-13.89 3.15,-0.72 4.51,-1.36 4.51,-2.37 0,-1.57 -1.51,-2.79 -5.16,-2.79 -5.58,0 -10.45,3.22 -11.59,3.22 -0.72,0 -1.08,-0.43 -1.08,-1.14 0,-1.15 0.5,-4.08 1.79,-6.59 0.79,-1.5 5.73,-3.86 12.6,-3.86 10.95,0 15.54,4.79 15.54,14.39l0 12.74c0,2.22 1.14,3.08 2.79,3.08l0.86 0c0.86,0 1.36,0.43 1.36,1.14 0,1.79 -4.3,6.59 -8.16,6.59 -3.37,0 -6.66,-3.44 -6.66,-3.44z"/>
+            <path class="cnp1" d="M89.68 81.68l0 -18.68 -1.65 0c-0.79,0 -1.5,-1.22 -1.5,-3.87 0,-2.72 0.71,-3.94 1.5,-3.94l1.65 0 0 -6.87c0,-1.5 8.59,-4.3 10.81,-4.3 0.78,0 1.21,0.43 1.21,1.37l0 9.8 5.73 0c0.64,0 1.14,0.5 1.14,1.15 0,1.79 -2.43,6.66 -4.29,6.66l-2.58 0 0 15.96c0,4.01 2.08,5.73 5.08,5.73l1.15 0c0.72,0 1.07,0.57 1.07,1.14 0,1.79 -4.43,6.59 -8.23,6.59 -7.01,0 -11.09,-4.51 -11.09,-10.74z"/>
+            <path class="cnp1" d="M112.44 80.61l0 -23.48c0,-1.01 1.29,-1.94 6.01,-1.94 4.66,0 6.02,0.93 6.02,1.94l0 21.54c0,3.01 1.86,4.66 4.72,4.66 2.94,0 5.66,-2.29 5.66,-4.51l0 -21.69c0,-1.01 1.28,-1.94 6.01,-1.94 4.65,0 5.94,0.93 5.94,1.94l0 24.48c0,2.22 1.15,3.08 2.79,3.08l1 0c0.86,0 1.22,0.43 1.22,1.14 0,1.79 -4.29,6.59 -8.09,6.59 -2.22,0 -4.44,-1.79 -5.65,-2.94 -0.58,-0.5 -1.01,-0.86 -1.01,-0.86 -1.07,0.79 -5.72,3.8 -11.95,3.8 -6.8,0 -12.67,-4.51 -12.67,-11.81z"/>
+            <path class="cnp1" d="M156.14 89.77l0 -24.05c0,-2.94 -2,-4.16 -2,-5.37 0,-1.86 6.37,-5.87 9.02,-5.87 2,0 2.86,1.14 4.43,4.08 0,0 3.01,-4.08 7.66,-4.08 3.3,0 6.59,1.5 6.59,2.86 0,1.15 -3.36,5.87 -4.87,7.45 -0.5,0.5 -0.78,0.71 -1.29,0.71 -1.07,0 -1.93,-1.65 -3.93,-1.65 -2.01,0 -3.65,1.65 -3.65,3.8l0 22.12c0,1 -1.29,1.93 -6.02,1.93 -4.65,0 -5.94,-0.93 -5.94,-1.93z"/>
+            <path class="cnp1" d="M201.4 84.61l-1.01 0c-1.64,0 -2.72,-0.86 -2.72,-3.08l0 -24.4c0,-1.01 -1.36,-1.94 -6.01,-1.94 -4.72,0 -6.01,0.93 -6.01,1.94l0 26.77c0,5.29 3.15,8.52 8.87,8.52 3.8,0 8.09,-4.8 8.09,-6.66 0,-0.65 -0.36,-1.15 -1.21,-1.15z"/>
+            <path class="cnp2" d="M198.1 45.74c0,3.94 -1.79,5.59 -6.44,5.59 -4.65,0 -6.44,-1.65 -6.44,-5.59 0,-3.86 1.79,-5.58 6.44,-5.58 4.65,0 6.44,1.72 6.44,5.58z"/>
+            <path class="cnp1" d="M229.66 83.9l0 -16.47c0,-2.79 -1.51,-4.15 -4.08,-4.15 -2.94,0 -6.38,2.87 -6.38,4.73l0 21.76c0,1 -1.28,1.93 -6.01,1.93 -4.65,0 -5.94,-0.93 -5.94,-1.93l0 -24.05c0,-2.94 -2.01,-4.16 -2.01,-5.37 0,-1.86 6.38,-5.87 9.02,-5.87 1.72,0 2.58,0.86 3.8,3 0.21,0.29 0.43,0.65 0.64,1.08 2.44,-1.79 6.88,-4.08 12.03,-4.08 6.16,0 10.88,3.5 10.88,9.66l0 17.4c0,2.22 1.15,3.08 2.79,3.08l1.01 0c0.85,0 1.21,0.5 1.21,1.14 0,1.86 -4.29,6.66 -8.16,6.66 -5.65,0 -8.8,-3.22 -8.8,-8.52z"/>
+            <path class="cnp2" d="M244.02 49.32c0,-0.57 0.22,-0.86 0.65,-1.43 1.57,-1.93 7.15,-8.02 8.66,-9.52 0.36,-0.36 0.86,-0.57 1.36,-0.57 1.43,0 5.58,3.79 5.58,5.58 0,0.72 -0.14,1.15 -0.79,1.65 -1.36,1.29 -8.16,6.44 -10.23,7.73 -0.72,0.43 -1.08,0.57 -1.58,0.57 -0.86,0 -3.65,-3.01 -3.65,-4.01z"/>
+            <path class="cnp1" d="M255.42 86.05c0,-1.58 4.01,-6.09 5.37,-6.09 1.22,0 5.59,4.51 10.6,4.51 2.07,0 3.36,-1.22 3.36,-3 0,-2.51 -3.86,-3.37 -8.09,-4.87 -4.86,-1.72 -10.16,-4.23 -10.16,-10.17 0,-7.37 6.87,-11.95 15.96,-11.95 8.16,0 12.46,3.08 12.46,4.79 0,1.65 -3.65,6.23 -5.23,6.23 -1.07,0 -4.36,-3.58 -8.23,-3.58 -1.93,0 -3.29,1.29 -3.29,2.87 0,2.5 3.36,3.36 7.16,4.65 5.15,1.72 11.16,4.01 11.16,10.88 0,7.23 -6.44,12.1 -15.53,12.1 -8.59,0 -15.54,-4.8 -15.54,-6.37z"/>
+            <path class="cnp2" d="M35.18 30.55c-4.65,0 -6.44,1.72 -6.44,5.58 0,3.94 1.79,5.59 6.44,5.59 4.65,0 6.44,-1.65 6.44,-5.59 0,-3.86 -1.79,-5.58 -6.44,-5.58z"/>
+            <path class="cnp2" d="M6.44 30.55c-4.65,0 -6.44,1.72 -6.44,5.58 0,3.94 1.79,5.59 6.44,5.59 4.66,0 6.44,-1.65 6.44,-5.59 0,-3.86 -1.78,-5.58 -6.44,-5.58z"/>
+            <path class="cnp1" d="M40.93 55.95l0 36.47c-3.15,0 -5.99,-1.28 -8.06,-3.34 -2.06,-2.05 -3.33,-4.89 -3.33,-8.04l0 -13.58c-3.23,-1.27 -7.72,-3.59 -11.68,-7.86 -2.81,-3.03 -4.59,-6.22 -5.72,-8.94l0 30.38c0,3.15 -1.27,5.99 -3.33,8.04 -2.06,2.06 -4.91,3.34 -8.05,3.34l0 -36.47c0,-3.14 1.28,-5.98 3.34,-8.04 2.05,-2.06 4.9,-3.34 8.04,-3.34 0.74,2.97 2.54,8.47 7.23,13.52 3.37,3.64 7.13,5.87 10.17,7.23l0 -20.75c3.14,0 5.99,1.28 8.05,3.34 2.06,2.06 3.34,4.9 3.34,8.04z"/>
+          </svg>
+          <p class="mt-2 text-[11px] text-gray-400">RUC 20612XXXXXX · Lima, Perú</p>
         </div>
         <div class="text-right">
-          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide">Cotización</p>
-          <p class="font-bold text-primary text-base">Nº COT-{{ hoyISO().slice(0,4) }}-XXXX</p>
-          <p class="text-xs text-text-muted">Fecha: {{ hoyISO() | fecha }}</p>
+          <div class="mb-1.5 inline-block rounded-md px-2 py-0.5" style="background:#F21905/10;background:rgba(242,25,5,0.08)">
+            <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#F21905">Cotización</span>
+          </div>
+          <p class="text-lg font-bold" style="color:#F21905">Nº COT-{{ hoyISO().slice(0,4) }}-XXXX</p>
+          <p class="text-xs text-gray-500">Fecha: {{ hoyISO() | fecha }}</p>
+          @if (form.controls.fechaVencimiento.value) {
+            <p class="mt-0.5 text-xs font-medium text-orange-500">
+              Válida hasta: {{ form.controls.fechaVencimiento.value | fecha }}
+            </p>
+          }
         </div>
       </div>
+      <!-- Línea de marca rojo → verde -->
+      <div class="mb-5 h-[2px] rounded-full" style="background:linear-gradient(90deg,#F21905 0%,#97BF04 45%,transparent 100%)"></div>
 
       <!-- Cliente -->
       @if (clienteSeleccionado(); as cli) {
-        <div class="rounded-lg bg-bg-app px-4 py-3 mb-5">
-          <p class="text-[11px] font-semibold text-text-muted uppercase mb-1">Cliente</p>
-          <p class="font-semibold text-text-main">{{ cli.nombreCompleto }}</p>
-          @if (cli.ruc) { <p class="text-xs text-text-muted">RUC: {{ cli.ruc }}</p> }
-          @if (cli.razonSocial) { <p class="text-xs text-text-muted">{{ cli.razonSocial }}</p> }
+        <div class="mb-5 rounded-lg bg-gray-50 px-4 py-3">
+          <p class="mb-1 text-[11px] font-semibold uppercase text-gray-400">Cliente</p>
+          <p class="font-semibold text-gray-900">{{ cli.nombreCompleto }}</p>
+          @if (cli.ruc) { <p class="text-xs text-gray-500">RUC: {{ cli.ruc }}</p> }
+          @if (cli.razonSocial) { <p class="text-xs text-gray-500">{{ cli.razonSocial }}</p> }
         </div>
       } @else {
-        <div class="rounded-lg border-2 border-dashed border-border-soft px-4 py-3 mb-5 text-center text-sm text-text-muted">
+        <div class="mb-5 rounded-lg border-2 border-dashed border-gray-200 px-4 py-3 text-center text-sm text-gray-400">
           Selecciona un cliente
         </div>
       }
 
-      <!-- Tabla de productos -->
-      <table class="w-full mb-5" style="border-collapse:collapse">
+      <!-- Tabla productos -->
+      <table class="mb-5 w-full" style="border-collapse:collapse">
         <thead>
           <tr style="background:#f9f9f7;border-bottom:2px solid #e5e7eb">
-            <th class="px-3 py-2 text-left text-[11px] font-semibold text-text-muted">Descripción</th>
-            <th class="px-3 py-2 text-center text-[11px] font-semibold text-text-muted">Cant.</th>
-            <th class="px-3 py-2 text-right text-[11px] font-semibold text-text-muted">P. unit.</th>
-            <th class="px-3 py-2 text-right text-[11px] font-semibold text-text-muted">Importe</th>
+            <th class="px-3 py-2 text-left text-[11px] font-semibold text-gray-500">Descripción</th>
+            <th class="px-3 py-2 text-center text-[11px] font-semibold text-gray-500">Cant.</th>
+            <th class="px-3 py-2 text-right text-[11px] font-semibold text-gray-500">P. unit.</th>
+            <th class="px-3 py-2 text-right text-[11px] font-semibold text-gray-500">Importe</th>
           </tr>
         </thead>
         <tbody>
           @if (lineas().length === 0) {
-            <tr><td colspan="4" class="px-3 py-4 text-center text-xs text-text-muted">Agrega productos al pedido</td></tr>
+            <tr>
+              <td colspan="4" class="px-3 py-4 text-center text-xs text-gray-400">Agrega productos al pedido</td>
+            </tr>
           }
           @for (l of lineas(); track l.presentacion.id) {
             <tr style="border-bottom:1px solid #f3f4f6">
               <td class="px-3 py-2">
-                <p class="font-medium text-text-main">{{ l.presentacion.nombreProducto }}</p>
-                <p class="text-[11px] text-text-muted">{{ l.presentacion.nombre }}</p>
+                <p class="font-medium text-gray-900">{{ l.presentacion.nombreProducto }}</p>
+                <p class="text-[11px] text-gray-500">{{ l.presentacion.nombre }}</p>
               </td>
-              <td class="px-3 py-2 text-center text-text-muted">{{ l.cantidad }}</td>
-              <td class="px-3 py-2 text-right text-text-muted">{{ formatMonto(l.precioUnitario) }}</td>
-              <td class="px-3 py-2 text-right font-semibold text-text-main">{{ formatMonto(l.cantidad * l.precioUnitario) }}</td>
+              <td class="px-3 py-2 text-center text-gray-600">{{ l.cantidad }}</td>
+              <td class="px-3 py-2 text-right text-gray-600">{{ formatMonto(l.precioUnitario) }}</td>
+              <td class="px-3 py-2 text-right font-semibold text-gray-900">{{ formatMonto(l.cantidad * l.precioUnitario) }}</td>
             </tr>
           }
         </tbody>
@@ -480,34 +773,40 @@
       <!-- Totales -->
       <div class="flex justify-end">
         <div class="w-48">
-          <div class="flex justify-between text-xs text-text-muted py-1">
+          <div class="flex justify-between py-1 text-xs text-gray-500">
             <span>Subtotal</span><span>{{ formatMonto(subTotal()) }}</span>
           </div>
           @if (form.controls.incluyeIgv.value) {
-            <div class="flex justify-between text-xs text-text-muted py-1">
+            <div class="flex justify-between py-1 text-xs text-gray-500">
               <span>IGV (18%)</span><span>{{ formatMonto(igv()) }}</span>
             </div>
           }
-          @if (form.controls.descuento.value > 0) {
-            <div class="flex justify-between text-xs text-text-muted py-1">
-              <span>Descuento</span><span>-{{ formatMonto(form.controls.descuento.value) }}</span>
+          @if ((form.controls.descuento.value ?? 0) > 0) {
+            <div class="flex justify-between py-1 text-xs text-gray-500">
+              <span>Descuento</span><span>-{{ formatMonto(form.controls.descuento.value ?? 0) }}</span>
             </div>
           }
-          <div class="flex justify-between font-bold py-1 mt-1" style="border-top:2px solid #e5e7eb">
+          <div class="mt-1 flex justify-between py-1 font-bold text-gray-900" style="border-top:2px solid #e5e7eb">
             <span>TOTAL</span>
-            <span style="color:var(--color-primary,#16a34a)">{{ formatMonto(total()) }}</span>
+            <span style="color:var(--color-primary)">{{ formatMonto(total()) }}</span>
           </div>
         </div>
       </div>
 
       <!-- Pie -->
       @if (form.controls.observacion.value) {
-        <p class="mt-5 text-xs text-text-muted border-t border-border-soft pt-3">{{ form.controls.observacion.value }}</p>
+        <p class="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">
+          {{ form.controls.observacion.value }}
+        </p>
       }
       @if (form.controls.fechaVencimiento.value) {
-        <p class="mt-2 text-xs text-text-muted">Cotización válida hasta: <span class="font-medium">{{ form.controls.fechaVencimiento.value | fecha }}</span></p>
+        <p class="mt-2 text-xs text-gray-500">
+          Cotización válida hasta: <span class="font-medium">{{ form.controls.fechaVencimiento.value | fecha }}</span>
+        </p>
       }
-      <p class="mt-3 text-[11px] text-text-muted/60">Precios en soles (S/). {{ form.controls.incluyeIgv.value ? 'IGV incluido.' : 'No incluye IGV.' }}</p>
+      <p class="mt-3 text-[11px] text-gray-400">
+        Precios en soles (S/). {{ form.controls.incluyeIgv.value ? 'IGV incluido.' : 'No incluye IGV.' }}
+      </p>
     </div>
   </div>
 </div>

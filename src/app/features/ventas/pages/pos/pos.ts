@@ -83,10 +83,10 @@ export class Pos implements OnInit {
   readonly igv = computed(() => {
     const c = this.clienteSeleccionado();
     const aplica = c ? c.aplicaIgv : true;
-    return aplica ? Math.round(this.subtotal() * 0.18 * 100) / 100 : 0;
+    return aplica ? Math.round(this.baseGravable() * 0.18 * 100) / 100 : 0;
   });
 
-  readonly total = computed(() => this.subtotal() + this.igv());
+  readonly total = computed(() => this.baseGravable() + this.igv());
 
   // ── Cliente ──────────────────────────────────────────────────
   readonly clientes           = signal<ClienteResponse[]>([]);
@@ -120,7 +120,23 @@ export class Pos implements OnInit {
   readonly metodoPagoId     = signal('');
   readonly metodoPagoNombre = signal('');
 
+  // ── Descuento global ─────────────────────────────────────────
+  readonly descuentoGlobal = signal(0);
+  readonly tipoDescuento   = signal<'PCT' | 'MONTO'>('PCT');
+  readonly descuentoMonto  = computed(() => {
+    const d = this.descuentoGlobal();
+    const s = this.subtotal();
+    if (!d) return 0;
+    if (this.tipoDescuento() === 'PCT') return Math.round(s * (d / 100) * 100) / 100;
+    return Math.min(s, d);
+  });
+  readonly baseGravable = computed(() => Math.max(0, this.subtotal() - this.descuentoMonto()));
+
+  // ── Observación ───────────────────────────────────────────────
+  readonly observacion = signal('');
+
   // ── Efectivo: monto recibido / vuelto ────────────────────────
+  readonly montosRapidos  = [10, 20, 50, 100, 200];
   readonly montoRecibido  = signal<number | null>(null);
   readonly esEfectivo     = computed(() =>
     this.metodoPagoNombre().toLowerCase().includes('efectivo') ||
@@ -377,7 +393,7 @@ export class Pos implements OnInit {
       prioridad: 'NORMAL',
       tipoEntrega: this.tipoEntregaSignal(),
       costoEnvio: 0,
-      descuento: 0,
+      descuento: this.descuentoMonto(),
       ...(this.tipoEntregaSignal() === 'DELIVERY' && this.direccionEntrega().trim()
           ? { direccionEntrega: this.direccionEntrega().trim() } : {}),
     }).subscribe({
@@ -422,7 +438,14 @@ export class Pos implements OnInit {
     });
   }
 
-  cerrarModalExito(): void { this.modalExito.set(false); this.pedidoCreado.set(null); }
+  cerrarModalExito(): void {
+    this.modalExito.set(false);
+    this.pedidoCreado.set(null);
+    this.descuentoGlobal.set(0);
+    this.tipoDescuento.set('PCT');
+    this.observacion.set('');
+    this.montoRecibido.set(null);
+  }
 
   private recargarLotes(): void {
     this.svcLote.listarDisponibles().subscribe({
