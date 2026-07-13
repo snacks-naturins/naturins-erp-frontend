@@ -27,8 +27,11 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this._currentUser() !== null);
 
   constructor() {
-    if (this.storage.getUser()) {
+    const token = this.storage.getToken();
+    if (this.storage.getUser() && token && !this.isTokenExpired(token)) {
       this.rbac.cargar();
+    } else if (this.storage.getUser()) {
+      this.logout();
     }
   }
 
@@ -42,7 +45,7 @@ export class AuthService {
           this.storage.setToken(res.token);
           this.storage.setUser(user);
           this._currentUser.set(user);
-          this.rbac.cargar();
+          this.rbac.recargar();
         }),
       );
   }

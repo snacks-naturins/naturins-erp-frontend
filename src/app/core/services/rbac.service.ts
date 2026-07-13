@@ -10,28 +10,47 @@ export class RbacService {
 
   private readonly _permisos = signal<RolModuloResponse[]>([]);
   private readonly _cargado  = signal(false);
+  private readonly _error    = signal(false);
   readonly cargado = this._cargado.asReadonly();
+  readonly error   = this._error.asReadonly();
 
   cargar(): void {
     if (this._cargado()) return;
+    this._error.set(false);
     this.svcPermiso.misPermisos().subscribe({
-      next: (p) => { this._permisos.set(p); this._cargado.set(true); },
-      error: () => this._cargado.set(true),
+      next: (p) => {
+        this._permisos.set(p);
+        this._cargado.set(true);
+        this._error.set(false);
+      },
+      error: () => {
+        this._cargado.set(false);
+        this._error.set(true);
+      },
     });
+  }
+
+  recargar(): void {
+    this._cargado.set(false);
+    this._permisos.set([]);
+    this._error.set(false);
+    this.cargar();
   }
 
   limpiar(): void {
     this._permisos.set([]);
     this._cargado.set(false);
+    this._error.set(false);
   }
 
   hasPermission(modulo: string, accion: AccionRbac): boolean {
     if (!this._cargado()) return true;
-    const permisos = this._permisos();
-    if (permisos.length === 0) return true;
+    if (this._permisos().length === 0 || this._error()) return false;
     const m = modulo.toLowerCase();
-    const p = permisos.find((x) => x.nombreModulo.toLowerCase().includes(m) || m.includes(x.nombreModulo.toLowerCase()));
-    if (!p) return true;
+    const p = this._permisos().find(
+      (x) => x.nombreModulo.toLowerCase().includes(m) || m.includes(x.nombreModulo.toLowerCase())
+    );
+    if (!p) return false;
     switch (accion) {
       case 'ver':      return p.puedeVer;
       case 'crear':    return p.puedeCrear;
