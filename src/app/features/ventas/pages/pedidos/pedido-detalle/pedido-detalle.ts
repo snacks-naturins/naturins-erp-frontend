@@ -147,5 +147,152 @@ export class PedidoDetalle implements OnInit {
 
   formatMonto(v: number): string { return `S/ ${(v ?? 0).toFixed(2)}`; }
 
-  imprimir(): void { window.print(); }
+  imprimir(): void {
+    const p = this.pedido();
+    const items = this.detalles();
+    if (!p) return;
+
+    const esc = (s: string) => (s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fmt = (v: number) => `S/ ${(v ?? 0).toFixed(2)}`;
+
+    const fecha = p.fechaCreacion
+      ? new Date(p.fechaCreacion).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
+      : '—';
+
+    const estadoLabels: Record<string, string> = {
+      NUEVO: 'Nuevo', CONFIRMADO: 'Confirmado', EN_PREPARACION: 'En preparación',
+      LISTO_DESPACHO: 'Listo para despacho', EN_CAMINO: 'En camino',
+      ENTREGADO: 'Entregado', CANCELADO: 'Cancelado', DEVUELTO: 'Devuelto',
+    };
+
+    const pagoBadge = p.estadoPago === 'PAGADO'
+      ? 'background:#dcfce7;color:#166534'
+      : p.estadoPago === 'PENDIENTE'
+        ? 'background:#fef9c3;color:#854d0e'
+        : 'background:#f3f4f6;color:#374151';
+
+    const filas = items.map(d => `
+      <tr>
+        <td style="padding:9px 10px;border-bottom:1px solid #f0f0f0;font-weight:500">
+          ${esc(d.nombreProducto)}
+          <div style="font-size:11px;color:#888;font-weight:400;margin-top:1px">${esc(d.nombrePresentacion)}</div>
+        </td>
+        <td style="padding:9px 10px;border-bottom:1px solid #f0f0f0;font-family:monospace;font-size:11px;color:#555">${esc(d.codigoLote)}</td>
+        <td style="padding:9px 10px;border-bottom:1px solid #f0f0f0;text-align:right">${d.cantidad}</td>
+        <td style="padding:9px 10px;border-bottom:1px solid #f0f0f0;text-align:right;color:#555">${fmt(d.precioUnitario)}</td>
+        <td style="padding:9px 10px;border-bottom:1px solid #f0f0f0;text-align:right;font-weight:600">${fmt(d.subtotal)}</td>
+      </tr>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprobante ${esc(p.numeroPedido)}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:#1a1a1a;background:#fff;padding:36px;max-width:794px;margin:0 auto}
+    @media print{body{padding:0}@page{margin:12mm;size:A4}}
+  </style>
+</head>
+<body>
+
+  <!-- Cabecera -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:3px solid #c85a1e">
+    <div>
+      <div style="font-size:26px;font-weight:800;color:#c85a1e;letter-spacing:-0.5px">Snacks Naturins</div>
+      <div style="font-size:11px;color:#888;margin-top:3px">Alimentos naturales y saludables</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1.5px">Comprobante de Venta</div>
+      <div style="font-size:24px;font-weight:800;color:#1a1a1a;margin-top:4px;letter-spacing:-0.5px">${esc(p.numeroPedido)}</div>
+      <div style="font-size:12px;color:#666;margin-top:3px">${fecha}</div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px">
+    <div style="background:#f7f7f7;border-radius:8px;padding:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Cliente</div>
+      <div style="font-weight:700;font-size:15px">${esc(p.nombreCliente)}</div>
+    </div>
+    <div style="background:#f7f7f7;border-radius:8px;padding:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Estado del pedido</div>
+      <div style="font-weight:600">${estadoLabels[p.estado] ?? esc(p.estado)}</div>
+    </div>
+    <div style="background:#f7f7f7;border-radius:8px;padding:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Método de pago</div>
+      <div style="font-weight:600">${esc(p.metodoPagoNombre)}</div>
+      <span style="display:inline-block;margin-top:5px;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:600;${pagoBadge}">${esc(p.estadoPago)}</span>
+    </div>
+    <div style="background:#f7f7f7;border-radius:8px;padding:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Canal / Entrega</div>
+      <div style="font-weight:600">${esc(p.canal)}</div>
+      <div style="font-size:11px;color:#888;margin-top:2px">${esc(p.tipoEntrega.replace(/_/g, ' '))}</div>
+      ${p.direccionEntrega ? `<div style="font-size:11px;color:#555;margin-top:5px">📍 ${esc(p.direccionEntrega)}</div>` : ''}
+    </div>
+    ${p.nombreUsuarioVendedor ? `
+    <div style="background:#f7f7f7;border-radius:8px;padding:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Vendedor</div>
+      <div style="font-weight:600">${esc(p.nombreUsuarioVendedor)}</div>
+    </div>` : ''}
+  </div>
+
+  <!-- Tabla de ítems -->
+  <table style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr style="background:#1a1a1a;color:#fff">
+        <th style="padding:10px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Producto</th>
+        <th style="padding:10px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Lote</th>
+        <th style="padding:10px 10px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Cant.</th>
+        <th style="padding:10px 10px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">P. Unit.</th>
+        <th style="padding:10px 10px;text-align:right;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>${filas}</tbody>
+  </table>
+
+  <!-- Totales -->
+  <div style="display:flex;justify-content:flex-end;margin-top:16px">
+    <div style="min-width:260px;border-top:1px solid #e5e5e5;padding-top:12px">
+      ${p.igv > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;color:#555;font-size:13px">
+        <span>Subtotal</span><span>${fmt(p.subTotal)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;color:#555;font-size:13px">
+        <span>IGV (18%)</span><span>${fmt(p.igv)}</span>
+      </div>` : ''}
+      ${p.costoEnvio > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;color:#555;font-size:13px">
+        <span>Costo de envío</span><span>${fmt(p.costoEnvio)}</span>
+      </div>` : ''}
+      ${(p.descuento ?? 0) > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;color:#dc2626;font-size:13px">
+        <span>Descuento</span><span>-${fmt(p.descuento ?? 0)}</span>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:12px 0 0;border-top:2px solid #1a1a1a;margin-top:8px;font-size:17px;font-weight:800">
+        <span>TOTAL</span>
+        <span style="color:#c85a1e">${fmt(p.total)}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:11px;color:#bbb">Generado por Naturins ERP · ${new Date().toLocaleDateString('es-PE')}</div>
+    <div style="text-align:center;font-size:12px;color:#555">
+      <strong>¡Gracias por su compra!</strong><br>
+      <span style="font-size:11px;color:#999">Snacks Naturins — Alimentos que cuidan tu bienestar</span>
+    </div>
+  </div>
+
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=860,height=1060,scrollbars=yes');
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
+  }
 }

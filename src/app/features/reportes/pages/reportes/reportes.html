@@ -2,6 +2,7 @@
 
   <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Administración'}, {label:'Reportes'}]" />
 
+  <!-- Header -->
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
       <h1 class="text-[28px] font-bold text-text-main">Reportes</h1>
@@ -9,96 +10,146 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="flex flex-wrap gap-2 border-b border-border-soft">
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">error</mat-icon> {{ error() }}
+      <button (click)="error.set(null)" class="ml-auto">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">close</mat-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Tabs pill -->
+  <div class="flex flex-wrap gap-2">
     @for (t of tabs; track t.id) {
       <button (click)="setTab(t.id)"
-        class="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition border-b-2 -mb-px"
-        [class]="activeTab() === t.id ? 'border-primary text-primary' : 'border-transparent text-text-muted hover:text-text-main'">
-        <mat-icon class="text-[18px]">{{ t.icon }}</mat-icon>
+        class="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all"
+        [class]="activeTab() === t.id
+          ? 'bg-primary text-white shadow-md'
+          : 'border border-border-soft bg-bg-card text-text-muted hover:bg-bg-app hover:text-text-main'">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">{{ t.icon }}</mat-icon>
         {{ t.label }}
       </button>
     }
   </div>
 
-  @if (error()) {
-    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-      <mat-icon class="text-[18px]">error</mat-icon> {{ error() }}
-    </div>
-  }
-
-  <!-- Date range picker (for tabs that support it) -->
+  <!-- Date range (tabs que lo usan) -->
   @if (activeTab() === 'ventas' || activeTab() === 'compras' || activeTab() === 'produccion' || activeTab() === 'productos') {
-    <div class="flex flex-wrap items-center gap-3 rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <label class="text-xs font-semibold text-text-main">Desde</label>
+    <div class="flex flex-wrap items-center gap-3 rounded-card bg-bg-card p-4 shadow-sm">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted">date_range</mat-icon>
+      <label class="text-xs font-semibold text-text-muted">Desde</label>
       <input type="date" [value]="desde()" (change)="desde.set($any($event.target).value)"
-        class="h-9 rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none" />
-      <label class="text-xs font-semibold text-text-main">Hasta</label>
+        class="h-9 rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+      <label class="text-xs font-semibold text-text-muted">Hasta</label>
       <input type="date" [value]="hasta()" (change)="hasta.set($any($event.target).value)"
-        class="h-9 rounded-input border border-border-soft bg-[#FAFAFA] px-3 text-sm outline-none" />
+        class="h-9 rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
       <button (click)="aplicarFechas()"
-        class="flex items-center gap-1.5 rounded-btn bg-primary px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary-hover">
-        <mat-icon class="text-[16px]">refresh</mat-icon> Aplicar
+        class="flex items-center gap-1.5 rounded-btn bg-primary px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary-hover transition-colors">
+        <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">refresh</mat-icon> Aplicar
       </button>
     </div>
   }
 
   @if (loadingTab()) {
-    <div class="flex items-center justify-center py-16 text-text-muted">
-      <mat-icon class="animate-spin mr-2">progress_activity</mat-icon> Cargando...
+    <div class="flex items-center justify-center gap-2 py-16 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[28px]!">progress_activity</mat-icon>
+      <span class="text-sm">Cargando...</span>
     </div>
   }
 
   <!-- ═══════════ VENTAS ═══════════ -->
-  @if (activeTab() === 'ventas') {
+  @if (activeTab() === 'ventas' && !loadingTab()) {
     @if (resumenVentas(); as d) {
+      <!-- KPI cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Pedidos</p>
-          <p class="text-2xl font-bold text-text-main">{{ d.cantidadPedidos }}</p>
+        <!-- Pedidos -->
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-blue-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-blue-600">receipt_long</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Pedidos</p>
+              <p class="text-2xl font-bold text-text-main">{{ d.cantidadPedidos }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Total vendido</p>
-          <p class="text-2xl font-bold text-green-600">{{ formatMonto(d.montoTotal) }}</p>
+        <!-- Total vendido -->
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-green-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-green-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-green-600">payments</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Total vendido</p>
+              <p class="text-xl font-bold text-green-600">{{ formatMonto(d.montoTotal) }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Pagados</p>
-          <p class="text-2xl font-bold text-blue-600">{{ d.pedidosPagados }}</p>
+        <!-- Pagados -->
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-teal-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-teal-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-teal-600">check_circle</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Pagados</p>
+              <p class="text-2xl font-bold text-teal-600">{{ d.pedidosPagados }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Pendientes pago</p>
-          <p class="text-2xl font-bold text-amber-600">{{ d.pedidosPendientesPago }}</p>
+        <!-- Pendientes pago -->
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-amber-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-amber-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-amber-600">pending</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Pendientes pago</p>
+              <p class="text-2xl font-bold text-amber-600">{{ d.pedidosPendientesPago }}</p>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="flex justify-end">
         <button (click)="exportarVentas()"
-          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 py-1.5 text-sm font-medium text-text-muted hover:bg-[#F9F5EF] hover:text-text-main transition">
-          <mat-icon class="text-[16px]">download</mat-icon> Exportar CSV
+          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app hover:text-text-main transition-colors">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">download</mat-icon> Exportar CSV
         </button>
       </div>
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Pedido</th>
-              <th class="px-5 py-3 font-semibold">Cliente</th>
-              <th class="px-5 py-3 text-right font-semibold">Total</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
-              <th class="px-5 py-3 text-center font-semibold">Pago</th>
-              <th class="px-5 py-3 text-center font-semibold">Fecha</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Pedido</th>
+              <th class="px-5 py-3.5 font-semibold">Cliente</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Total</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Pago</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Fecha</th>
             </tr>
           </thead>
           <tbody>
             @for (item of d.detalle; track item.pedidoId) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
                 <td class="px-5 py-3 font-semibold text-primary">{{ item.numeroPedido }}</td>
-                <td class="px-5 py-3">{{ item.nombreCliente }}</td>
-                <td class="px-5 py-3 text-right font-semibold">{{ formatMonto(item.total) }}</td>
+                <td class="px-5 py-3 text-text-main">{{ item.nombreCliente }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(item.total) }}</td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(item.estado)">{{ item.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(item.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ item.estado }}
+                  </span>
                 </td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(item.estadoPago)">{{ item.estadoPago }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(item.estadoPago)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ item.estadoPago }}
+                  </span>
                 </td>
                 <td class="px-5 py-3 text-center text-xs text-text-muted">{{ item.fechaCreacion | fecha }}</td>
               </tr>
@@ -106,53 +157,81 @@
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="trending_up" titulo="Sin datos de ventas" descripcion="No hay ventas en el período seleccionado." />
     }
   }
 
   <!-- ═══════════ COMPRAS ═══════════ -->
-  @if (activeTab() === 'compras') {
+  @if (activeTab() === 'compras' && !loadingTab()) {
     @if (resumenCompras(); as d) {
       <div class="grid grid-cols-3 gap-4">
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Órdenes</p>
-          <p class="text-2xl font-bold text-text-main">{{ d.cantidadCompras }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-blue-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-blue-600">shopping_cart</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Órdenes</p>
+              <p class="text-2xl font-bold text-text-main">{{ d.cantidadCompras }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Total comprado</p>
-          <p class="text-2xl font-bold text-orange-600">{{ formatMonto(d.montoTotal) }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-orange-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-orange-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-orange-600">payments</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Total comprado</p>
+              <p class="text-xl font-bold text-orange-600">{{ formatMonto(d.montoTotal) }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Completadas</p>
-          <p class="text-2xl font-bold text-green-600">{{ d.comprasCompletadas }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-green-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-green-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-green-600">check_circle</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Completadas</p>
+              <p class="text-2xl font-bold text-green-600">{{ d.comprasCompletadas }}</p>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="flex justify-end">
         <button (click)="exportarCompras()"
-          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 py-1.5 text-sm font-medium text-text-muted hover:bg-[#F9F5EF] hover:text-text-main transition">
-          <mat-icon class="text-[16px]">download</mat-icon> Exportar CSV
+          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app hover:text-text-main transition-colors">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">download</mat-icon> Exportar CSV
         </button>
       </div>
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Orden</th>
-              <th class="px-5 py-3 font-semibold">Proveedor</th>
-              <th class="px-5 py-3 text-right font-semibold">Total</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
-              <th class="px-5 py-3 text-center font-semibold">Fecha</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Orden</th>
+              <th class="px-5 py-3.5 font-semibold">Proveedor</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Total</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Fecha</th>
             </tr>
           </thead>
           <tbody>
             @for (item of d.detalle; track item.compraId) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
                 <td class="px-5 py-3 font-semibold text-primary">{{ item.numeroOrden }}</td>
-                <td class="px-5 py-3">{{ item.nombreProveedor }}</td>
-                <td class="px-5 py-3 text-right font-semibold">{{ formatMonto(item.total) }}</td>
+                <td class="px-5 py-3 text-text-main">{{ item.nombreProveedor }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(item.total) }}</td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(item.estado)">{{ item.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(item.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ item.estado }}
+                  </span>
                 </td>
                 <td class="px-5 py-3 text-center text-xs text-text-muted">{{ item.fechaCompra | fecha }}</td>
               </tr>
@@ -160,169 +239,246 @@
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="shopping_cart" titulo="Sin compras" descripcion="No hay compras en el período seleccionado." />
     }
   }
 
   <!-- ═══════════ PRODUCCIÓN ═══════════ -->
-  @if (activeTab() === 'produccion') {
+  @if (activeTab() === 'produccion' && !loadingTab()) {
     @if (opsPeriodo().length > 0) {
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Órdenes en período</p>
-          <p class="text-2xl font-bold text-text-main">{{ opsPeriodo().length }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-primary"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-primary">precision_manufacturing</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Órdenes en período</p>
+              <p class="text-2xl font-bold text-text-main">{{ opsPeriodo().length }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Completadas</p>
-          <p class="text-2xl font-bold text-green-600">{{ opsCompletadas() }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-green-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-green-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-green-600">task_alt</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Completadas</p>
+              <p class="text-2xl font-bold text-green-600">{{ opsCompletadas() }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">En proceso</p>
-          <p class="text-2xl font-bold text-amber-600">{{ opsEnProceso() }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-amber-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-amber-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-amber-600">autorenew</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">En proceso</p>
+              <p class="text-2xl font-bold text-amber-600">{{ opsEnProceso() }}</p>
+            </div>
+          </div>
         </div>
-        <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <p class="text-xs text-text-muted">Costo total producido</p>
-          <p class="text-2xl font-bold text-primary">{{ formatMonto(costoTotalProd()) }}</p>
+        <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+          <div class="h-1.5 bg-indigo-500"></div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-50">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-indigo-600">paid</mat-icon>
+            </div>
+            <div>
+              <p class="text-xs text-text-muted">Costo producido</p>
+              <p class="text-xl font-bold text-indigo-600">{{ formatMonto(costoTotalProd()) }}</p>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="flex justify-end">
         <button (click)="exportarProduccion()"
-          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-white px-4 py-1.5 text-sm font-medium text-text-muted hover:bg-[#F9F5EF] hover:text-text-main transition">
-          <mat-icon class="text-[16px]">download</mat-icon> Exportar CSV
+          class="flex items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-app hover:text-text-main transition-colors">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">download</mat-icon> Exportar CSV
         </button>
       </div>
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Nro. Orden</th>
-              <th class="px-5 py-3 font-semibold">Responsable</th>
-              <th class="px-5 py-3 text-center font-semibold">Fecha</th>
-              <th class="px-5 py-3 text-right font-semibold">Costo total</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Nro. Orden</th>
+              <th class="px-5 py-3.5 font-semibold">Responsable</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Fecha</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Costo total</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
             </tr>
           </thead>
           <tbody>
             @for (op of opsPeriodo(); track op.id) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
                 <td class="px-5 py-3 font-semibold text-primary">{{ op.numeroOrden }}</td>
-                <td class="px-5 py-3">{{ op.nombreCompleto ?? op.nombreUsuario ?? '—' }}</td>
+                <td class="px-5 py-3 text-text-main">{{ op.nombreCompleto ?? op.nombreUsuario ?? '—' }}</td>
                 <td class="px-5 py-3 text-center text-xs text-text-muted">{{ op.fechaProduccion | fecha }}</td>
-                <td class="px-5 py-3 text-right font-semibold">{{ formatMonto(op.costoTotal) }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(op.costoTotal) }}</td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(op.estado)">{{ op.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(op.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ op.estado }}
+                  </span>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="precision_manufacturing" titulo="Sin órdenes de producción" descripcion="No hay órdenes de producción en el período seleccionado." />
     }
   }
 
   <!-- ═══════════ INVENTARIO ═══════════ -->
-  @if (activeTab() === 'inventario') {
+  @if (activeTab() === 'inventario' && !loadingTab()) {
     @if (inventario().length > 0) {
-      <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <p class="text-xs text-text-muted">Valor total del inventario</p>
-        <p class="text-3xl font-bold text-primary">{{ formatMonto(totalValorInventario()) }}</p>
+      <!-- KPI valor total -->
+      <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+        <div class="h-1.5 bg-primary"></div>
+        <div class="flex items-center gap-4 p-5">
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[24px]! text-primary">inventory_2</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs text-text-muted">Valor total del inventario</p>
+            <p class="text-3xl font-bold text-primary">{{ formatMonto(totalValorInventario()) }}</p>
+          </div>
+          <div class="ml-auto text-right">
+            <p class="text-xs text-text-muted">Lotes registrados</p>
+            <p class="text-xl font-bold text-text-main">{{ inventario().length }}</p>
+          </div>
+        </div>
       </div>
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Lote</th>
-              <th class="px-5 py-3 font-semibold">Producto</th>
-              <th class="px-5 py-3 font-semibold">Almacén</th>
-              <th class="px-5 py-3 text-right font-semibold">Stock</th>
-              <th class="px-5 py-3 text-right font-semibold">Costo unit.</th>
-              <th class="px-5 py-3 text-right font-semibold">Valor total</th>
-              <th class="px-5 py-3 text-center font-semibold">Vencimiento</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Lote</th>
+              <th class="px-5 py-3.5 font-semibold">Producto</th>
+              <th class="px-5 py-3.5 font-semibold">Almacén</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Stock</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Costo unit.</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Valor total</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Vencimiento</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
             </tr>
           </thead>
           <tbody>
             @for (l of inventario(); track l.loteId) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
                 <td class="px-5 py-3 font-medium text-primary">{{ l.codigoLote }}</td>
-                <td class="px-5 py-3">{{ l.nombrePresentacion }}</td>
-                <td class="px-5 py-3">{{ l.nombreAlmacen }}</td>
-                <td class="px-5 py-3 text-right">{{ l.stockLote }}</td>
-                <td class="px-5 py-3 text-right">{{ formatMonto(l.costoUnitario) }}</td>
-                <td class="px-5 py-3 text-right font-semibold">{{ formatMonto(l.valorTotal) }}</td>
-                <td class="px-5 py-3 text-center text-xs">{{ l.fechaVencimiento | fecha }}</td>
+                <td class="px-5 py-3 text-text-main">{{ l.nombrePresentacion }}</td>
+                <td class="px-5 py-3 text-text-muted">{{ l.nombreAlmacen }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ l.stockLote }}</td>
+                <td class="px-5 py-3 text-right text-text-muted">{{ formatMonto(l.costoUnitario) }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-primary">{{ formatMonto(l.valorTotal) }}</td>
+                <td class="px-5 py-3 text-center text-xs text-text-muted">{{ l.fechaVencimiento | fecha }}</td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(l.estado)">{{ l.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(l.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ l.estado }}
+                  </span>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="inventory_2" titulo="Sin inventario" descripcion="No hay lotes registrados en el sistema." />
     }
   }
 
   <!-- ═══════════ MÁS VENDIDOS ═══════════ -->
-  @if (activeTab() === 'productos') {
+  @if (activeTab() === 'productos' && !loadingTab()) {
     @if (topProductos().length > 0) {
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
+        <div class="flex items-center gap-3 border-b border-border-soft bg-bg-app px-5 py-3.5">
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-amber-500">star</mat-icon>
+          <span class="text-sm font-semibold text-text-muted">Top 10 productos más vendidos en el período</span>
+        </div>
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">#</th>
-              <th class="px-5 py-3 font-semibold">Producto</th>
-              <th class="px-5 py-3 text-right font-semibold">Cantidad vendida</th>
-              <th class="px-5 py-3 text-right font-semibold">Total vendido</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold w-10">#</th>
+              <th class="px-5 py-3.5 font-semibold">Producto</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Cantidad vendida</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Total vendido</th>
             </tr>
           </thead>
           <tbody>
             @for (p of topProductos(); track p.presentacionProductoId; let i = $index) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
-                <td class="px-5 py-3 font-bold text-text-muted">{{ i + 1 }}</td>
-                <td class="px-5 py-3 font-medium">{{ p.nombrePresentacion }}</td>
-                <td class="px-5 py-3 text-right">{{ p.cantidadTotalVendida }}</td>
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
+                <td class="px-5 py-3">
+                  <span class="inline-grid h-6 w-6 place-items-center rounded-full text-xs font-bold"
+                    [class]="i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-gray-100 text-gray-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-bg-app text-text-muted'">
+                    {{ i + 1 }}
+                  </span>
+                </td>
+                <td class="px-5 py-3 font-medium text-text-main">{{ p.nombrePresentacion }}</td>
+                <td class="px-5 py-3 text-right text-text-main">{{ p.cantidadTotalVendida }}</td>
                 <td class="px-5 py-3 text-right font-semibold text-primary">{{ formatMonto(p.montoTotalVendido) }}</td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="star" titulo="Sin datos" descripcion="No hay ventas en el período seleccionado." />
     }
   }
 
   <!-- ═══════════ CUENTAS POR COBRAR ═══════════ -->
-  @if (activeTab() === 'cuentas') {
+  @if (activeTab() === 'cuentas' && !loadingTab()) {
     @if (cuentas().length > 0) {
-      <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <p class="text-xs text-text-muted">Total por cobrar</p>
-        <p class="text-3xl font-bold text-red-600">{{ formatMonto(totalCuentas()) }}</p>
+      <!-- KPI total por cobrar -->
+      <div class="flex flex-col overflow-hidden rounded-card bg-bg-card shadow-sm">
+        <div class="h-1.5 bg-red-500"></div>
+        <div class="flex items-center gap-4 p-5">
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-red-50">
+            <mat-icon fontSet="material-icons-outlined" class="text-[24px]! text-red-600">account_balance_wallet</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs text-text-muted">Total pendiente de cobro</p>
+            <p class="text-3xl font-bold text-red-600">{{ formatMonto(totalCuentas()) }}</p>
+          </div>
+          <div class="ml-auto text-right">
+            <p class="text-xs text-text-muted">Pedidos pendientes</p>
+            <p class="text-xl font-bold text-text-main">{{ cuentas().length }}</p>
+          </div>
+        </div>
       </div>
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Pedido</th>
-              <th class="px-5 py-3 font-semibold">Cliente</th>
-              <th class="px-5 py-3 text-right font-semibold">Total</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
-              <th class="px-5 py-3 text-center font-semibold">Fecha</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Pedido</th>
+              <th class="px-5 py-3.5 font-semibold">Cliente</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Total</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Fecha</th>
             </tr>
           </thead>
           <tbody>
             @for (c of cuentas(); track c.pedidoId) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors">
                 <td class="px-5 py-3 font-semibold text-primary">{{ c.numeroPedido }}</td>
-                <td class="px-5 py-3">{{ c.nombreCliente }}</td>
-                <td class="px-5 py-3 text-right font-semibold">{{ formatMonto(c.total) }}</td>
+                <td class="px-5 py-3 text-text-main">{{ c.nombreCliente }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ formatMonto(c.total) }}</td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(c.estado)">{{ c.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(c.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ c.estado }}
+                  </span>
                 </td>
                 <td class="px-5 py-3 text-center text-xs text-text-muted">{{ c.fechaCreacion | fecha }}</td>
               </tr>
@@ -330,47 +486,62 @@
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="payments" titulo="Sin cuentas pendientes" descripcion="No hay pedidos con pago pendiente." />
     }
   }
 
   <!-- ═══════════ PRÓXIMOS A VENCER ═══════════ -->
-  @if (activeTab() === 'vencimientos') {
+  @if (activeTab() === 'vencimientos' && !loadingTab()) {
     @if (vencimientos().length > 0) {
-      <div class="overflow-hidden rounded-table bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <!-- Alerta visual -->
+      <div class="flex items-center gap-3 rounded-card border border-amber-200 bg-amber-50 px-4 py-3">
+        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-amber-600">warning</mat-icon>
+        <p class="text-sm text-amber-800">
+          <strong>{{ vencimientos().length }}</strong> lote{{ vencimientos().length !== 1 ? 's' : '' }} próximos a vencer en los próximos 30 días.
+        </p>
+      </div>
+
+      <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-border-soft bg-[#FAFAFA] text-left text-text-muted">
-              <th class="px-5 py-3 font-semibold">Lote</th>
-              <th class="px-5 py-3 font-semibold">Producto</th>
-              <th class="px-5 py-3 font-semibold">Almacén</th>
-              <th class="px-5 py-3 text-right font-semibold">Stock</th>
-              <th class="px-5 py-3 text-center font-semibold">Vence</th>
-              <th class="px-5 py-3 text-center font-semibold">Días</th>
-              <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+              <th class="px-5 py-3.5 font-semibold">Lote</th>
+              <th class="px-5 py-3.5 font-semibold">Producto</th>
+              <th class="px-5 py-3.5 font-semibold">Almacén</th>
+              <th class="px-5 py-3.5 text-right font-semibold">Stock</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Vence</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Días restantes</th>
+              <th class="px-5 py-3.5 text-center font-semibold">Estado</th>
             </tr>
           </thead>
           <tbody>
             @for (l of vencimientos(); track l.loteId) {
-              <tr class="border-b border-border-soft last:border-0 hover:bg-[#FFF8EE] transition">
+              <tr class="border-b border-border-soft last:border-0 hover:bg-primary/[0.03] transition-colors"
+                [class.bg-red-50]="l.diasRestantes <= 0" [class.bg-orange-50]="l.diasRestantes > 0 && l.diasRestantes <= 7">
                 <td class="px-5 py-3 font-medium text-primary">{{ l.codigoLote }}</td>
-                <td class="px-5 py-3">{{ l.nombrePresentacion }}</td>
-                <td class="px-5 py-3">{{ l.nombreAlmacen }}</td>
-                <td class="px-5 py-3 text-right">{{ l.stockLote }}</td>
-                <td class="px-5 py-3 text-center text-xs">{{ l.fechaVencimiento | fecha }}</td>
-                <td class="px-5 py-3 text-center" [class]="vencimientoColor(l.diasRestantes)">
-                  {{ l.diasRestantes }} días
+                <td class="px-5 py-3 text-text-main">{{ l.nombrePresentacion }}</td>
+                <td class="px-5 py-3 text-text-muted">{{ l.nombreAlmacen }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-text-main">{{ l.stockLote }}</td>
+                <td class="px-5 py-3 text-center text-xs text-text-muted">{{ l.fechaVencimiento | fecha }}</td>
+                <td class="px-5 py-3 text-center">
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [class]="l.diasRestantes <= 0 ? 'bg-red-100 text-red-700' : l.diasRestantes <= 7 ? 'bg-orange-100 text-orange-700' : l.diasRestantes <= 15 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[12px]!">schedule</mat-icon>
+                    {{ l.diasRestantes <= 0 ? 'Vencido' : l.diasRestantes + ' días' }}
+                  </span>
                 </td>
                 <td class="px-5 py-3 text-center">
-                  <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" [class]="estadoColor(l.estado)">{{ l.estado }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estadoColor(l.estado)">
+                    <span class="h-1.5 w-1.5 rounded-full bg-current opacity-70"></span>{{ l.estado }}
+                  </span>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    } @else if (!loadingTab()) {
+    } @else {
       <app-empty-state icono="schedule" titulo="Sin lotes por vencer" descripcion="No hay lotes próximos a vencer en los próximos 30 días." />
     }
   }

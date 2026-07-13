@@ -25,58 +25,46 @@
   <!-- KPI strip -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-    <!-- Total -->
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="flex items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <mat-icon class="text-[16px] text-primary">swap_horiz</mat-icon>
-        </div>
-        <p class="text-xs text-text-muted">Total movimientos</p>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total movimientos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">swap_horiz</mat-icon>
       </div>
-      <p class="mt-2 text-2xl font-bold text-text-main">{{ kpiTotal() }}</p>
+      <p class="text-2xl font-bold text-text-main">{{ kpiTotal() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">registrados</p>
     </div>
 
-    <!-- Entradas (clickeable) -->
     <button (click)="filtrarPorCategoria('entrada')"
-      class="rounded-card border p-4 text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition"
-      [class]="filtroCategoria() === 'entrada'
-        ? 'border-green-400 bg-green-50 shadow-md'
-        : 'border-border-soft bg-bg-card hover:border-green-300'">
-      <div class="flex items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg transition"
-          [class]="filtroCategoria() === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-green-50 text-green-600'">
-          <mat-icon class="text-[16px]">south_west</mat-icon>
-        </div>
-        <p class="text-xs text-text-muted">Entradas</p>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroCategoria() === 'entrada' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Entradas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroCategoria() === 'entrada' ? 'text-green-500' : 'text-green-400'">south_west</mat-icon>
       </div>
-      <p class="mt-2 text-2xl font-bold text-green-600">{{ kpiEntradas() }}</p>
+      <p class="text-2xl font-bold" [class]="filtroCategoria() === 'entrada' ? 'text-green-600' : 'text-green-500'">{{ kpiEntradas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">ingresos al stock</p>
     </button>
 
-    <!-- Salidas (clickeable) -->
     <button (click)="filtrarPorCategoria('salida')"
-      class="rounded-card border p-4 text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition"
-      [class]="filtroCategoria() === 'salida'
-        ? 'border-red-400 bg-red-50 shadow-md'
-        : 'border-border-soft bg-bg-card hover:border-red-300'">
-      <div class="flex items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg transition"
-          [class]="filtroCategoria() === 'salida' ? 'bg-red-100 text-red-700' : 'bg-red-50 text-red-500'">
-          <mat-icon class="text-[16px]">north_east</mat-icon>
-        </div>
-        <p class="text-xs text-text-muted">Salidas</p>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroCategoria() === 'salida' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Salidas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroCategoria() === 'salida' ? 'text-red-500' : 'text-red-400'">north_east</mat-icon>
       </div>
-      <p class="mt-2 text-2xl font-bold text-red-500">{{ kpiSalidas() }}</p>
+      <p class="text-2xl font-bold" [class]="filtroCategoria() === 'salida' ? 'text-red-600' : 'text-red-500'">{{ kpiSalidas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">egresos del stock</p>
     </button>
 
-    <!-- Unidades movidas -->
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="flex items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
-          <mat-icon class="text-[16px] text-amber-600">scale</mat-icon>
-        </div>
-        <p class="text-xs text-text-muted">Unidades movidas</p>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Unidades movidas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">scale</mat-icon>
       </div>
-      <p class="mt-2 text-2xl font-bold text-text-main">{{ kpiUnidades() }}</p>
+      <p class="text-2xl font-bold text-text-main">{{ kpiUnidades() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en el período</p>
     </div>
 
   </div>

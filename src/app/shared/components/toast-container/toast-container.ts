@@ -1,24 +1,93 @@
 import { Component, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ToastService, Toast } from '../../../core/services/toast.service';
+import { ToastService, Toast, ToastTipo } from '../../../core/services/toast.service';
+
+const CONFIG: Record<ToastTipo, { accent: string; iconBg: string; iconColor: string; label: string; icon: string }> = {
+  success: {
+    accent:    'bg-green-500',
+    iconBg:    'bg-green-100',
+    iconColor: 'text-green-600',
+    label:     'Éxito',
+    icon:      'check_circle',
+  },
+  error: {
+    accent:    'bg-red-500',
+    iconBg:    'bg-red-100',
+    iconColor: 'text-red-600',
+    label:     'Error',
+    icon:      'error_outline',
+  },
+  warning: {
+    accent:    'bg-amber-400',
+    iconBg:    'bg-amber-100',
+    iconColor: 'text-amber-600',
+    label:     'Advertencia',
+    icon:      'warning_amber',
+  },
+  info: {
+    accent:    'bg-blue-500',
+    iconBg:    'bg-blue-100',
+    iconColor: 'text-blue-600',
+    label:     'Información',
+    icon:      'info',
+  },
+};
 
 @Component({
   selector: 'app-toast-container',
   standalone: true,
   imports: [MatIconModule],
   template: `
-    <div class="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 w-[340px] max-w-[calc(100vw-2.5rem)]">
+    <div
+      class="fixed z-[9999] flex flex-col items-center gap-2 pointer-events-none px-4"
+      style="top: 84px; left: 50%; transform: translateX(-50%); width: min(440px, 100vw)">
+
       @for (t of svc.toasts(); track t.id) {
+        @let cfg = config(t);
         <div
-          class="flex items-start gap-3 rounded-xl px-4 py-3 shadow-lg text-sm font-medium transition-all"
-          [class]="clases(t)">
-          <mat-icon class="text-[18px]! h-5! w-5! shrink-0 mt-0.5">{{ icono(t) }}</mat-icon>
-          <span class="flex-1 leading-snug">{{ t.mensaje }}</span>
-          <button (click)="svc.dismiss(t.id)" class="shrink-0 opacity-60 hover:opacity-100 transition">
-            <mat-icon class="text-[16px]! h-4! w-4!">close</mat-icon>
-          </button>
+          class="pointer-events-auto w-full flex items-stretch rounded-2xl bg-bg-card border border-border-soft overflow-hidden"
+          style="box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)"
+          [class]="t.exiting ? 'toast-exit' : 'toast-enter'">
+
+          <!-- Accent bar izquierdo -->
+          <div class="w-1 shrink-0" [class]="cfg.accent"></div>
+
+          <!-- Contenido -->
+          <div class="flex items-center gap-3 flex-1 px-3 py-3 min-w-0">
+
+            <!-- Ícono en cuadrado redondeado -->
+            <div class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center" [class]="cfg.iconBg">
+              <mat-icon fontSet="material-icons-outlined" class="text-[20px]!" [class]="cfg.iconColor">
+                {{ cfg.icon }}
+              </mat-icon>
+            </div>
+
+            <!-- Texto -->
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" [class]="cfg.iconColor">
+                {{ cfg.label }}
+              </p>
+              <p class="text-sm font-medium text-text-main leading-snug">{{ t.mensaje }}</p>
+            </div>
+
+            <!-- Cerrar -->
+            <button
+              (click)="svc.dismiss(t.id)"
+              class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-text-muted hover:bg-bg-app transition">
+              <mat-icon class="text-[16px]!">close</mat-icon>
+            </button>
+
+          </div>
         </div>
+
+        <!-- Barra de progreso debajo del toast -->
+        @if (!t.exiting) {
+          <div class="w-full -mt-1.5 h-0.5 rounded-full overflow-hidden bg-border-soft opacity-60" style="max-width: min(440px, 100vw); padding: 0 4px">
+            <div class="h-full rounded-full" [class]="cfg.accent"
+              [style]="'animation: toast-progress ' + t.duracion + 'ms linear both'"></div>
+          </div>
+        }
       }
     </div>
   `,
@@ -26,23 +95,7 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
 export class ToastContainer {
   readonly svc = inject(ToastService);
 
-  clases(t: Toast): string {
-    const map: Record<string, string> = {
-      success: 'bg-green-600 text-white',
-      error:   'bg-red-600   text-white',
-      warning: 'bg-amber-500 text-white',
-      info:    'bg-gray-800  text-white',
-    };
-    return map[t.tipo] ?? map['info'];
-  }
-
-  icono(t: Toast): string {
-    const map: Record<string, string> = {
-      success: 'check_circle',
-      error:   'error',
-      warning: 'warning_amber',
-      info:    'info',
-    };
-    return map[t.tipo] ?? 'info';
+  config(t: Toast) {
+    return CONFIG[t.tipo];
   }
 }

@@ -25,40 +25,35 @@
 
   <!-- KPI Bar -->
   <div class="grid grid-cols-3 gap-3">
-    <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-sm">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-primary">corporate_fare</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total departamentos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">corporate_fare</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Total</p>
-        <p class="text-xl font-bold text-text-main">{{ items().length }}</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ items().length }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en la empresa</p>
     </div>
     <button (click)="setFiltroEstado('ACTIVO')"
-      class="flex items-center gap-3 rounded-card p-4 shadow-sm transition-all text-left"
-      [class]="filtroEstado() === 'ACTIVO' ? 'bg-green-500' : 'bg-bg-card hover:shadow-md'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
-        [class]="filtroEstado() === 'ACTIVO' ? 'bg-white/20' : 'bg-green-100'">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]!"
-          [class]="filtroEstado() === 'ACTIVO' ? 'text-white' : 'text-green-600'">check_circle</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'ACTIVO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Activos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'ACTIVO' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
       </div>
-      <div>
-        <p class="text-xs" [class]="filtroEstado() === 'ACTIVO' ? 'text-white/80' : 'text-text-muted'">Activos</p>
-        <p class="text-xl font-bold" [class]="filtroEstado() === 'ACTIVO' ? 'text-white' : 'text-text-main'">{{ kpiActivos() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'ACTIVO' ? 'text-green-600' : 'text-text-main'">{{ kpiActivos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">departamentos activos</p>
     </button>
     <button (click)="setFiltroEstado('INACTIVO')"
-      class="flex items-center gap-3 rounded-card p-4 shadow-sm transition-all text-left"
-      [class]="filtroEstado() === 'INACTIVO' ? 'bg-gray-500' : 'bg-bg-card hover:shadow-md'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
-        [class]="filtroEstado() === 'INACTIVO' ? 'bg-white/20' : 'bg-gray-100'">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]!"
-          [class]="filtroEstado() === 'INACTIVO' ? 'text-white' : 'text-gray-500'">block</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'INACTIVO' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Inactivos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'INACTIVO' ? 'text-gray-500' : 'text-gray-400'">block</mat-icon>
       </div>
-      <div>
-        <p class="text-xs" [class]="filtroEstado() === 'INACTIVO' ? 'text-white/80' : 'text-text-muted'">Inactivos</p>
-        <p class="text-xl font-bold" [class]="filtroEstado() === 'INACTIVO' ? 'text-white' : 'text-text-main'">{{ kpiInactivos() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'INACTIVO' ? 'text-gray-600' : 'text-text-main'">{{ kpiInactivos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">departamentos inactivos</p>
     </button>
   </div>
 

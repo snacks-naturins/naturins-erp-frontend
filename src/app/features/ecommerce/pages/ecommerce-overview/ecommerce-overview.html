@@ -25,45 +25,42 @@
     <!-- KPI cards -->
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-blue-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-blue-600 text-[22px]!">language</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Pedidos web</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-blue-400">language</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ kpiPedidos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Pedidos web</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ kpiPedidos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">órdenes online</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-green-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[22px]!">payments</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Ventas totales</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">payments</mat-icon>
         </div>
-        <div>
-          <p class="text-xl font-bold text-text-main leading-none">{{ formatMonto(kpiVentas()) }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Ventas totales</p>
-        </div>
+        <p class="text-2xl font-bold text-green-600">{{ formatMonto(kpiVentas()) }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">ingresos acumulados</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-orange-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-orange-500 text-[22px]!">sell</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Cupones activos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-orange-400">sell</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ kpiCuponesActivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Cupones activos</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ kpiCuponesActivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">disponibles para uso</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-purple-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-purple-600 text-[22px]!">view_carousel</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Banners activos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-purple-400">view_carousel</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ kpiBannersActivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Banners activos</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ kpiBannersActivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">visibles en tienda</p>
       </div>
+
     </div>
 
     <!-- Pedidos por estado -->

@@ -28,72 +28,54 @@
 
   <!-- ── KPI cards (clickables) ──────────────────────────── -->
   @if (!loading() && !error()) {
-    <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-      <!-- Activas -->
       <button (click)="setFiltroEstado('ACTIVO')"
-        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-        [class]="filtroEstado() === 'ACTIVO'
-          ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
-          : 'border-border-soft bg-bg-card'">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">grass</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroEstado() === 'ACTIVO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Activas</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="filtroEstado() === 'ACTIVO' ? 'text-green-500' : 'text-green-400'">grass</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main">{{ totalActivas() }}</p>
-          <p class="text-xs text-text-muted">Activas</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="filtroEstado() === 'ACTIVO' ? 'text-green-600' : 'text-text-main'">{{ totalActivas() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">materias activas</p>
       </button>
 
-      <!-- Inactivas -->
       <button (click)="setFiltroEstado('INACTIVO')"
-        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-        [class]="filtroEstado() === 'INACTIVO'
-          ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40'
-          : 'border-border-soft bg-bg-card'">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-gray-500">block</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroEstado() === 'INACTIVO' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Inactivas</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="filtroEstado() === 'INACTIVO' ? 'text-gray-500' : 'text-gray-400'">block</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main">{{ totalInactivas() }}</p>
-          <p class="text-xs text-text-muted">Inactivas</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="filtroEstado() === 'INACTIVO' ? 'text-gray-600' : 'text-text-main'">{{ totalInactivas() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">materias inactivas</p>
       </button>
 
-      <!-- Agotadas -->
       <button (click)="setFiltroEstado('AGOTADO')"
-        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-        [class]="filtroEstado() === 'AGOTADO'
-          ? 'border-red-400 bg-red-50 dark:bg-red-900/20'
-          : 'border-border-soft bg-bg-card'">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-red-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-red-500">remove_shopping_cart</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroEstado() === 'AGOTADO' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Agotadas</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="filtroEstado() === 'AGOTADO' ? 'text-red-500' : 'text-red-400'">remove_shopping_cart</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main">{{ totalAgotadas() }}</p>
-          <p class="text-xs text-text-muted">Agotadas</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="filtroEstado() === 'AGOTADO' ? 'text-red-600' : 'text-text-main'">{{ totalAgotadas() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">sin stock disponible</p>
       </button>
 
-      <!-- Bajo mínimo -->
       <button (click)="setFiltroEstado('BAJO_MINIMO')"
-        class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-        [class]="filtroEstado() === 'BAJO_MINIMO'
-          ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20'
-          : bajoMinimo() > 0
-            ? 'border-amber-200 bg-amber-50/60 dark:bg-amber-900/10'
-            : 'border-border-soft bg-bg-card'">
-        <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
-          [class]="bajoMinimo() > 0 ? 'bg-amber-100' : 'bg-bg-app'">
-          <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]!"
-            [class]="bajoMinimo() > 0 ? 'text-amber-600' : 'text-text-muted'">warning</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="filtroEstado() === 'BAJO_MINIMO' ? 'border-amber-400 bg-amber-50 shadow-md' : (bajoMinimo() > 0 ? 'border-amber-200 bg-amber-50/60' : 'border-border-soft bg-bg-card')">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Bajo mínimo</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="filtroEstado() === 'BAJO_MINIMO' ? 'text-amber-500' : (bajoMinimo() > 0 ? 'text-amber-500' : 'text-text-muted/40')">warning</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold" [class]="bajoMinimo() > 0 ? 'text-amber-700' : 'text-text-main'">
-            {{ bajoMinimo() }}
-          </p>
-          <p class="text-xs text-text-muted">Bajo mínimo</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="filtroEstado() === 'BAJO_MINIMO' ? 'text-amber-600' : (bajoMinimo() > 0 ? 'text-amber-700' : 'text-text-main')">{{ bajoMinimo() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">con stock bajo mínimo</p>
       </button>
 
     </div>

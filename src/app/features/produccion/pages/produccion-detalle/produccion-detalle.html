@@ -140,11 +140,6 @@
         <button (click)="cerrarCompletar()" class="text-gray-400 hover:text-gray-600"><mat-icon>close</mat-icon></button>
       </div>
       <div class="px-6 py-5 space-y-4">
-        @if (errorCompletar()) {
-          <div class="bg-red-50 text-red-600 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
-            <mat-icon class="text-[16px]">error_outline</mat-icon>{{ errorCompletar() }}
-          </div>
-        }
         <div class="space-y-1.5">
           <label class="block text-sm font-medium text-text-main">Almacén destino <span class="text-red-500">*</span></label>
           <select (change)="completarAlmacenId.set($any($event.target).value)"
@@ -193,7 +188,6 @@
         <h3 class="font-semibold text-text-main">Iniciar producción</h3>
       </div>
       <p class="text-sm text-text-muted">La orden pasará a estado <strong class="text-amber-700">En Proceso</strong>. Los insumos y salidas ya no se podrán editar.</p>
-      @if (errorIniciar()) { <p class="text-sm text-red-500">{{ errorIniciar() }}</p> }
       <div class="flex justify-end gap-3">
         <button (click)="cerrarIniciar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Cancelar</button>
         <button (click)="ejecutarIniciar()" [disabled]="savingIniciar()"
@@ -219,7 +213,6 @@
         </div>
       </div>
       <p class="text-sm text-text-muted">La orden quedará <strong class="text-red-600">Cancelada</strong> permanentemente.</p>
-      @if (errorCancelar()) { <p class="text-sm text-red-500">{{ errorCancelar() }}</p> }
       <div class="flex justify-end gap-3">
         <button (click)="cerrarCancelar()" class="px-4 py-2 text-sm text-text-muted border border-border-soft rounded-btn hover:bg-gray-50">Volver</button>
         <button (click)="ejecutarCancelar()" [disabled]="savingCancelar()"

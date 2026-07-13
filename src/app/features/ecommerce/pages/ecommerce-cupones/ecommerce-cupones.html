@@ -25,59 +25,49 @@
   @if (!loading() && cupones().length > 0) {
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-orange-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-orange-500 text-[20px]!">sell</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Total cupones</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">sell</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ cupones().length }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Total cupones</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ cupones().length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">en el sistema</p>
       </div>
 
       <button type="button" (click)="setEstadoFiltro('ACTIVO')"
-        class="flex items-center gap-3 rounded-card p-4 text-left transition"
-        [class]="estadoFiltro() === 'ACTIVO'
-          ? 'bg-green-50 ring-2 ring-green-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-          [class]="estadoFiltro() === 'ACTIVO' ? 'bg-green-100' : 'bg-green-50'">
-          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">check_circle</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="estadoFiltro() === 'ACTIVO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Activos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="estadoFiltro() === 'ACTIVO' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Activos</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="estadoFiltro() === 'ACTIVO' ? 'text-green-600' : 'text-text-main'">{{ totalActivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">cupones vigentes</p>
       </button>
 
       <button type="button" (click)="setEstadoFiltro('INACTIVO')"
-        class="flex items-center gap-3 rounded-card p-4 text-left transition"
-        [class]="estadoFiltro() === 'INACTIVO'
-          ? 'bg-gray-100 ring-2 ring-gray-300 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-          [class]="estadoFiltro() === 'INACTIVO' ? 'bg-gray-200' : 'bg-gray-100'">
-          <mat-icon fontSet="material-icons-outlined" class="text-gray-500 text-[20px]!">pause_circle</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="estadoFiltro() === 'INACTIVO' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Inactivos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="estadoFiltro() === 'INACTIVO' ? 'text-gray-500' : 'text-gray-400'">pause_circle</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalInactivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Inactivos</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="estadoFiltro() === 'INACTIVO' ? 'text-gray-600' : 'text-text-main'">{{ totalInactivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">desactivados</p>
       </button>
 
       <button type="button" (click)="setEstadoFiltro('VENCIDO')"
-        class="flex items-center gap-3 rounded-card p-4 text-left transition"
-        [class]="estadoFiltro() === 'VENCIDO'
-          ? 'bg-red-50 ring-2 ring-red-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-          [class]="estadoFiltro() === 'VENCIDO' ? 'bg-red-100' : 'bg-red-50'">
-          <mat-icon fontSet="material-icons-outlined" class="text-red-500 text-[20px]!">event_busy</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="estadoFiltro() === 'VENCIDO' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Vencidos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="estadoFiltro() === 'VENCIDO' ? 'text-red-500' : 'text-red-400'">event_busy</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalVencidos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Vencidos</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="estadoFiltro() === 'VENCIDO' ? 'text-red-600' : 'text-text-main'">{{ totalVencidos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">plazo expirado</p>
       </button>
 
     </div>

@@ -6,6 +6,8 @@ export interface Toast {
   id: number;
   mensaje: string;
   tipo: ToastTipo;
+  duracion: number;
+  exiting?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -14,7 +16,7 @@ export class ToastService {
 
   show(mensaje: string, tipo: ToastTipo = 'info', duracion = 3500): void {
     const id = Date.now();
-    this.toasts.update((t) => [...t, { id, mensaje, tipo }]);
+    this.toasts.update((t) => [...t, { id, mensaje, tipo, duracion }]);
     setTimeout(() => this.dismiss(id), duracion);
   }
 
@@ -24,6 +26,7 @@ export class ToastService {
   warning(msg: string, duracion?: number): void { this.show(msg, 'warning', duracion); }
 
   dismiss(id: number): void {
-    this.toasts.update((t) => t.filter((x) => x.id !== id));
+    this.toasts.update((t) => t.map((x) => x.id === id ? { ...x, exiting: true } : x));
+    setTimeout(() => this.toasts.update((t) => t.filter((x) => x.id !== id)), 300);
   }
 }

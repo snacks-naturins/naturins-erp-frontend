@@ -1,216 +1,339 @@
-<!-- ═══════════════════════════════════════════════════════
-     MASTER-DETAIL  (ocupa todo el área de contenido)
-═══════════════════════════════════════════════════════ -->
-<div class="-m-6 flex overflow-hidden" style="height: calc(100vh - 72px)">
+<div class="flex flex-col gap-5">
 
-  <!-- ── PANEL IZQUIERDO: lista ───────────────────────────── -->
-  <div class="flex w-[280px] shrink-0 flex-col border-r border-border-soft bg-bg-card">
+  <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Proveedores'}]" />
 
-    <!-- Encabezado -->
-    <div class="flex items-center justify-between border-b border-border-soft px-4 py-3">
-      <span class="text-sm font-semibold text-text-main">
-        Proveedores <span class="text-text-muted">({{ items().length }})</span>
-      </span>
-      <button (click)="abrirCrear()"
-        class="flex h-8 items-center gap-1 rounded-btn bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
-        <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
-        Nuevo
+  <!-- Encabezado -->
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] font-bold text-text-main">Proveedores</h1>
+      <p class="text-sm text-text-muted">Gestiona los proveedores de materias primas e insumos</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="cargar()" title="Recargar lista"
+        class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-muted transition hover:bg-bg-app hover:text-text-main">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">refresh</mat-icon>
       </button>
-    </div>
-
-    <!-- Búsqueda -->
-    <div class="border-b border-border-soft px-3 py-2.5">
-      <div class="relative flex items-center">
-        <mat-icon fontSet="material-icons-outlined"
-          class="pointer-events-none absolute left-2.5 text-[18px]! h-[18px]! w-[18px]! text-text-muted">search</mat-icon>
-        <input type="text" (input)="onSearch($event)" placeholder="Buscar proveedor..."
-          class="h-9 w-full rounded-input border border-border-soft bg-bg-app pl-9 pr-3 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/20" />
-      </div>
-    </div>
-
-    <!-- Lista -->
-    <div class="flex-1 overflow-y-auto">
-      @if (loading()) {
-        <div class="flex h-32 items-center justify-center gap-2 text-text-muted">
-          <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
-          <span class="text-sm">Cargando...</span>
-        </div>
-      } @else if (error()) {
-        <p class="p-4 text-xs text-red-600">{{ error() }}</p>
-      } @else {
-        @for (p of filtrados(); track p.id) {
-          <div (click)="seleccionar(p)"
-            class="flex cursor-pointer items-center gap-3 border-b border-border-soft px-4 py-3 transition"
-            [class]="proveedorSeleccionado()?.id === p.id
-              ? 'border-l-2 border-l-primary bg-primary/5'
-              : 'hover:bg-bg-app'">
-
-            <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-100">
-              <mat-icon fontSet="material-icons-outlined" class="text-[18px]! h-[18px]! w-[18px]! text-amber-700">
-                local_shipping
-              </mat-icon>
-            </div>
-
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-semibold text-text-main">{{ nombreDisplay(p) }}</p>
-              <p class="truncate text-xs text-text-muted">{{ p.rubro || 'Sin rubro' }}</p>
-            </div>
-
-            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
-              [class]="estadoBadge(p.estado).classes">
-              {{ estadoBadge(p.estado).label }}
-            </span>
-          </div>
-        }
-
-        @if (filtrados().length === 0) {
-          <div class="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
-            <mat-icon fontSet="material-icons-outlined" class="opacity-30">local_shipping</mat-icon>
-            <p class="text-xs">No hay proveedores.</p>
-          </div>
-        }
-      }
+      <button (click)="abrirCrear()"
+        class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:opacity-90">
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">add</mat-icon>
+        Nuevo proveedor
+      </button>
     </div>
   </div>
 
-  <!-- ── PANEL DERECHO: ficha ──────────────────────────────── -->
-  <div class="flex-1 overflow-y-auto bg-bg-app">
+  <!-- KPI cards -->
+  @if (!loading() && items().length > 0) {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
 
-    @if (proveedorSeleccionado(); as sel) {
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Total proveedores</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">local_shipping</mat-icon>
+        </div>
+        <p class="text-2xl font-bold text-text-main">{{ items().length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">registrados</p>
+      </div>
+
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Activos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">check_circle</mat-icon>
+        </div>
+        <p class="text-2xl font-bold text-text-main">{{ items().filter(p => p.estado === 'ACTIVO').length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">en operación</p>
+      </div>
+
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Potenciales</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-blue-400">person_search</mat-icon>
+        </div>
+        <p class="text-2xl font-bold text-text-main">{{ items().filter(p => p.estado === 'POTENCIAL').length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">por incorporar</p>
+      </div>
+
+    </div>
+  }
+
+  <!-- Barra de búsqueda -->
+  <div class="flex flex-wrap items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+    <div class="relative flex min-w-[220px] flex-1 items-center">
+      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-text-muted">search</mat-icon>
+      <input type="text" placeholder="Buscar por nombre, RUC o rubro..."
+        (input)="onSearch($event)"
+        class="h-11 w-full rounded-input border border-border-soft bg-[#FAFAFA] pl-11 pr-4 text-sm outline-none transition focus:border-secondary focus:bg-white focus:ring-2 focus:ring-secondary/30" />
+    </div>
+    <span class="ml-auto text-xs text-text-muted">{{ filtrados().length }} de {{ items().length }}</span>
+  </div>
+
+  <!-- Estados -->
+  @if (loading()) {
+    <div class="flex items-center justify-center gap-2 py-16 text-text-muted">
+      <mat-icon fontSet="material-icons-outlined" class="animate-spin text-primary">progress_activity</mat-icon>
+      <span class="text-sm">Cargando proveedores...</span>
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! shrink-0">error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  } @else {
+
+    <!-- Tabla -->
+    <div class="overflow-hidden rounded-table bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-soft bg-bg-app text-left text-text-muted">
+            <th class="px-5 py-3 font-semibold">Proveedor</th>
+            <th class="px-5 py-3 font-semibold">Rubro</th>
+            <th class="px-5 py-3 font-semibold">RUC</th>
+            <th class="px-5 py-3 font-semibold">Contacto</th>
+            <th class="px-5 py-3 text-center font-semibold">Estado</th>
+            <th class="px-5 py-3 text-center font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filtrados(); track p.id) {
+            <tr class="cursor-pointer border-b border-border-soft last:border-0 transition hover:bg-bg-app"
+              (click)="seleccionar(p)">
+
+              <!-- Proveedor -->
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-amber-700">local_shipping</mat-icon>
+                  </div>
+                  <div class="flex flex-col leading-tight">
+                    <span class="font-semibold text-text-main">{{ nombreDisplay(p) }}</span>
+                    @if (p.razonSocial && p.nombreCompleto !== p.razonSocial) {
+                      <span class="text-xs text-text-muted">{{ p.nombreCompleto }}</span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <!-- Rubro -->
+              <td class="px-5 py-3">
+                @if (p.rubro) {
+                  <span class="inline-flex items-center rounded-full bg-primary/8 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    {{ p.rubro }}
+                  </span>
+                } @else {
+                  <span class="text-text-muted">—</span>
+                }
+              </td>
+
+              <!-- RUC -->
+              <td class="px-5 py-3 font-mono text-text-main">{{ p.ruc || '—' }}</td>
+
+              <!-- Contacto -->
+              <td class="px-5 py-3 text-text-main">{{ p.contacto || '—' }}</td>
+
+              <!-- Estado -->
+              <td class="px-5 py-3 text-center">
+                @let badge = estadoBadge(p.estado);
+                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  [class]="badge.classes">
+                  <span class="h-1.5 w-1.5 rounded-full"
+                    [class]="p.estado === 'ACTIVO' ? 'bg-green-500' : p.estado === 'POTENCIAL' ? 'bg-blue-400' : 'bg-gray-400'"></span>
+                  {{ badge.label }}
+                </span>
+              </td>
+
+              <!-- Acciones -->
+              <td class="px-5 py-3" (click)="$event.stopPropagation()">
+                <div class="flex items-center justify-center gap-1">
+                  <button (click)="seleccionar(p)" title="Ver ficha"
+                    class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">open_in_new</mat-icon>
+                  </button>
+                  <button (click)="abrirEditar(p)" title="Editar"
+                    class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">edit</mat-icon>
+                  </button>
+                  <button (click)="pedirEliminar(p)" title="Eliminar"
+                    class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @if (filtrados().length === 0 && items().length > 0) {
+            <tr>
+              <td colspan="6">
+                <div class="flex flex-col items-center justify-center gap-3 py-14 text-text-muted">
+                  <mat-icon fontSet="material-icons-outlined" class="text-[44px] opacity-30">manage_search</mat-icon>
+                  <p class="text-sm">No hay proveedores con esa búsqueda.</p>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @if (items().length === 0) {
+            <tr>
+              <td colspan="6">
+                <div class="flex flex-col items-center justify-center gap-4 py-20 text-text-muted">
+                  <div class="grid h-16 w-16 place-items-center rounded-full bg-amber-50">
+                    <mat-icon fontSet="material-icons-outlined" class="text-amber-400 text-[36px]!">local_shipping</mat-icon>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-semibold text-text-main">No hay proveedores registrados</p>
+                    <p class="mt-1 text-sm">Agrega el primero para comenzar.</p>
+                  </div>
+                  <button (click)="abrirCrear()"
+                    class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">add</mat-icon>
+                    Nuevo proveedor
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  }
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     DRAWER: FICHA DEL PROVEEDOR
+═══════════════════════════════════════════════════════ -->
+@if (proveedorSeleccionado(); as sel) {
+  <!-- Backdrop -->
+  <div class="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" (click)="deseleccionar()"></div>
+
+  <!-- Panel lateral -->
+  <div class="fixed right-0 top-0 z-50 flex h-full w-full max-w-[640px] flex-col bg-bg-card shadow-[var(--shadow-modal)]">
+
+    <!-- Header del drawer -->
+    <div class="flex shrink-0 items-center justify-between border-b border-border-soft px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-[20px]! text-amber-700">local_shipping</mat-icon>
+        </div>
+        <div>
+          <h2 class="font-bold text-text-main">{{ nombreDisplay(sel) }}</h2>
+          <p class="text-xs text-text-muted">{{ sel.rubro ? 'Proveedor de ' + sel.rubro : 'Proveedor' }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="abrirEditar(sel)"
+          class="flex h-9 items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-3 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">edit</mat-icon>
+          Editar
+        </button>
+        <button (click)="pedirEliminar(sel)"
+          class="grid h-9 w-9 place-items-center rounded-lg border border-border-soft bg-bg-card text-text-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+          title="Eliminar proveedor">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">delete</mat-icon>
+        </button>
+        <button (click)="deseleccionar()"
+          class="grid h-9 w-9 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app"
+          title="Cerrar">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body scrollable -->
+    <div class="flex-1 overflow-y-auto">
       <div class="flex flex-col gap-5 p-6">
 
-        <!-- ─── Tarjeta ficha ──────────────────────────────── -->
-        <div class="rounded-card border border-border-soft bg-bg-card p-6 shadow-sm">
-
-          <!-- Header: avatar + info + editar -->
-          <div class="flex items-start gap-4">
-            <div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-amber-100">
-              <mat-icon fontSet="material-icons-outlined" class="text-[28px]! h-7! w-7! text-amber-700">
-                local_shipping
-              </mat-icon>
-            </div>
-
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <h2 class="text-lg font-bold text-text-main">{{ nombreDisplay(sel) }}</h2>
-                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  [class]="estadoBadge(sel.estado).classes">
-                  <span class="h-1.5 w-1.5 rounded-full"
-                    [class]="sel.estado === 'ACTIVO' ? 'bg-green-600' : 'bg-gray-400'"></span>
-                  {{ estadoBadge(sel.estado).label }}
-                </span>
-              </div>
-              <p class="mt-0.5 text-sm text-text-muted">
-                {{ sel.rubro ? 'Proveedor de ' + sel.rubro : 'Proveedor' }}
-                @if (desdeAnio(sel.fechaCreacion)) { &nbsp;·&nbsp; {{ desdeAnio(sel.fechaCreacion) }} }
-              </p>
-            </div>
-
-            <div class="flex shrink-0 gap-2">
-              <button (click)="abrirEditar(sel)"
-                class="flex h-9 items-center gap-1.5 rounded-btn border border-border-soft bg-bg-card px-4 text-sm font-semibold text-text-main transition hover:bg-bg-app">
-                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">edit</mat-icon>
-                Editar
-              </button>
-              <button (click)="pedirEliminar(sel)"
-                class="grid h-9 w-9 place-items-center rounded-lg border border-border-soft bg-bg-card text-text-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
-                title="Eliminar proveedor">
-                <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4!">delete</mat-icon>
-              </button>
-            </div>
-          </div>
-
-          <!-- Info grid -->
-          <div class="mt-5 grid grid-cols-3 gap-x-6 gap-y-4 border-t border-border-soft pt-5">
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">tag</mat-icon>
-                RUC
-              </p>
-              <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.ruc || '—' }}</p>
-            </div>
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">business</mat-icon>
-                Razón Social
-              </p>
-              <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.razonSocial || sel.nombreCompleto }}</p>
-            </div>
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">location_on</mat-icon>
-                Dirección
-              </p>
-              @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-app"></span>
-              } @else {
-                <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.direccion || '—' }}</p>
-              }
-            </div>
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">person</mat-icon>
-                Contacto
-              </p>
-              <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.contacto || '—' }}</p>
-            </div>
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">mail</mat-icon>
-                Correo
-              </p>
-              @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-app"></span>
-              } @else {
-                <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.correo || '—' }}</p>
-              }
-            </div>
-
-            <div>
-              <p class="flex items-center gap-1 text-xs text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">phone</mat-icon>
-                Teléfono
-              </p>
-              @if (loadingFicha()) {
-                <span class="mt-0.5 block h-4 w-24 animate-pulse rounded bg-bg-app"></span>
-              } @else {
-                <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.telefono || '—' }}</p>
-              }
-            </div>
-
-          </div>
-
-          @if (sel.diasCredito != null) {
-            <div class="mt-4 flex items-center gap-2 rounded-lg bg-bg-app px-3 py-2">
-              <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4! text-text-muted">schedule</mat-icon>
-              <span class="text-xs text-text-muted">Plazo de crédito:</span>
-              <span class="text-xs font-semibold text-text-main">{{ sel.diasCredito }} días</span>
-            </div>
+        <!-- Estado + fecha -->
+        <div class="flex items-center gap-3">
+          @let badge = estadoBadge(sel.estado);
+          <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium"
+            [class]="badge.classes">
+            <span class="h-1.5 w-1.5 rounded-full"
+              [class]="sel.estado === 'ACTIVO' ? 'bg-green-600' : sel.estado === 'POTENCIAL' ? 'bg-blue-400' : 'bg-gray-400'"></span>
+            {{ badge.label }}
+          </span>
+          @if (desdeAnio(sel.fechaCreacion)) {
+            <span class="text-xs text-text-muted">{{ desdeAnio(sel.fechaCreacion) }}</span>
           }
         </div>
 
-        <!-- ─── Tabs ───────────────────────────────────────── -->
-        <div class="overflow-hidden rounded-card border border-border-soft bg-bg-card shadow-sm">
+        <!-- Info grid -->
+        <div class="grid grid-cols-2 gap-x-6 gap-y-4 rounded-card border border-border-soft bg-bg-app p-4">
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">tag</mat-icon>
+              RUC
+            </p>
+            <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.ruc || '—' }}</p>
+          </div>
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">business</mat-icon>
+              Razón Social
+            </p>
+            <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.razonSocial || sel.nombreCompleto }}</p>
+          </div>
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">person</mat-icon>
+              Contacto
+            </p>
+            <p class="mt-0.5 text-sm font-medium text-text-main">{{ sel.contacto || '—' }}</p>
+          </div>
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">location_on</mat-icon>
+              Dirección
+            </p>
+            @if (loadingFicha()) {
+              <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-card"></span>
+            } @else {
+              <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.direccion || '—' }}</p>
+            }
+          </div>
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">mail</mat-icon>
+              Correo
+            </p>
+            @if (loadingFicha()) {
+              <span class="mt-0.5 block h-4 w-32 animate-pulse rounded bg-bg-card"></span>
+            } @else {
+              <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.correo || '—' }}</p>
+            }
+          </div>
+          <div>
+            <p class="flex items-center gap-1 text-xs text-text-muted">
+              <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">phone</mat-icon>
+              Teléfono
+            </p>
+            @if (loadingFicha()) {
+              <span class="mt-0.5 block h-4 w-24 animate-pulse rounded bg-bg-card"></span>
+            } @else {
+              <p class="mt-0.5 text-sm font-medium text-text-main">{{ selectedPersona()?.telefono || '—' }}</p>
+            }
+          </div>
+        </div>
 
-          <!-- Barra de tabs -->
+        @if (sel.diasCredito != null) {
+          <div class="flex items-center gap-2 rounded-lg bg-bg-app px-3 py-2">
+            <mat-icon fontSet="material-icons-outlined" class="text-[16px]! text-text-muted">schedule</mat-icon>
+            <span class="text-xs text-text-muted">Plazo de crédito:</span>
+            <span class="text-xs font-semibold text-text-main">{{ sel.diasCredito }} días</span>
+          </div>
+        }
+
+        <!-- Tabs -->
+        <div class="overflow-hidden rounded-card border border-border-soft bg-bg-card shadow-sm">
           <div class="flex border-b border-border-soft px-4">
             <button (click)="cambiarTab('compras')"
               class="px-4 py-3 text-sm font-medium transition"
-              [class]="tabActiva() === 'compras'
-                ? 'border-b-2 border-primary text-primary'
-                : 'text-text-muted hover:text-text-main'">
+              [class]="tabActiva() === 'compras' ? 'border-b-2 border-primary text-primary' : 'text-text-muted hover:text-text-main'">
               Compras
             </button>
             <button (click)="cambiarTab('catalogo')"
               class="px-4 py-3 text-sm font-medium transition"
-              [class]="tabActiva() === 'catalogo'
-                ? 'border-b-2 border-primary text-primary'
-                : 'text-text-muted hover:text-text-main'">
+              [class]="tabActiva() === 'catalogo' ? 'border-b-2 border-primary text-primary' : 'text-text-muted hover:text-text-main'">
               Catálogo
               @if (catalogo().length > 0) {
                 <span class="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
@@ -220,7 +343,7 @@
             </button>
           </div>
 
-          <!-- ── Tab: Compras ────────────────────────────── -->
+          <!-- Tab: Compras -->
           @if (tabActiva() === 'compras') {
             @if (loadingCompras()) {
               <div class="flex h-24 items-center justify-center gap-2 text-sm text-text-muted">
@@ -229,7 +352,7 @@
               </div>
             } @else if (comprasProveedor().length === 0) {
               <div class="flex flex-col items-center gap-3 py-12 text-center text-text-muted">
-                <mat-icon fontSet="material-icons-outlined" class="text-[40px]! h-10! w-10! opacity-30">shopping_cart</mat-icon>
+                <mat-icon fontSet="material-icons-outlined" class="text-[40px]! opacity-30">shopping_cart</mat-icon>
                 <p class="text-sm">Sin órdenes de compra para este proveedor.</p>
               </div>
             } @else {
@@ -268,17 +391,16 @@
             }
           }
 
-          <!-- ── Tab: Catálogo ──────────────────────────── -->
+          <!-- Tab: Catálogo -->
           @if (tabActiva() === 'catalogo') {
             <div class="p-4">
-
               <div class="mb-3 flex items-center justify-between">
                 <span class="text-xs text-text-muted">
                   {{ catalogo().length }} {{ catalogo().length === 1 ? 'producto' : 'productos' }} en catálogo
                 </span>
                 <button (click)="abrirAgregarCatalogo()"
                   class="flex h-8 items-center gap-1 rounded-btn bg-primary px-3 text-xs font-semibold text-white transition hover:bg-primary-hover">
-                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
+                  <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">add</mat-icon>
                   Agregar producto
                 </button>
               </div>
@@ -317,7 +439,7 @@
                                   class="h-10 w-10 shrink-0 rounded-lg border border-border-soft object-cover" />
                               } @else {
                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border-soft bg-bg-app">
-                                  <mat-icon fontSet="material-icons-outlined" class="text-[16px]! h-4! w-4! opacity-40 text-text-muted">image</mat-icon>
+                                  <mat-icon fontSet="material-icons-outlined" class="text-[16px]! opacity-40 text-text-muted">image</mat-icon>
                                 </div>
                               }
                               <div>
@@ -334,7 +456,7 @@
                           <td class="px-3 py-2.5 text-center">
                             @if (c.esPrincipal) {
                               <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                                <mat-icon fontSet="material-icons-outlined" class="text-[10px]! h-2.5! w-2.5!">star</mat-icon>
+                                <mat-icon fontSet="material-icons-outlined" class="text-[10px]!">star</mat-icon>
                                 Sí
                               </span>
                             } @else {
@@ -352,12 +474,12 @@
                               <button (click)="abrirEditarCatalogo(c)"
                                 class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary"
                                 title="Editar">
-                                <mat-icon fontSet="material-icons-outlined" class="text-[15px]! h-[15px]! w-[15px]!">edit</mat-icon>
+                                <mat-icon fontSet="material-icons-outlined" class="text-[15px]!">edit</mat-icon>
                               </button>
                               <button (click)="eliminarItemCatalogo(c)"
                                 class="grid h-7 w-7 place-items-center rounded-lg text-text-muted transition hover:bg-red-50 hover:text-red-500"
                                 title="Eliminar">
-                                <mat-icon fontSet="material-icons-outlined" class="text-[15px]! h-[15px]! w-[15px]!">delete</mat-icon>
+                                <mat-icon fontSet="material-icons-outlined" class="text-[15px]!">delete</mat-icon>
                               </button>
                             </div>
                           </td>
@@ -367,27 +489,14 @@
                   </table>
                 </div>
               }
-
             </div>
           }
-
         </div>
-      </div>
 
-    } @else if (!loading()) {
-      <div class="flex h-full flex-col items-center justify-center gap-3 text-center text-text-muted">
-        <mat-icon fontSet="material-icons-outlined" class="text-[48px]! h-12! w-12! opacity-20">local_shipping</mat-icon>
-        <p class="text-sm">Selecciona un proveedor para ver su ficha</p>
-        <button (click)="abrirCrear()"
-          class="flex h-9 items-center gap-1.5 rounded-btn bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-hover">
-          <mat-icon fontSet="material-icons-outlined" class="text-[14px]! h-3.5! w-3.5!">add</mat-icon>
-          Nuevo proveedor
-        </button>
       </div>
-    }
-
+    </div>
   </div>
-</div>
+}
 
 <!-- ═══════════════════════════════════════════════════════
      MODAL: CREAR / EDITAR PROVEEDOR

@@ -162,6 +162,10 @@ export class Presentaciones implements OnInit {
     return Math.round(((p.precioVenta - prod.precioCompra) / p.precioVenta) * 100);
   }
 
+  setFiltroEstado(v: string): void {
+    this.filtroEstado.set(this.filtroEstado() === v ? '' : v);
+  }
+
   toggleSort(col: string): void {
     if (this.sortCol() === col) {
       this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');

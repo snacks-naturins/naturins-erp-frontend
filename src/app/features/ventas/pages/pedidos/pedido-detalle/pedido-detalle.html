@@ -48,8 +48,8 @@
       <div class="flex items-center gap-2 no-print">
         <button (click)="imprimir()"
                 class="flex items-center gap-2 px-4 py-2 text-sm border border-border-soft rounded-btn hover:bg-gray-50 transition-colors text-gray-700">
-          <mat-icon class="text-[18px]">print</mat-icon>
-          Imprimir
+          <mat-icon class="text-[18px]">download</mat-icon>
+          Comprobante
         </button>
         @if (puedeCancelar) {
           <button (click)="cancelar()" [disabled]="accionando()"

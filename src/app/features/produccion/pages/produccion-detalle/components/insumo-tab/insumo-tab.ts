@@ -38,13 +38,25 @@ export class InsumoTab implements OnInit {
   readonly editNombre   = signal('');
   readonly editCant     = signal('');
   readonly editCosto    = signal('');
+  readonly editStock    = signal<number | null>(null);
   readonly savingEdit   = signal(false);
   readonly errorEdit    = signal<string | null>(null);
   readonly deleteTarget = signal<InsumoProduccionResponse | null>(null);
   readonly deleting     = signal(false);
   readonly errorDelete  = signal<string | null>(null);
 
-  ngOnInit(): void { this.cargar(); }
+  readonly lineasConSobrestock = computed(() => this.lineas().filter(l => this.exceedsStock(l)).length);
+  readonly editExceedsStock    = computed(() => {
+    const stock = this.editStock();
+    if (stock === null) return false;
+    const qty = parseFloat(this.editCant());
+    return !isNaN(qty) && qty > stock;
+  });
+
+  ngOnInit(): void {
+    this.cargar();
+    this.svcMp.listarActivos().subscribe({ next: (d) => this.materiasPrimas.set(d), error: () => {} });
+  }
 
   cargar(): void {
     this.loading.set(true);
@@ -58,9 +70,7 @@ export class InsumoTab implements OnInit {
     this.error.set(null);
     this.lineas.set([]);
     this.modalAgregar.set(true);
-    if (this.materiasPrimas().length === 0) {
-      this.svcMp.listarActivos().subscribe({ next: (d) => this.materiasPrimas.set(d), error: () => {} });
-    }
+    this.svcMp.listarActivos().subscribe({ next: (d) => this.materiasPrimas.set(d), error: () => {} });
   }
   cerrarAgregar(): void { this.modalAgregar.set(false); }
 
@@ -107,7 +117,20 @@ export class InsumoTab implements OnInit {
     this.editNombre.set(ins.nombreMateriaPrima);
     this.editCant.set(String(ins.cantidadUsada));
     this.editCosto.set(String(ins.costoUnitario));
+    const mp = this.materiasPrimas().find(m => m.id === ins.materiaPrimaId);
+    this.editStock.set(mp?.stock ?? null);
     this.modalEdit.set(true);
+  }
+
+  exceedsStock(linea: LineaInsumo | undefined): boolean {
+    if (!linea) return false;
+    const qty = parseFloat(linea.cantidad);
+    return !isNaN(qty) && qty > 0 && qty > linea.mp.stock;
+  }
+
+  insumoExceedeStock(ins: InsumoProduccionResponse): boolean {
+    const mp = this.materiasPrimas().find(m => m.id === ins.materiaPrimaId);
+    return mp !== undefined && ins.cantidadUsada > mp.stock;
   }
   cerrarEdit(): void { this.modalEdit.set(false); }
 

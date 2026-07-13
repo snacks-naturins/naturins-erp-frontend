@@ -22,13 +22,14 @@ import { TipoDocumentoResponse } from '../../../../core/models/tipo-documento.mo
 import { MateriaPrimaService } from '../../../inventario/services/materia-prima.service';
 import { MateriaPrimaResponse } from '../../../inventario/models/materia-prima.model';
 import { debouncedSignal } from '../../../../shared/utils/debounce';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb';
 
 type Tab = 'compras' | 'catalogo';
 
 @Component({
   selector: 'app-proveedores',
   standalone: true,
-  imports: [ReactiveFormsModule, MatIconModule, SlicePipe],
+  imports: [ReactiveFormsModule, MatIconModule, SlicePipe, BreadcrumbComponent],
   templateUrl: './proveedores.html',
 })
 export class Proveedores implements OnInit {
@@ -151,9 +152,6 @@ export class Proveedores implements OnInit {
       next: (d) => {
         this.items.set(d);
         this.loading.set(false);
-        if (d.length > 0 && !this.seleccionadoId()) {
-          this.seleccionar(d[0]);
-        }
       },
       error: () => {
         this.error.set('No se pudieron cargar los proveedores.');
@@ -201,6 +199,14 @@ export class Proveedores implements OnInit {
     if (tab === 'catalogo' && this.catalogo().length === 0 && !this.loadingCatalogo()) {
       this.cargarCatalogo();
     }
+  }
+
+  deseleccionar(): void {
+    this.seleccionadoId.set(null);
+    this.selectedPersona.set(null);
+    this.catalogo.set([]);
+    this.comprasProveedor.set([]);
+    this.tabActiva.set('compras');
   }
 
   onSearch(e: Event): void {

@@ -18,54 +18,46 @@
   <!-- KPI bar -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-    <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50">
-        <mat-icon fontSet="material-icons-outlined" class="text-blue-600 text-[20px]!">language</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total pedidos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-blue-400">language</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ kpiTotal() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Total pedidos</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ kpiTotal() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes web</p>
     </div>
 
     <button type="button" (click)="setEstadoFiltro('activos')"
-      class="flex items-center gap-3 rounded-card p-4 text-left transition"
-      [class]="estadoFiltro() === 'activos'
-        ? 'bg-orange-50 ring-2 ring-orange-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-        : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-        [class]="estadoFiltro() === 'activos' ? 'bg-orange-100' : 'bg-orange-50'">
-        <mat-icon fontSet="material-icons-outlined" class="text-orange-500 text-[20px]!">pending_actions</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'activos' ? 'border-orange-400 bg-orange-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">En proceso</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'activos' ? 'text-orange-500' : 'text-orange-400'">pending_actions</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ kpiActivos() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">En proceso</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'activos' ? 'text-orange-600' : 'text-text-main'">{{ kpiActivos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">pendientes de entrega</p>
     </button>
 
     <button type="button" (click)="setEstadoFiltro('ENTREGADO')"
-      class="flex items-center gap-3 rounded-card p-4 text-left transition"
-      [class]="estadoFiltro() === 'ENTREGADO'
-        ? 'bg-green-50 ring-2 ring-green-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-        : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-        [class]="estadoFiltro() === 'ENTREGADO' ? 'bg-green-100' : 'bg-green-50'">
-        <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">done_all</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ENTREGADO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Entregados</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'ENTREGADO' ? 'text-green-500' : 'text-green-400'">done_all</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ kpiEntregados() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Entregados</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'ENTREGADO' ? 'text-green-600' : 'text-text-main'">{{ kpiEntregados() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">completados</p>
     </button>
 
-    <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10">
-        <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">payments</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Ventas web</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">payments</mat-icon>
       </div>
-      <div>
-        <p class="text-xl font-bold text-text-main leading-none">{{ formatMonto(kpiVentas()) }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Ventas web</p>
-      </div>
+      <p class="text-2xl font-bold text-green-600">{{ formatMonto(kpiVentas()) }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">ingresos online</p>
     </div>
 
   </div>

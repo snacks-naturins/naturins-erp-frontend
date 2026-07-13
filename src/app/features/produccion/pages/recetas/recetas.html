@@ -16,52 +16,51 @@
   </div>
 
   <!-- KPIs -->
-  <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-primary">menu_book</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total recetas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">menu_book</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Total recetas</p>
-        <p class="text-2xl font-bold text-text-main">{{ recetas().length }}</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ recetas().length }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en el sistema</p>
     </div>
 
     <button (click)="setFiltro(filtroEstado() === 'ACTIVA' ? 'TODAS' : 'ACTIVA')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'ACTIVA' ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">check_circle</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'ACTIVA' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Activas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'ACTIVA' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Activas</p>
-        <p class="text-2xl font-bold text-green-600">{{ totalActivas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'ACTIVA' ? 'text-green-600' : 'text-text-main'">{{ totalActivas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">recetas activas</p>
     </button>
 
     <button (click)="setFiltro(filtroEstado() === 'ARCHIVADA' ? 'TODAS' : 'ARCHIVADA')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'ARCHIVADA' ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-amber-600">archive</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'ARCHIVADA' ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Archivadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'ARCHIVADA' ? 'text-amber-500' : 'text-amber-400'">archive</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Archivadas</p>
-        <p class="text-2xl font-bold text-amber-600">{{ totalArchivadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'ARCHIVADA' ? 'text-amber-600' : 'text-text-main'">{{ totalArchivadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">recetas archivadas</p>
     </button>
 
     <button (click)="setFiltro(filtroEstado() === 'INACTIVA' ? 'TODAS' : 'INACTIVA')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'INACTIVA' ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-gray-500">block</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'INACTIVA' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Inactivas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'INACTIVA' ? 'text-gray-500' : 'text-gray-400'">block</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Inactivas</p>
-        <p class="text-2xl font-bold text-text-main">{{ totalInactivas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'INACTIVA' ? 'text-gray-600' : 'text-text-main'">{{ totalInactivas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">recetas inactivas</p>
     </button>
 
   </div>

@@ -11,64 +11,63 @@
     <div class="flex items-center gap-3">
       <button (click)="exportar()"
         class="flex h-11 items-center gap-2 rounded-btn border border-border-soft bg-bg-card px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
-        <mat-icon>file_download</mat-icon>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">file_download</mat-icon>
         Exportar CSV
       </button>
       <button (click)="abrirCrear()"
         class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-        <mat-icon class="text-[18px] leading-none">add</mat-icon>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">add</mat-icon>
         Nuevo lote
       </button>
     </div>
   </div>
 
   <!-- KPI cards (clickeables para filtrar) -->
-  <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-    <button (click)="filtrarPorClasif('vigente')" class="flex min-h-[110px] flex-col justify-between rounded-card border p-5 text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition"
-      [class]="filtroClasif() === 'vigente' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card hover:border-green-300'">
-      <div class="grid h-9 w-9 place-items-center rounded-input transition"
-        [class]="filtroClasif() === 'vigente' ? 'bg-green-100 text-green-700' : 'bg-green-50 text-green-600'">
-        <mat-icon>verified</mat-icon>
+    <button (click)="filtrarPorClasif('vigente')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroClasif() === 'vigente' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Lotes vigentes</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroClasif() === 'vigente' ? 'text-green-500' : 'text-green-400'">verified</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main">{{ kpiVigentes() }}</p>
-        <p class="text-sm text-text-muted">Lotes vigentes</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroClasif() === 'vigente' ? 'text-green-600' : 'text-text-main'">{{ kpiVigentes() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en stock activo</p>
     </button>
 
-    <button (click)="filtrarPorClasif('proximo')" class="flex min-h-[110px] flex-col justify-between rounded-card border p-5 text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition"
-      [class]="filtroClasif() === 'proximo' ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-border-soft bg-bg-card hover:border-amber-300'">
-      <div class="grid h-9 w-9 place-items-center rounded-input transition"
-        [class]="filtroClasif() === 'proximo' ? 'bg-amber-100 text-amber-700' : 'bg-amber-50 text-amber-600'">
-        <mat-icon>schedule</mat-icon>
+    <button (click)="filtrarPorClasif('proximo')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroClasif() === 'proximo' ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Próximos a vencer</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroClasif() === 'proximo' ? 'text-amber-500' : 'text-amber-400'">schedule</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold" [class]="kpiProximos() > 0 ? 'text-amber-600' : 'text-text-main'">{{ kpiProximos() }}</p>
-        <p class="text-sm text-text-muted">Próximos a vencer</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="kpiProximos() > 0 ? (filtroClasif() === 'proximo' ? 'text-amber-600' : 'text-amber-500') : 'text-text-main'">{{ kpiProximos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en los próx. 30 días</p>
     </button>
 
-    <button (click)="filtrarPorClasif('vencido')" class="flex min-h-[110px] flex-col justify-between rounded-card border p-5 text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition"
-      [class]="filtroClasif() === 'vencido' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card hover:border-red-300'">
-      <div class="grid h-9 w-9 place-items-center rounded-input transition"
-        [class]="filtroClasif() === 'vencido' ? 'bg-red-100 text-red-700' : 'bg-red-50 text-red-500'">
-        <mat-icon>cancel</mat-icon>
+    <button (click)="filtrarPorClasif('vencido')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroClasif() === 'vencido' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Vencidos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroClasif() === 'vencido' ? 'text-red-500' : 'text-red-400'">cancel</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold" [class]="kpiVencidos() > 0 ? 'text-red-600' : 'text-text-main'">{{ kpiVencidos() }}</p>
-        <p class="text-sm text-text-muted">Vencidos</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="kpiVencidos() > 0 ? (filtroClasif() === 'vencido' ? 'text-red-600' : 'text-red-500') : 'text-text-main'">{{ kpiVencidos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">requieren retiro</p>
     </button>
 
-    <div class="flex min-h-[110px] flex-col justify-between rounded-card border border-border-soft bg-bg-card p-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="grid h-9 w-9 place-items-center rounded-input bg-primary/10 text-primary">
-        <mat-icon>payments</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Valor en lotes</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">payments</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main">{{ kpiValorTexto() }}</p>
-        <p class="text-sm text-text-muted">Valor en lotes</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ kpiValorTexto() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">valor total en stock</p>
     </div>
 
   </div>

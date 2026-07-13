@@ -19,54 +19,52 @@
 
   <!-- KPI cards -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+
     <button type="button" (click)="setEstadoFiltro('ACTIVO')"
-      class="flex items-center gap-3 rounded-card p-4 text-left transition"
-      [class]="estadoFiltro() === 'ACTIVO' ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-        [class]="estadoFiltro() === 'ACTIVO' ? 'bg-primary/20' : 'bg-primary/10'">
-        <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">person_check</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ACTIVO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Activos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'ACTIVO' ? 'text-green-500' : 'text-green-400'">person_check</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Activos</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'ACTIVO' ? 'text-green-600' : 'text-text-main'">{{ totalActivos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">clientes activos</p>
     </button>
 
     <button type="button" (click)="setEstadoFiltro('POTENCIAL')"
-      class="flex items-center gap-3 rounded-card p-4 text-left transition"
-      [class]="estadoFiltro() === 'POTENCIAL' ? 'bg-blue-50 ring-2 ring-blue-200' : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-        [class]="estadoFiltro() === 'POTENCIAL' ? 'bg-blue-100' : 'bg-blue-50'">
-        <mat-icon fontSet="material-icons-outlined" class="text-blue-600 text-[20px]!">person_search</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'POTENCIAL' ? 'border-blue-400 bg-blue-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Potenciales</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'POTENCIAL' ? 'text-blue-500' : 'text-blue-400'">person_search</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ totalPotenciales() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Potenciales</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'POTENCIAL' ? 'text-blue-600' : 'text-text-main'">{{ totalPotenciales() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">prospectos</p>
     </button>
 
     <button type="button" (click)="setEstadoFiltro('SUSPENDIDO')"
-      class="flex items-center gap-3 rounded-card p-4 text-left transition"
-      [class]="estadoFiltro() === 'SUSPENDIDO' ? 'bg-orange-50 ring-2 ring-orange-200' : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-        [class]="estadoFiltro() === 'SUSPENDIDO' ? 'bg-orange-100' : 'bg-orange-50'">
-        <mat-icon fontSet="material-icons-outlined" class="text-orange-500 text-[20px]!">person_off</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'SUSPENDIDO' ? 'border-orange-400 bg-orange-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Suspendidos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'SUSPENDIDO' ? 'text-orange-500' : 'text-orange-400'">person_off</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ totalSuspendidos() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Suspendidos</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'SUSPENDIDO' ? 'text-orange-600' : 'text-text-main'">{{ totalSuspendidos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">temporalmente inactivos</p>
     </button>
 
-    <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-50">
-        <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">business</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Empresas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">business</mat-icon>
       </div>
-      <div>
-        <p class="text-2xl font-bold text-text-main leading-none">{{ totalEmpresas() }}</p>
-        <p class="text-xs text-text-muted mt-0.5">Empresas</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ totalEmpresas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">clientes empresa</p>
     </div>
+
   </div>
 
   <!-- Barra de búsqueda + filtros -->

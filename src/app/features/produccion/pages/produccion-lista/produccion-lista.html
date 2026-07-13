@@ -25,46 +25,42 @@
   </div>
 
   <!-- KPIs -->
-  <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-primary">precision_manufacturing</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total activas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">precision_manufacturing</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Total activas</p>
-        <p class="text-2xl font-bold text-primary">{{ kpiTotal() }}</p>
-      </div>
+      <p class="text-2xl font-bold text-text-main">{{ kpiTotal() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes registradas</p>
     </div>
 
-    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-amber-600">pending</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">En proceso</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-amber-400">pending</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">En proceso</p>
-        <p class="text-2xl font-bold text-amber-500">{{ kpiEnProceso() }}</p>
-      </div>
+      <p class="text-2xl font-bold text-amber-500">{{ kpiEnProceso() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en ejecución ahora</p>
     </div>
 
-    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">check_circle</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Completadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">check_circle</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Completadas</p>
-        <p class="text-2xl font-bold text-green-600">{{ kpiCompletadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold text-green-600">{{ kpiCompletadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes finalizadas</p>
     </div>
 
-    <div class="flex items-center gap-4 rounded-card border border-border-soft bg-bg-card p-5 shadow-sm">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-blue-600">payments</mat-icon>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Costo producido</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-blue-400">payments</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Costo producido</p>
-        <p class="text-xl font-bold text-blue-600">{{ kpiCostoTexto() }}</p>
-      </div>
+      <p class="text-2xl font-bold text-blue-600">{{ kpiCostoTexto() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">costo total acumulado</p>
     </div>
 
   </div>

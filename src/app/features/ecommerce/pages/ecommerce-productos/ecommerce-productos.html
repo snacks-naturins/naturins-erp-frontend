@@ -19,54 +19,46 @@
   @if (!loading() && productos().length > 0) {
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10">
-          <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">inventory_2</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Total productos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">inventory_2</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ productos().length }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Total productos</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ productos().length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">en el catálogo</p>
       </div>
 
       <button type="button" (click)="setVisibilidadFiltro('visible')"
-        class="flex items-center gap-3 rounded-card p-4 text-left transition"
-        [class]="visibilidadFiltro() === 'visible'
-          ? 'bg-green-50 ring-2 ring-green-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-          [class]="visibilidadFiltro() === 'visible' ? 'bg-green-100' : 'bg-green-50'">
-          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">visibility</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="visibilidadFiltro() === 'visible' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Visibles</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="visibilidadFiltro() === 'visible' ? 'text-green-500' : 'text-green-400'">visibility</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalVisibles() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Visibles</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="visibilidadFiltro() === 'visible' ? 'text-green-600' : 'text-text-main'">{{ totalVisibles() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">visibles en tienda</p>
       </button>
 
       <button type="button" (click)="setVisibilidadFiltro('oculto')"
-        class="flex items-center gap-3 rounded-card p-4 text-left transition"
-        [class]="visibilidadFiltro() === 'oculto'
-          ? 'bg-gray-100 ring-2 ring-gray-300 shadow-[0_2px_10px_rgba(0,0,0,0.05)]'
-          : 'bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-bg-app'">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full"
-          [class]="visibilidadFiltro() === 'oculto' ? 'bg-gray-200' : 'bg-gray-100'">
-          <mat-icon fontSet="material-icons-outlined" class="text-gray-500 text-[20px]!">visibility_off</mat-icon>
+        class="rounded-card border p-4 text-left transition hover:shadow-md"
+        [class]="visibilidadFiltro() === 'oculto' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Ocultos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+            [class]="visibilidadFiltro() === 'oculto' ? 'text-gray-500' : 'text-gray-400'">visibility_off</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalOcultos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Ocultos</p>
-        </div>
+        <p class="text-2xl font-bold" [class]="visibilidadFiltro() === 'oculto' ? 'text-gray-600' : 'text-text-main'">{{ totalOcultos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">no visibles</p>
       </button>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-blue-600 text-[20px]!">check_circle</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Activos en inventario</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-blue-400">check_circle</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Activos en inventario</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ totalActivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">con stock disponible</p>
       </div>
     </div>
   }

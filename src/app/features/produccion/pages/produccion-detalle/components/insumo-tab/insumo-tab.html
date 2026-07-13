@@ -38,7 +38,16 @@
         @for (ins of insumos(); track ins.id) {
           <tr class="hover:bg-[#FFF8EE]/40 transition-colors">
             <td class="px-4 py-3 font-medium text-text-main">{{ ins.nombreMateriaPrima }}</td>
-            <td class="px-4 py-3 text-right text-text-main">{{ fmt(ins.cantidadUsada) }}</td>
+            <td class="px-4 py-3 text-right">
+              <span [class]="insumoExceedeStock(ins) ? 'text-amber-600 font-semibold' : 'text-text-main'">
+                {{ fmt(ins.cantidadUsada) }}
+              </span>
+              @if (insumoExceedeStock(ins)) {
+                <mat-icon fontSet="material-icons-outlined"
+                  class="text-[13px]! text-amber-500 align-middle ml-0.5"
+                  title="Stock insuficiente para completar la producción">warning</mat-icon>
+              }
+            </td>
             <td class="px-4 py-3 text-right text-text-muted">{{ fmtMonto(ins.costoUnitario) }}</td>
             <td class="px-4 py-3 text-right font-semibold text-text-main">{{ subtotal(ins) }}</td>
             @if (canEdit) {
@@ -80,11 +89,15 @@
         <div class="grid grid-cols-2 gap-3">
           @for (mp of materiasPrimas(); track mp.id) {
             @if (isSelected(mp.id)) {
-              <div class="border-2 border-primary rounded-xl bg-primary/[0.03] p-3">
+              @let sobrestock = exceedsStock(getLinea(mp.id));
+              <div class="border-2 rounded-xl p-3 transition-colors"
+                [class]="sobrestock ? 'border-amber-400 bg-amber-50/60' : 'border-primary bg-primary/[0.03]'">
                 <div class="flex items-start justify-between mb-2">
                   <div>
                     <p class="text-sm font-semibold text-text-main">{{ mp.nombre }}</p>
-                    <p class="text-xs text-text-muted">{{ mp.unidadMedida }} · Stock: {{ fmt(mp.stock) }}</p>
+                    <p class="text-xs" [class]="sobrestock ? 'text-amber-600' : 'text-text-muted'">
+                      {{ mp.unidadMedida }} · Stock: {{ fmt(mp.stock) }}
+                    </p>
                   </div>
                   <button (click)="toggle(mp)" class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-red-100 hover:text-red-500 transition-colors shrink-0">
                     <mat-icon class="text-[12px]">close</mat-icon>
@@ -97,7 +110,15 @@
                     <input type="number" step="0.001" min="0.001" placeholder="0.000"
                       [value]="getLinea(mp.id)?.cantidad ?? ''"
                       (input)="setQty(mp.id, $event)"
-                      class="w-full px-2 py-1.5 text-xs border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white" />
+                      [class]="sobrestock
+                        ? 'w-full px-2 py-1.5 text-xs border border-amber-400 rounded-input focus:outline-none focus:ring-2 focus:ring-amber-300 bg-amber-50'
+                        : 'w-full px-2 py-1.5 text-xs border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white'" />
+                    @if (sobrestock) {
+                      <p class="text-[10px] text-amber-600 mt-0.5 flex items-center gap-0.5">
+                        <mat-icon fontSet="material-icons-outlined" class="text-[11px]!">warning</mat-icon>
+                        Supera el stock (máx. {{ fmt(mp.stock) }})
+                      </p>
+                    }
                   </div>
                   <div>
                     <label class="text-[10px] text-text-muted uppercase tracking-wide block mb-1">Costo S/ *</label>
@@ -123,16 +144,24 @@
         </div>
       </div>
       <div class="flex items-center justify-between px-6 py-4 border-t border-border-soft shrink-0 bg-gray-50/50 rounded-b-modal">
-        <p class="text-sm text-text-muted">
-          @if (lineas().length === 0) { Ninguno seleccionado }
-          @else {
-            <span class="font-semibold text-primary">{{ lineas().length }}</span> seleccionado{{ lineas().length > 1 ? 's' : '' }}
-            &nbsp;·&nbsp;
-            <span [class]="lineasValidas().length < lineas().length ? 'text-amber-500' : 'text-green-600'">
-              {{ lineasValidas().length }} listo{{ lineasValidas().length !== 1 ? 's' : '' }}
-            </span>
+        <div class="flex flex-col gap-1">
+          <p class="text-sm text-text-muted">
+            @if (lineas().length === 0) { Ninguno seleccionado }
+            @else {
+              <span class="font-semibold text-primary">{{ lineas().length }}</span> seleccionado{{ lineas().length > 1 ? 's' : '' }}
+              &nbsp;·&nbsp;
+              <span [class]="lineasValidas().length < lineas().length ? 'text-amber-500' : 'text-green-600'">
+                {{ lineasValidas().length }} listo{{ lineasValidas().length !== 1 ? 's' : '' }}
+              </span>
+            }
+          </p>
+          @if (lineasConSobrestock() > 0) {
+            <p class="text-[11px] text-amber-600 flex items-center gap-1">
+              <mat-icon fontSet="material-icons-outlined" class="text-[13px]!">warning</mat-icon>
+              {{ lineasConSobrestock() }} insumo{{ lineasConSobrestock() > 1 ? 's' : '' }} supera{{ lineasConSobrestock() > 1 ? 'n' : '' }} el stock disponible — se bloqueará al completar la OP
+            </p>
           }
-        </p>
+        </div>
         <div class="flex gap-3">
           <button (click)="cerrarAgregar()" class="px-4 py-2 text-sm font-medium text-text-muted border border-border-soft rounded-btn hover:bg-white transition-colors">Cancelar</button>
           <button (click)="guardar()" [disabled]="saving() || lineasValidas().length === 0"
@@ -156,7 +185,18 @@
         <div class="space-y-1">
           <label class="text-sm font-medium text-text-main block">Cantidad *</label>
           <input type="number" step="0.001" [value]="editCant()" (input)="editCant.set($any($event.target).value)"
-            class="w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+            [class]="editExceedsStock()
+              ? 'w-full px-3 py-2 text-sm border border-amber-400 rounded-input focus:outline-none focus:ring-2 focus:ring-amber-300 bg-amber-50'
+              : 'w-full px-3 py-2 text-sm border border-border-soft rounded-input focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary'" />
+          @if (editExceedsStock()) {
+            <p class="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
+              <mat-icon fontSet="material-icons-outlined" class="text-[13px]!">warning</mat-icon>
+              Stock disponible: {{ fmt(editStock()!) }}
+            </p>
+          }
+          @if (editStock() !== null) {
+            <p class="text-[10px] text-text-muted">Stock actual: {{ fmt(editStock()!) }}</p>
+          }
         </div>
         <div class="space-y-1">
           <label class="text-sm font-medium text-text-main block">Costo S/ *</label>

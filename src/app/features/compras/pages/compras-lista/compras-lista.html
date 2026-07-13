@@ -23,54 +23,54 @@
   </div>
 
   <!-- KPI cards (clickables) -->
-  <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
     <button (click)="setFiltroEstado('PENDIENTE')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'PENDIENTE' ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-amber-600">pending</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'PENDIENTE' ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Pendientes</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'PENDIENTE' ? 'text-amber-500' : 'text-amber-400'">pending</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Pendientes</p>
-        <p class="text-2xl font-bold text-amber-600">{{ totalPendientes() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'PENDIENTE' ? 'text-amber-600' : 'text-text-main'">{{ totalPendientes() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes por recibir</p>
     </button>
 
     <button (click)="setFiltroEstado('RECIBIDA_PARCIAL')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'RECIBIDA_PARCIAL' ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-blue-600">inventory</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'RECIBIDA_PARCIAL' ? 'border-blue-400 bg-blue-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">En tránsito</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'RECIBIDA_PARCIAL' ? 'text-blue-500' : 'text-blue-400'">inventory</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">En tránsito</p>
-        <p class="text-2xl font-bold text-blue-600">{{ totalParciales() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'RECIBIDA_PARCIAL' ? 'text-blue-600' : 'text-text-main'">{{ totalParciales() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">recibidas parcialmente</p>
     </button>
 
     <button (click)="setFiltroEstado('COMPLETADA')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'COMPLETADA' ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-green-600">check_circle</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'COMPLETADA' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Completadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'COMPLETADA' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Completadas</p>
-        <p class="text-2xl font-bold text-green-600">{{ totalCompletadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'COMPLETADA' ? 'text-green-600' : 'text-text-main'">{{ totalCompletadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes completadas</p>
     </button>
 
     <button (click)="setFiltroEstado('CANCELADA')"
-      class="flex items-center gap-4 rounded-card border p-5 text-left shadow-sm transition hover:shadow-md"
-      [class]="filtroEstado() === 'CANCELADA' ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-red-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[22px]! h-[22px]! w-[22px]! text-red-500">cancel</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'CANCELADA' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Canceladas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'CANCELADA' ? 'text-red-500' : 'text-red-400'">cancel</mat-icon>
       </div>
-      <div>
-        <p class="text-xs text-text-muted">Canceladas</p>
-        <p class="text-2xl font-bold text-red-500">{{ totalCanceladas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'CANCELADA' ? 'text-red-600' : 'text-text-main'">{{ totalCanceladas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">órdenes canceladas</p>
     </button>
 
   </div>

@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5 p-6">
+<div class="flex flex-col gap-6">
 
   <app-breadcrumb [items]="[{label:'Inicio', ruta:'/dashboard'}, {label:'Inventario'}, {label:'Presentaciones'}]" />
 
@@ -9,116 +9,151 @@
       <p class="text-sm text-text-muted">Variantes vendibles de cada producto (tamaño, empaque, precio)</p>
     </div>
     <button (click)="abrirCrear()"
-      class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover">
-      <mat-icon class="text-[18px] leading-none">add</mat-icon>
+      class="flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover transition-colors">
+      <mat-icon fontSet="material-icons-outlined">add</mat-icon>
       Nueva presentación
     </button>
   </div>
 
-  <!-- KPI strip -->
+  @if (error()) {
+    <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">error</mat-icon> {{ error() }}
+      <button (click)="cargar()" class="ml-auto text-xs font-medium underline">Reintentar</button>
+    </div>
+  }
+
+  <!-- KPI Bar -->
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Total</p>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Total</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">category</mat-icon>
+      </div>
       <p class="text-2xl font-bold text-text-main">{{ kpiTotal() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">presentaciones</p>
     </div>
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Activas</p>
-      <p class="text-2xl font-bold text-green-600">{{ kpiActivas() }}</p>
-    </div>
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Descontinuadas</p>
-      <p class="text-2xl font-bold text-red-500">{{ kpiDescontinuadas() }}</p>
-    </div>
-    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Próximamente</p>
-      <p class="text-2xl font-bold text-blue-500">{{ kpiProximamente() }}</p>
-    </div>
+    <button (click)="setFiltroEstado('ACTIVO')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'ACTIVO' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Activas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'ACTIVO' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
+      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'ACTIVO' ? 'text-green-600' : 'text-text-main'">{{ kpiActivas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en venta</p>
+    </button>
+    <button (click)="setFiltroEstado('DESCONTINUADO')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'DESCONTINUADO' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Descontinuadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'DESCONTINUADO' ? 'text-red-500' : 'text-red-400'">block</mat-icon>
+      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'DESCONTINUADO' ? 'text-red-600' : 'text-text-main'">{{ kpiDescontinuadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">fuera de catálogo</p>
+    </button>
+    <button (click)="setFiltroEstado('PROXIMAMENTE')"
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="filtroEstado() === 'PROXIMAMENTE' ? 'border-blue-400 bg-blue-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Próximamente</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="filtroEstado() === 'PROXIMAMENTE' ? 'text-blue-500' : 'text-blue-400'">pending</mat-icon>
+      </div>
+      <p class="text-2xl font-bold" [class]="filtroEstado() === 'PROXIMAMENTE' ? 'text-blue-600' : 'text-text-main'">{{ kpiProximamente() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">por lanzar</p>
+    </button>
   </div>
 
-  <!-- Filter bar -->
-  <div class="flex flex-wrap items-center gap-3 rounded-card border border-border-soft bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-    <div class="relative flex min-w-[220px] flex-1 items-center">
-      <mat-icon class="pointer-events-none absolute left-3 text-[18px] text-text-muted">search</mat-icon>
-      <input type="text" (input)="onSearch($event)" placeholder="Buscar presentación o producto..."
-        class="h-10 w-full rounded-input border border-border-soft bg-bg-app pl-10 pr-4 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/30" />
+  <!-- Buscador + filtro activo -->
+  <div class="flex flex-wrap items-center gap-3">
+    <div class="relative flex items-center">
+      <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-[18px]! text-text-muted">search</mat-icon>
+      <input type="text" placeholder="Buscar presentación o producto..."
+        [value]="search()" (input)="onSearch($event)"
+        class="h-10 rounded-input border border-border-soft bg-bg-card pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-72" />
     </div>
-    <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)"
-      class="h-10 rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30">
-      <option value="">Todos los estados</option>
-      <option value="ACTIVO">Activo</option>
-      <option value="INACTIVO">Inactivo</option>
-      <option value="DESCONTINUADO">Descontinuado</option>
-      <option value="PROXIMAMENTE">Próximamente</option>
-    </select>
     @if (filtroEstado()) {
       <button (click)="filtroEstado.set('')"
-        class="flex h-10 items-center gap-1 rounded-btn border border-border-soft px-3 text-sm text-text-muted transition hover:bg-bg-app">
-        <mat-icon class="text-[16px]">close</mat-icon>
-        Limpiar
+        class="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+        <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">filter_alt</mat-icon>
+        {{ estado(filtroEstado()).label }}
+        <mat-icon fontSet="material-icons-outlined" class="text-[12px]!">close</mat-icon>
       </button>
     }
-    <span class="ml-auto whitespace-nowrap text-xs text-text-muted">
-      {{ filtrados().length }} de {{ items().length }}
+    <span class="ml-auto text-xs text-text-muted">
+      {{ filtrados().length }} presentación{{ filtrados().length !== 1 ? 'es' : '' }}
     </span>
+    <button (click)="cargar()" class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-bg-card text-text-muted hover:bg-bg-app">
+      <mat-icon fontSet="material-icons-outlined">refresh</mat-icon>
+    </button>
   </div>
 
-  <!-- Table -->
-  <div class="overflow-hidden rounded-table border border-border-soft bg-bg-card shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+  <!-- Tabla -->
+  <div class="overflow-hidden rounded-card bg-bg-card shadow-sm">
     @if (loading()) {
       <div class="flex items-center justify-center gap-2 py-16 text-text-muted">
-        <mat-icon class="animate-spin text-4xl">progress_activity</mat-icon>
-        Cargando...
-      </div>
-    } @else if (error()) {
-      <div class="py-12 text-center text-red-600">
-        {{ error() }}
-        <button (click)="cargar()" class="mt-2 block text-xs text-primary hover:underline mx-auto">Reintentar</button>
+        <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[28px]!">progress_activity</mat-icon>
+        <span class="text-sm">Cargando...</span>
       </div>
     } @else if (filtrados().length === 0) {
-      <app-empty-state icono="inventory_2" titulo="No hay presentaciones"
-        descripcion="Crea la primera presentación asociada a un producto."
-        labelCta="Nueva presentación" (cta)="abrirCrear()" />
+      <div class="rounded-xl border-2 border-dashed border-border-soft m-4 p-10 text-center">
+        <mat-icon fontSet="material-icons-outlined" class="text-5xl text-text-muted/40">category</mat-icon>
+        @if (items().length === 0) {
+          <h3 class="mt-3 font-semibold text-text-main">Sin presentaciones</h3>
+          <p class="mt-1 text-sm text-text-muted">Crea la primera presentación asociada a un producto</p>
+          <button (click)="abrirCrear()"
+            class="mt-4 inline-flex items-center gap-2 rounded-btn bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-hover transition-colors">
+            <mat-icon fontSet="material-icons-outlined">add</mat-icon> Crear primero
+          </button>
+        } @else {
+          <h3 class="mt-3 font-semibold text-text-main">Sin resultados</h3>
+          <p class="mt-1 text-sm text-text-muted">Prueba con otros filtros o un término diferente</p>
+        }
+      </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-border-soft bg-bg-app text-left text-xs text-text-muted">
-              <th class="w-12 px-4 py-3"></th>
-              <th class="px-4 py-3 font-semibold">
+              <th class="w-12 px-4 py-3.5"></th>
+              <th class="px-4 py-3.5 font-semibold">
                 <button (click)="toggleSort('nombre')" class="flex items-center gap-1 transition-colors hover:text-text-main">
-                  Presentación <mat-icon class="text-[14px]">{{ sortIcon('nombre') }}</mat-icon>
+                  Presentación <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">{{ sortIcon('nombre') }}</mat-icon>
                 </button>
               </th>
-              <th class="px-4 py-3 font-semibold">
+              <th class="px-4 py-3.5 font-semibold">
                 <button (click)="toggleSort('producto')" class="flex items-center gap-1 transition-colors hover:text-text-main">
-                  Producto <mat-icon class="text-[14px]">{{ sortIcon('producto') }}</mat-icon>
+                  Producto <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">{{ sortIcon('producto') }}</mat-icon>
                 </button>
               </th>
-              <th class="px-4 py-3 font-semibold">
-                <button (click)="toggleSort('peso')" class="ml-auto flex items-center gap-1 transition-colors hover:text-text-main">
-                  Peso / Vol. <mat-icon class="text-[14px]">{{ sortIcon('peso') }}</mat-icon>
+              <th class="px-4 py-3.5 font-semibold">
+                <button (click)="toggleSort('peso')" class="flex items-center gap-1 transition-colors hover:text-text-main">
+                  Peso / Vol. <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">{{ sortIcon('peso') }}</mat-icon>
                 </button>
               </th>
-              <th class="px-4 py-3 font-semibold">
-                <button (click)="toggleSort('precio')" class="ml-auto flex items-center gap-1 transition-colors hover:text-text-main">
-                  Precio venta <mat-icon class="text-[14px]">{{ sortIcon('precio') }}</mat-icon>
+              <th class="px-4 py-3.5 font-semibold">
+                <button (click)="toggleSort('precio')" class="flex items-center gap-1 transition-colors hover:text-text-main">
+                  Precio venta <mat-icon fontSet="material-icons-outlined" class="text-[14px]!">{{ sortIcon('precio') }}</mat-icon>
                 </button>
               </th>
-              <th class="px-4 py-3 text-right font-semibold">Margen</th>
-              <th class="px-4 py-3 text-center font-semibold">Estado</th>
-              <th class="px-4 py-3 text-center font-semibold">Acciones</th>
+              <th class="px-4 py-3.5 text-right font-semibold">Margen</th>
+              <th class="px-4 py-3.5 text-center font-semibold">Estado</th>
+              <th class="px-4 py-3.5 text-center font-semibold">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @for (p of paginados(); track p.id) {
-              <tr class="border-b border-border-soft transition last:border-0 hover:bg-bg-app">
+              <tr class="border-b border-border-soft transition-colors last:border-0 hover:bg-primary/[0.03]">
                 <!-- Thumbnail -->
                 <td class="px-4 py-3">
                   @if (productoDe(p)?.urlImagen; as img) {
                     <img [src]="img" class="h-9 w-9 rounded-lg object-cover" />
                   } @else {
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                      <mat-icon class="text-[16px] text-primary">eco</mat-icon>
+                    <div class="grid h-9 w-9 place-items-center rounded-lg bg-primary/10">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[16px]! text-primary">eco</mat-icon>
                     </div>
                   }
                 </td>
@@ -131,7 +166,7 @@
                   @if (p.peso && p.unidadMedida) {
                     {{ p.peso }}{{ p.unidadMedida }}
                   } @else {
-                    <span class="text-xs text-text-muted/60" title="Factor de conversión">{{ p.factorConversion }} kg</span>
+                    <span class="text-xs text-text-muted/60">{{ p.factorConversion }} kg</span>
                   }
                 </td>
                 <!-- Precio venta -->
@@ -139,7 +174,7 @@
                 <!-- Margen -->
                 <td class="px-4 py-3 text-right">
                   @if (margenDe(p); as m) {
-                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+                    <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
                       [class]="m >= 30 ? 'bg-green-100 text-green-700' : m >= 15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'">
                       {{ m }}%
                     </span>
@@ -149,7 +184,7 @@
                 </td>
                 <!-- Estado -->
                 <td class="px-4 py-3 text-center">
-                  <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium" [class]="estado(p.estado).classes">
+                  <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium" [class]="estado(p.estado).classes">
                     <span class="h-1.5 w-1.5 shrink-0 rounded-full" [class]="estado(p.estado).dot"></span>
                     {{ estado(p.estado).label }}
                   </span>
@@ -158,12 +193,12 @@
                 <td class="px-4 py-3">
                   <div class="flex items-center justify-center gap-1">
                     <button (click)="abrirEditar(p)" title="Editar"
-                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app hover:text-primary">
-                      <mat-icon class="text-[18px]">edit</mat-icon>
+                      class="grid h-8 w-8 place-items-center rounded-btn border border-border-soft text-text-muted transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[15px]!">edit</mat-icon>
                     </button>
                     <button (click)="pedirEliminar(p)" title="Eliminar"
-                      class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-red-100 hover:text-red-500">
-                      <mat-icon class="text-[18px]">delete</mat-icon>
+                      class="grid h-8 w-8 place-items-center rounded-btn border border-border-soft text-text-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-500">
+                      <mat-icon fontSet="material-icons-outlined" class="text-[15px]!">delete</mat-icon>
                     </button>
                   </div>
                 </td>
@@ -181,13 +216,13 @@
           </span>
           <div class="flex items-center gap-1">
             <button [disabled]="pagina() === 0" (click)="pagina.set(pagina() - 1)"
-              class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted transition hover:bg-bg-app disabled:opacity-40">
-              <mat-icon class="text-[18px]">chevron_left</mat-icon>
+              class="grid h-8 w-8 place-items-center rounded-btn border border-border-soft text-text-muted transition hover:bg-bg-app disabled:opacity-40">
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">chevron_left</mat-icon>
             </button>
             <span class="px-2 text-sm text-text-main">{{ pagina() + 1 }} / {{ totalPaginas() }}</span>
             <button [disabled]="pagina() >= totalPaginas() - 1" (click)="pagina.set(pagina() + 1)"
-              class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft text-text-muted transition hover:bg-bg-app disabled:opacity-40">
-              <mat-icon class="text-[18px]">chevron_right</mat-icon>
+              class="grid h-8 w-8 place-items-center rounded-btn border border-border-soft text-text-muted transition hover:bg-bg-app disabled:opacity-40">
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">chevron_right</mat-icon>
             </button>
           </div>
         </div>
@@ -201,53 +236,52 @@
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cerrarModal()">
-    <div class="modal-enter w-full max-w-[490px] overflow-hidden rounded-modal border border-border-soft bg-bg-card shadow-[var(--shadow-modal)]"
+    <div class="w-full max-w-[490px] overflow-hidden rounded-modal bg-bg-card shadow-2xl"
       (click)="$event.stopPropagation()">
 
       <!-- Header modal -->
-      <div class="flex items-center justify-between border-b border-border-soft px-6 py-4">
+      <div class="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <mat-icon class="text-[18px] text-primary">inventory_2</mat-icon>
+          <div class="grid h-8 w-8 place-items-center rounded-lg bg-primary/10">
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-primary">category</mat-icon>
           </div>
-          <h3 class="text-base font-semibold text-text-main">
+          <h3 class="font-bold text-text-main">
             {{ editId() ? 'Editar presentación' : 'Nueva presentación' }}
           </h3>
         </div>
-        <button (click)="cerrarModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted transition hover:bg-bg-app">
-          <mat-icon>close</mat-icon>
+        <button (click)="cerrarModal()" class="grid h-8 w-8 place-items-center rounded-lg text-text-muted hover:bg-bg-app">
+          <mat-icon fontSet="material-icons-outlined">close</mat-icon>
         </button>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="guardar()">
-        <div class="flex flex-col gap-4 px-6 py-5">
+        <div class="flex flex-col gap-4 px-5 py-5 max-h-[70vh] overflow-y-auto">
 
           @if (formError()) {
-            <div class="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">
-              <mat-icon class="text-[16px]">error_outline</mat-icon>
+            <div class="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">error_outline</mat-icon>
               {{ formError() }}
             </div>
           }
 
           <!-- Selector de producto -->
           <div [class.opacity-60]="form.controls.productoId.disabled">
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Producto</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-muted">PRODUCTO *</label>
 
             @if (productoSeleccionado(); as sel) {
               <div class="flex h-11 items-center gap-3 rounded-input border border-primary bg-bg-card px-3 ring-2 ring-primary/20">
                 @if (sel.urlImagen) {
                   <img [src]="sel.urlImagen" class="h-7 w-7 shrink-0 rounded-md object-cover" />
                 } @else {
-                  <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                    <mat-icon class="text-[14px] text-primary">eco</mat-icon>
+                  <div class="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[14px]! text-primary">eco</mat-icon>
                   </div>
                 }
                 <span class="flex-1 truncate text-sm font-medium text-text-main">{{ sel.nombre }}</span>
                 <span class="shrink-0 text-xs text-text-muted">{{ sel.nombreCategoria }}</span>
                 @if (!form.controls.productoId.disabled) {
-                  <button type="button" (click)="limpiarProducto()"
-                    class="ml-1 shrink-0 text-text-muted transition-colors hover:text-red-400">
-                    <mat-icon class="text-[16px]">close</mat-icon>
+                  <button type="button" (click)="limpiarProducto()" class="ml-1 shrink-0 text-text-muted hover:text-red-400">
+                    <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">close</mat-icon>
                   </button>
                 }
               </div>
@@ -256,13 +290,13 @@
                 <div class="fixed inset-0 z-40" (click)="productoDropdown.set(false)"></div>
               }
               <div class="relative">
-                <mat-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</mat-icon>
+                <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px]! text-text-muted">search</mat-icon>
                 <input type="text" placeholder="Buscar producto..."
                   [value]="productoSearch()"
                   (input)="productoSearch.set($any($event.target).value)"
                   (click)="productoDropdown.set(true)"
                   [disabled]="form.controls.productoId.disabled"
-                  class="h-11 w-full rounded-input border border-border-soft bg-bg-app pl-10 pr-4 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/30 disabled:opacity-60" />
+                  class="h-11 w-full rounded-input border border-border-soft bg-bg-app pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 disabled:opacity-60" />
                 @if (productoDropdown()) {
                   <div class="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-card border border-border-soft bg-bg-card shadow-xl">
                     @if (productosFiltrados().length === 0) {
@@ -274,8 +308,8 @@
                           @if (pr.urlImagen) {
                             <img [src]="pr.urlImagen" class="h-9 w-9 shrink-0 rounded-lg object-cover" />
                           } @else {
-                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                              <mat-icon class="text-[18px] text-primary">eco</mat-icon>
+                            <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10">
+                              <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-primary">eco</mat-icon>
                             </div>
                           }
                           <div class="min-w-0 flex-1">
@@ -294,11 +328,12 @@
             }
           </div>
 
-          <!-- Nombre de la presentación -->
+          <!-- Nombre -->
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Nombre de la presentación</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-muted">NOMBRE DE LA PRESENTACIÓN *</label>
             <input type="text" formControlName="nombre" placeholder="Ej. Bolsa 200g"
-              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3.5 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/30" />
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              [class.border-red-300]="form.controls.nombre.invalid && form.controls.nombre.touched" />
             @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
               <small class="mt-1 block text-xs text-red-600">Ingresa un nombre válido (mín. 2 caracteres).</small>
             }
@@ -306,14 +341,13 @@
 
           <!-- Peso + unidad -->
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Peso / Volumen por unidad</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-muted">PESO / VOLUMEN POR UNIDAD</label>
             <div class="flex gap-2">
-              <input type="number" step="0.001" min="0" formControlName="peso"
-                placeholder="Ej. 200"
+              <input type="number" step="0.001" min="0" formControlName="peso" placeholder="Ej. 200"
                 (input)="recalcularFactor()"
-                class="h-11 flex-1 rounded-input border border-border-soft bg-bg-app px-3.5 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/30" />
+                class="h-10 flex-1 rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
               <select formControlName="unidadMedida" (change)="recalcularFactor()"
-                class="h-11 w-28 rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30">
+                class="h-10 w-28 rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
                 <option value="g">g</option>
                 <option value="kg">kg</option>
                 <option value="mL">mL</option>
@@ -323,19 +357,18 @@
             </div>
             @if (form.controls.factorConversion.value > 0) {
               <p class="mt-1.5 flex items-center gap-1 text-[11px] text-text-muted">
-                <mat-icon class="text-[13px]">info</mat-icon>
-                Equivale a
-                <span class="font-semibold text-primary">{{ form.controls.factorConversion.value }} {{ unidadBase() }}</span>
-                por unidad — usado para calcular stock en almacén.
+                <mat-icon fontSet="material-icons-outlined" class="text-[13px]!">info</mat-icon>
+                Equivale a <span class="font-semibold text-primary">{{ form.controls.factorConversion.value }} {{ unidadBase() }}</span> por unidad
               </p>
             }
           </div>
 
           <!-- Precio de venta -->
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Precio de venta (S/)</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-muted">PRECIO DE VENTA (S/) *</label>
             <input type="number" step="0.01" formControlName="precioVenta" placeholder="14.90"
-              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3.5 text-sm text-text-main outline-none transition focus:border-primary focus:bg-bg-card focus:ring-2 focus:ring-primary/30" />
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+              [class.border-red-300]="form.controls.precioVenta.invalid && form.controls.precioVenta.touched" />
             @if (form.controls.precioVenta.touched && form.controls.precioVenta.invalid) {
               <small class="mt-1 block text-xs text-red-600">Ingresa un precio mayor a 0.</small>
             }
@@ -343,9 +376,9 @@
 
           <!-- Estado -->
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-text-main">Estado</label>
+            <label class="mb-1.5 block text-xs font-semibold text-text-muted">ESTADO</label>
             <select formControlName="estado"
-              class="h-11 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30">
+              class="h-10 w-full rounded-input border border-border-soft bg-bg-app px-3 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30">
               <option value="ACTIVO">Activo</option>
               <option value="INACTIVO">Inactivo</option>
               <option value="DESCONTINUADO">Descontinuado</option>
@@ -354,18 +387,19 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 border-t border-border-soft px-6 py-4">
+        <div class="flex gap-3 border-t border-border-soft px-5 py-4">
           <button type="button" (click)="cerrarModal()"
-            class="flex h-11 items-center rounded-btn border border-border-soft px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+            class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
             Cancelar
           </button>
           <button type="submit" [disabled]="saving()"
-            class="flex h-11 items-center gap-2 rounded-btn bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60">
+            class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-60">
             @if (saving()) {
-              <mat-icon class="animate-spin text-[16px]">refresh</mat-icon>
-              Guardando...
+              <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]!">refresh</mat-icon>
+              Guardando…
             } @else {
-              {{ editId() ? 'Actualizar' : 'Crear presentación' }}
+              <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">{{ editId() ? 'save' : 'add_circle' }}</mat-icon>
+              {{ editId() ? 'Guardar cambios' : 'Crear presentación' }}
             }
           </button>
         </div>
@@ -378,33 +412,33 @@
 @if (deleteTarget(); as t) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     (click)="cancelarEliminar()">
-    <div class="modal-enter w-full max-w-[420px] overflow-hidden rounded-modal border border-border-soft bg-bg-card shadow-[var(--shadow-modal)]"
-      (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-3 px-6 pt-6 text-center">
-        <div class="grid h-12 w-12 place-items-center rounded-full bg-red-100">
-          <mat-icon class="text-red-500">delete</mat-icon>
+    <div class="w-full max-w-sm rounded-modal bg-bg-card p-6 shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-100">
+          <mat-icon fontSet="material-icons-outlined" class="text-red-600">delete_forever</mat-icon>
         </div>
-        <h3 class="text-lg font-semibold text-text-main">Eliminar presentación</h3>
-        <p class="text-sm text-text-muted">
-          ¿Eliminar <span class="font-semibold text-text-main">{{ t.nombre }}</span>?
-          Esta acción no se puede deshacer.
-        </p>
-        @if (deleteError()) {
-          <p class="text-xs text-red-600">{{ deleteError() }}</p>
-        }
+        <div>
+          <p class="font-semibold text-text-main">¿Eliminar presentación?</p>
+          <p class="text-sm text-text-muted font-medium">{{ t.nombre }}</p>
+        </div>
       </div>
-      <div class="mt-5 flex justify-center gap-3 border-t border-border-soft px-6 py-4">
+      <p class="text-sm text-text-muted mb-2">Esta acción no se puede deshacer.</p>
+      @if (deleteError()) {
+        <p class="text-xs text-red-600 mb-3">{{ deleteError() }}</p>
+      }
+      <div class="flex gap-3 pt-2">
         <button (click)="cancelarEliminar()"
-          class="flex h-11 items-center rounded-btn border border-border-soft px-5 text-sm font-semibold text-text-main transition hover:bg-bg-app">
+          class="flex-1 rounded-btn border border-border-soft py-2.5 text-sm font-medium text-text-muted hover:bg-bg-app">
           Cancelar
         </button>
         <button (click)="confirmarEliminar()" [disabled]="deleting()"
-          class="flex h-11 items-center gap-2 rounded-btn bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60">
+          class="flex flex-1 items-center justify-center gap-2 rounded-btn bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60">
           @if (deleting()) {
-            <mat-icon class="animate-spin text-[16px]">refresh</mat-icon>
-            Eliminando...
+            <mat-icon fontSet="material-icons-outlined" class="animate-spin text-[18px]!">refresh</mat-icon>
+            Eliminando…
           } @else {
-            Sí, eliminar
+            <mat-icon fontSet="material-icons-outlined" class="text-[18px]!">delete_forever</mat-icon>
+            Eliminar
           }
         </button>
       </div>

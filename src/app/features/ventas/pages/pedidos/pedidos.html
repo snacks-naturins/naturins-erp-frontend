@@ -13,44 +13,56 @@
     </div>
     <div class="flex items-center gap-2 flex-wrap">
       <div class="relative flex items-center">
-        <mat-icon class="pointer-events-none absolute left-3 text-text-muted text-[18px]">search</mat-icon>
+        <mat-icon fontSet="material-icons-outlined" class="pointer-events-none absolute left-3 text-[18px]! text-text-muted">search</mat-icon>
         <input type="text" placeholder="Buscar pedido o cliente..."
           [value]="search()"
           (input)="search.set($any($event.target).value)"
-          class="h-10 rounded-input border border-border-soft bg-white pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-52" />
+          class="h-10 rounded-input border border-border-soft bg-bg-card pl-10 pr-4 text-sm outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/30 w-52" />
       </div>
-      <mat-icon class="text-text-muted text-[18px]">date_range</mat-icon>
+      <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted">date_range</mat-icon>
       <input type="date" [value]="fechaDesde()" (change)="fechaDesde.set($any($event.target).value)"
-        class="h-10 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+        class="h-10 rounded-input border border-border-soft bg-bg-card px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
       <span class="text-xs text-text-muted">—</span>
       <input type="date" [value]="fechaHasta()" (change)="fechaHasta.set($any($event.target).value)"
-        class="h-10 rounded-input border border-border-soft bg-white px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
+        class="h-10 rounded-input border border-border-soft bg-bg-card px-3 text-sm outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30" />
       @if (fechaDesde() || fechaHasta()) {
         <button (click)="fechaDesde.set(''); fechaHasta.set('')"
-          class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft bg-white text-text-muted hover:bg-bg-app" title="Limpiar fechas">
-          <mat-icon class="text-[16px]">close</mat-icon>
+          class="grid h-8 w-8 place-items-center rounded-lg border border-border-soft bg-bg-card text-text-muted hover:bg-bg-app" title="Limpiar fechas">
+          <mat-icon fontSet="material-icons-outlined" class="text-[16px]!">close</mat-icon>
         </button>
       }
       <button (click)="cargar()" title="Recargar"
-        class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-white text-text-muted hover:bg-bg-app">
-        <mat-icon>refresh</mat-icon>
+        class="grid h-10 w-10 place-items-center rounded-input border border-border-soft bg-bg-card text-text-muted hover:bg-bg-app">
+        <mat-icon fontSet="material-icons-outlined">refresh</mat-icon>
       </button>
     </div>
   </div>
 
   <!-- KPIs -->
-  <div class="grid grid-cols-3 gap-4">
-    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Pedidos activos</p>
-      <p class="text-2xl font-bold text-primary">{{ kpiActivos() }}</p>
+  <div class="grid grid-cols-3 gap-3">
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Pedidos activos</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">assignment</mat-icon>
+      </div>
+      <p class="text-2xl font-bold text-text-main">{{ kpiActivos() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en curso ahora</p>
     </div>
-    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Entregados hoy</p>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Entregados hoy</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">check_circle</mat-icon>
+      </div>
       <p class="text-2xl font-bold text-green-600">{{ kpiHoy() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">completados hoy</p>
     </div>
-    <div class="rounded-card bg-white p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-      <p class="text-xs text-text-muted">Valor en tránsito</p>
+    <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Valor en tránsito</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">payments</mat-icon>
+      </div>
       <p class="text-2xl font-bold text-text-main">{{ formatMonto(kpiTotal()) }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">monto total activo</p>
     </div>
   </div>
 

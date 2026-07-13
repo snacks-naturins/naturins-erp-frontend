@@ -433,6 +433,26 @@ mat-icon,
   animation: fadeIn var(--transition) both;
 }
 
+/* ── Toast iOS-style ─────────────────────────────────────────────── */
+@keyframes toast-in {
+  0%   { opacity: 0; transform: translateY(-32px) scale(0.88); }
+  60%  { opacity: 1; transform: translateY(5px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-out {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(0.94); }
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+.toast-enter { animation: toast-in 0.44s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.toast-exit  { animation: toast-out 0.28s ease-in both; }
+
 /* ===================================================================
    Estilos de impresión — oculta el chrome del ERP al imprimir
    (cotizaciones, pedidos, tickets)

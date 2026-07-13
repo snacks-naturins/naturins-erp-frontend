@@ -20,66 +20,66 @@
   </div>
 
   <!-- KPI cards -->
-  <div class="grid grid-cols-2 gap-4 xl:grid-cols-5">
+  <div class="grid grid-cols-2 gap-3 xl:grid-cols-5">
 
     <button (click)="setEstadoFiltro('BORRADOR')"
-      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
-      [class]="estadoFiltro() === 'BORRADOR' ? 'border-gray-400 bg-gray-50 dark:bg-gray-800/40' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gray-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-gray-500">draft</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'BORRADOR' ? 'border-gray-400 bg-gray-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Borradores</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'BORRADOR' ? 'text-gray-500' : 'text-gray-400'">draft</mat-icon>
       </div>
-      <div>
-        <p class="text-[11px] text-text-muted">Borradores</p>
-        <p class="text-xl font-bold text-gray-600">{{ totalBorradores() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'BORRADOR' ? 'text-gray-600' : 'text-text-main'">{{ totalBorradores() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">en borrador</p>
     </button>
 
     <button (click)="setEstadoFiltro('ENVIADA')"
-      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
-      [class]="estadoFiltro() === 'ENVIADA' ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-blue-600">send</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ENVIADA' ? 'border-blue-400 bg-blue-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Enviadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'ENVIADA' ? 'text-blue-500' : 'text-blue-400'">send</mat-icon>
       </div>
-      <div>
-        <p class="text-[11px] text-text-muted">Enviadas</p>
-        <p class="text-xl font-bold text-blue-600">{{ totalEnviadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'ENVIADA' ? 'text-blue-600' : 'text-text-main'">{{ totalEnviadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">enviadas al cliente</p>
     </button>
 
     <button (click)="setEstadoFiltro('ACEPTADA')"
-      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
-      [class]="estadoFiltro() === 'ACEPTADA' ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-green-600">check_circle</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'ACEPTADA' ? 'border-green-400 bg-green-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Aceptadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'ACEPTADA' ? 'text-green-500' : 'text-green-400'">check_circle</mat-icon>
       </div>
-      <div>
-        <p class="text-[11px] text-text-muted">Aceptadas</p>
-        <p class="text-xl font-bold text-green-600">{{ totalAceptadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'ACEPTADA' ? 'text-green-600' : 'text-text-main'">{{ totalAceptadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">aprobadas por cliente</p>
     </button>
 
     <button (click)="setEstadoFiltro('RECHAZADA')"
-      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
-      [class]="estadoFiltro() === 'RECHAZADA' ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-red-500">cancel</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'RECHAZADA' ? 'border-red-400 bg-red-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Rechazadas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'RECHAZADA' ? 'text-red-500' : 'text-red-400'">cancel</mat-icon>
       </div>
-      <div>
-        <p class="text-[11px] text-text-muted">Rechazadas</p>
-        <p class="text-xl font-bold text-red-500">{{ totalRechazadas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'RECHAZADA' ? 'text-red-600' : 'text-text-main'">{{ totalRechazadas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">no aceptadas</p>
     </button>
 
     <button (click)="setEstadoFiltro('VENCIDA')"
-      class="flex items-center gap-3 rounded-card border p-4 text-left shadow-sm transition hover:shadow-md"
-      [class]="estadoFiltro() === 'VENCIDA' ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20' : 'border-border-soft bg-bg-card'">
-      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-orange-100">
-        <mat-icon fontSet="material-icons-outlined" class="text-[20px]! h-5! w-5! text-orange-600">schedule</mat-icon>
+      class="rounded-card border p-4 text-left transition hover:shadow-md"
+      [class]="estadoFiltro() === 'VENCIDA' ? 'border-orange-400 bg-orange-50 shadow-md' : 'border-border-soft bg-bg-card'">
+      <div class="mb-2 flex items-center justify-between">
+        <span class="text-xs font-medium text-text-muted">Vencidas</span>
+        <mat-icon fontSet="material-icons-outlined" class="text-[18px]!"
+          [class]="estadoFiltro() === 'VENCIDA' ? 'text-orange-500' : 'text-orange-400'">schedule</mat-icon>
       </div>
-      <div>
-        <p class="text-[11px] text-text-muted">Vencidas</p>
-        <p class="text-xl font-bold text-orange-600">{{ totalVencidas() }}</p>
-      </div>
+      <p class="text-2xl font-bold" [class]="estadoFiltro() === 'VENCIDA' ? 'text-orange-600' : 'text-text-main'">{{ totalVencidas() }}</p>
+      <p class="mt-0.5 text-[11px] text-text-muted">plazo expirado</p>
     </button>
 
   </div>

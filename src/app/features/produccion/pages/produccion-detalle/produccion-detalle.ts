@@ -8,6 +8,7 @@ import { AlmacenService }   from '../../../inventario/services/almacen.service';
 import { ProduccionResponse } from '../../models/produccion.model';
 import { AlmacenResponse }    from '../../../inventario/models/almacen.model';
 import { FechaPipe }          from '../../../../shared/pipes/fecha.pipe';
+import { ToastService }       from '../../../../core/services/toast.service';
 
 import { InsumoTab } from './components/insumo-tab/insumo-tab';
 import { SalidaTab } from './components/salida-tab/salida-tab';
@@ -24,6 +25,7 @@ export class ProduccionDetalle implements OnInit {
   private readonly router = inject(Router);
   private readonly svcOp  = inject(ProduccionService);
   private readonly svcAlm = inject(AlmacenService);
+  private readonly toast  = inject(ToastService);
 
   // ── Estado principal ───────────────────────────────────────
   readonly loading   = signal(true);
@@ -49,15 +51,12 @@ export class ProduccionDetalle implements OnInit {
   readonly completarAlmacenId  = signal('');
   readonly completarFechaVen   = signal('');
   readonly savingCompletar     = signal(false);
-  readonly errorCompletar      = signal<string | null>(null);
 
   // ── Cancelar / Iniciar confirmación ───────────────────────
   readonly confirmCancelar = signal(false);
   readonly savingCancelar  = signal(false);
-  readonly errorCancelar   = signal<string | null>(null);
   readonly confirmIniciar  = signal(false);
   readonly savingIniciar   = signal(false);
-  readonly errorIniciar    = signal<string | null>(null);
 
   // ── Lifecycle ──────────────────────────────────────────────
   ngOnInit(): void {
@@ -89,7 +88,6 @@ export class ProduccionDetalle implements OnInit {
 
   // ── Completar ──────────────────────────────────────────────
   abrirCompletar(): void {
-    this.errorCompletar.set(null);
     this.completarAlmacenId.set('');
     this.completarFechaVen.set('');
     this.modalCompletar.set(true);
@@ -104,22 +102,32 @@ export class ProduccionDetalle implements OnInit {
   cerrarCompletar(): void { this.modalCompletar.set(false); }
 
   ejecutarCompletar(): void {
-    if (!this.completarAlmacenId()) { this.errorCompletar.set('Selecciona un almacén destino.'); return; }
+    if (!this.completarAlmacenId()) {
+      this.toast.warning('Selecciona un almacén destino.');
+      return;
+    }
     const op = this.op();
     if (!op) return;
     this.savingCompletar.set(true);
-    this.errorCompletar.set(null);
     this.svcOp.completar(op.id, {
       almacenId: this.completarAlmacenId(),
       fechaVencimiento: this.completarFechaVen() || null,
     }).subscribe({
-      next: () => { this.savingCompletar.set(false); this.modalCompletar.set(false); this.cargarOP(op.id); },
-      error: (err) => { this.savingCompletar.set(false); this.errorCompletar.set(err?.error?.message ?? 'No se pudo completar la producción.'); },
+      next: () => {
+        this.savingCompletar.set(false);
+        this.cerrarCompletar();
+        this.toast.success('Producción completada exitosamente.');
+        this.cargarOP(op.id);
+      },
+      error: (err) => {
+        this.savingCompletar.set(false);
+        this.toast.error(err?.error?.message ?? 'No se pudo completar la producción.');
+      },
     });
   }
 
   // ── Iniciar ────────────────────────────────────────────────
-  abrirIniciar(): void { this.errorIniciar.set(null); this.confirmIniciar.set(true); }
+  abrirIniciar(): void { this.confirmIniciar.set(true); }
   cerrarIniciar(): void { this.confirmIniciar.set(false); }
 
   ejecutarIniciar(): void {
@@ -127,30 +135,42 @@ export class ProduccionDetalle implements OnInit {
     if (!op) return;
     this.savingIniciar.set(true);
     this.svcOp.actualizar(op.id, { estado: 'EN_PROCESO' }).subscribe({
-      next: (u) => { this.op.set(u); this.savingIniciar.set(false); this.confirmIniciar.set(false); },
-      error: (err) => { this.savingIniciar.set(false); this.errorIniciar.set(err?.error?.message ?? 'Error al actualizar.'); },
+      next: (u) => {
+        this.op.set(u);
+        this.savingIniciar.set(false);
+        this.cerrarIniciar();
+        this.toast.success('Producción iniciada.');
+      },
+      error: (err) => {
+        this.savingIniciar.set(false);
+        this.toast.error(err?.error?.message ?? 'Error al actualizar.');
+      },
     });
   }
 
   // ── Cancelar ───────────────────────────────────────────────
-  abrirCancelar(): void { this.errorCancelar.set(null); this.confirmCancelar.set(true); }
+  abrirCancelar(): void { this.confirmCancelar.set(true); }
   cerrarCancelar(): void { this.confirmCancelar.set(false); }
 
   ejecutarCancelar(): void {
     const op = this.op();
     if (!op) return;
     this.savingCancelar.set(true);
-      this.svcOp.cancelar(op.id).subscribe({
-        next: () => {
-          this.savingCancelar.set(false);
-          this.confirmCancelar.set(false);
-          this.svcOp.buscarPorId(op.id).subscribe({
-            next: (u) => this.op.set(u),
-            error: () => { this.error.set('Error al recargar la orden tras cancelar.'); },
-          });
-        },
-        error: (err) => { this.savingCancelar.set(false); this.errorCancelar.set(err?.error?.message ?? 'No se pudo cancelar.'); },
-      });
+    this.svcOp.cancelar(op.id).subscribe({
+      next: () => {
+        this.savingCancelar.set(false);
+        this.cerrarCancelar();
+        this.toast.success('Orden cancelada.');
+        this.svcOp.buscarPorId(op.id).subscribe({
+          next: (u) => this.op.set(u),
+          error: () => { this.error.set('Error al recargar la orden tras cancelar.'); },
+        });
+      },
+      error: (err) => {
+        this.savingCancelar.set(false);
+        this.toast.error(err?.error?.message ?? 'No se pudo cancelar.');
+      },
+    });
   }
 
   // ── Helpers ────────────────────────────────────────────────

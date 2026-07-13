@@ -29,47 +29,43 @@
   <!-- KPI bar -->
   @if (!loading() && metodos().length > 0) {
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10">
-          <mat-icon fontSet="material-icons-outlined" class="text-primary text-[20px]!">payments</mat-icon>
+
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Total</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">payments</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ metodos().length }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Total</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ metodos().length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">métodos configurados</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-green-600 text-[20px]!">check_circle</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Activos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-green-400">check_circle</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalActivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Activos</p>
-        </div>
+        <p class="text-2xl font-bold text-green-600">{{ totalActivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">disponibles para cobro</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100">
-          <mat-icon fontSet="material-icons-outlined" class="text-gray-400 text-[20px]!">pause_circle</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Inactivos</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-text-muted/40">pause_circle</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">{{ totalInactivos() }}</p>
-          <p class="text-xs text-text-muted mt-0.5">Inactivos</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ totalInactivos() }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">desactivados</p>
       </div>
 
-      <div class="flex items-center gap-3 rounded-card bg-bg-card p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-purple-50">
-          <mat-icon fontSet="material-icons-outlined" class="text-purple-600 text-[20px]!">qr_code_2</mat-icon>
+      <div class="rounded-card border border-border-soft bg-bg-card p-4 shadow-sm">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-medium text-text-muted">Con QR</span>
+          <mat-icon fontSet="material-icons-outlined" class="text-[18px]! text-purple-400">qr_code_2</mat-icon>
         </div>
-        <div>
-          <p class="text-2xl font-bold text-text-main leading-none">
-            {{ metodos().filter(m => m.urlQr).length }}
-          </p>
-          <p class="text-xs text-text-muted mt-0.5">Con QR</p>
-        </div>
+        <p class="text-2xl font-bold text-text-main">{{ metodos().filter(m => m.urlQr).length }}</p>
+        <p class="mt-0.5 text-[11px] text-text-muted">con código QR</p>
       </div>
+
     </div>
   }
 
