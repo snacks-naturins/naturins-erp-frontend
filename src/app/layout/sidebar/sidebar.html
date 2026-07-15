@@ -29,51 +29,65 @@
   <nav class="flex-1 overflow-y-auto py-3"
        [class.px-3]="!layout.sidebarCollapsed()"
        [class.px-1]="layout.sidebarCollapsed()">
-    @for (entry of nav; track $index) {
 
-      @if (entry.kind === 'divider') {
-        @if (!layout.sidebarCollapsed()) {
-          <p class="mt-4 mb-1 px-2 text-[10px] font-bold uppercase tracking-[1.2px] text-white/35 select-none">
-            {{ entry.label }}
-          </p>
-        } @else {
-          <div class="my-2 border-t border-white/10"></div>
+    @if (!rbac.cargado()) {
+      <div class="px-4 py-6">
+        @for (_ of [1,2,3,4,5,6]; track $index) {
+          <div class="mb-3 flex items-center gap-3">
+            <div class="h-5 w-5 shrink-0 animate-pulse rounded bg-white/10"></div>
+            @if (!layout.sidebarCollapsed()) {
+              <div class="h-3 flex-1 animate-pulse rounded bg-white/10"></div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      @for (entry of nav; track $index) {
+
+        @if (entry.kind === 'divider') {
+          @if (!layout.sidebarCollapsed()) {
+            <p class="mt-4 mb-1 px-2 text-[10px] font-bold uppercase tracking-[1.2px] text-white/35 select-none">
+              {{ entry.label }}
+            </p>
+          } @else {
+            <div class="my-2 border-t border-white/10"></div>
+          }
+
+        } @else if (entry.route && puedeVer(entry)) {
+          <a [routerLink]="entry.route"
+            routerLinkActive="bg-sidebar-active! text-white!"
+            class="mb-0.5 flex items-center rounded-[10px] py-2.5 text-sm text-white/80 transition hover:bg-sidebar-hover"
+            [class.justify-center]="layout.sidebarCollapsed()"
+            [class.gap-3]="!layout.sidebarCollapsed()"
+            [class.px-4]="!layout.sidebarCollapsed()"
+            [class.px-2]="layout.sidebarCollapsed()"
+            [title]="layout.sidebarCollapsed() ? entry.label : ''">
+            <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
+            @if (!layout.sidebarCollapsed()) {
+              <span>{{ entry.label }}</span>
+              @if (badgeFor(entry.route) > 0) {
+                <span class="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[10px] font-bold text-white">
+                  {{ badgeFor(entry.route) }}
+                </span>
+              }
+            }
+          </a>
+
+        } @else if (entry.soon) {
+          <div class="mb-0.5 flex cursor-not-allowed items-center rounded-[10px] py-2.5 text-sm text-white/30"
+               [class.justify-center]="layout.sidebarCollapsed()"
+               [class.gap-3]="!layout.sidebarCollapsed()"
+               [class.px-4]="!layout.sidebarCollapsed()"
+               [class.px-2]="layout.sidebarCollapsed()">
+            <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
+            @if (!layout.sidebarCollapsed()) {
+              <span>{{ entry.label }}</span>
+              <span class="ml-auto text-[9px] uppercase tracking-wide text-white/25">Pronto</span>
+            }
+          </div>
         }
 
-      } @else if (entry.route && !entry.soon && puedeVer(entry.label)) {
-        <a [routerLink]="entry.route"
-          routerLinkActive="bg-sidebar-active! text-white!"
-          class="mb-0.5 flex items-center rounded-[10px] py-2.5 text-sm text-white/80 transition hover:bg-sidebar-hover"
-          [class.justify-center]="layout.sidebarCollapsed()"
-          [class.gap-3]="!layout.sidebarCollapsed()"
-          [class.px-4]="!layout.sidebarCollapsed()"
-          [class.px-2]="layout.sidebarCollapsed()"
-          [title]="layout.sidebarCollapsed() ? entry.label : ''">
-          <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
-          @if (!layout.sidebarCollapsed()) {
-            <span>{{ entry.label }}</span>
-            @if (badgeFor(entry.route) > 0) {
-              <span class="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error px-1.5 text-[10px] font-bold text-white">
-                {{ badgeFor(entry.route) }}
-              </span>
-            }
-          }
-        </a>
-
-      } @else if (entry.kind === 'item') {
-        <div class="mb-0.5 flex cursor-not-allowed items-center rounded-[10px] py-2.5 text-sm text-white/30"
-             [class.justify-center]="layout.sidebarCollapsed()"
-             [class.gap-3]="!layout.sidebarCollapsed()"
-             [class.px-4]="!layout.sidebarCollapsed()"
-             [class.px-2]="layout.sidebarCollapsed()">
-          <mat-icon fontSet="material-icons-outlined">{{ entry.icon }}</mat-icon>
-          @if (!layout.sidebarCollapsed()) {
-            <span>{{ entry.label }}</span>
-            <span class="ml-auto text-[9px] uppercase tracking-wide text-white/25">Pronto</span>
-          }
-        </div>
       }
-
     }
   </nav>
 

@@ -13,6 +13,7 @@ export interface NavEntry {
   icon?: string;
   route?: string;
   soon?: boolean;
+  modulo?: string;
 }
 
 @Component({
@@ -23,7 +24,7 @@ export interface NavEntry {
 })
 export class Sidebar implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly rbac = inject(RbacService);
+  readonly rbac = inject(RbacService);
   private readonly notifications = inject(NotificationService);
   readonly layout = inject(LayoutService);
   readonly user = this.auth.currentUser;
@@ -41,8 +42,9 @@ export class Sidebar implements OnInit {
     return 0;
   }
 
-  puedeVer(label: string): boolean {
-    return this.rbac.hasPermission(label, 'ver');
+  puedeVer(entry: NavEntry): boolean {
+    if (entry.soon) return false;
+    return this.rbac.hasPermission(entry.modulo ?? entry.label, 'ver');
   }
 
   readonly nav: NavEntry[] = [
@@ -63,7 +65,7 @@ export class Sidebar implements OnInit {
     { kind: 'item',    label: 'Proveedores',      icon: 'local_shipping',          route: '/proveedores' },
 
     { kind: 'divider', label: 'Ventas' },
-    { kind: 'item',    label: 'POS / Ventas',     icon: 'point_of_sale',           route: '/pos' },
+    { kind: 'item',    label: 'POS / Ventas',     icon: 'point_of_sale',           route: '/pos',          modulo: 'Ventas' },
     { kind: 'item',    label: 'Cotizaciones',     icon: 'description',             route: '/cotizaciones' },
     { kind: 'item',    label: 'Pedidos',          icon: 'receipt_long',            route: '/pedidos' },
     { kind: 'item',    label: 'Clientes',         icon: 'groups',                  route: '/clientes' },
@@ -71,7 +73,7 @@ export class Sidebar implements OnInit {
     { kind: 'item',    label: 'Facturación',      icon: 'request_quote',           soon: true },
 
     { kind: 'divider', label: 'E-commerce' },
-    { kind: 'item',    label: 'Resumen',          icon: 'storefront',              route: '/ecommerce' },
+    { kind: 'item',    label: 'Resumen',          icon: 'storefront',              route: '/ecommerce',    modulo: 'E-Commerce' },
     { kind: 'item',    label: 'Catálogo Web',     icon: 'grid_view',               route: '/ecommerce/productos' },
     { kind: 'item',    label: 'Banners',          icon: 'view_carousel',           route: '/ecommerce/banners' },
     { kind: 'item',    label: 'Cupones',          icon: 'discount',                route: '/ecommerce/cupones' },
