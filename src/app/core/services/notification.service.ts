@@ -26,6 +26,8 @@ export class NotificationService {
   private readonly loteService   = inject(LoteService);
   private readonly prodService   = inject(ProduccionService);
 
+  private _refreshing = false;
+
   readonly counts = signal<NotificationCounts>({
     urgentOrders: 0,
     pendingOrders: 0,
@@ -55,6 +57,9 @@ export class NotificationService {
   });
 
   refresh(): void {
+    if (this._refreshing) return;
+    this._refreshing = true;
+
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
@@ -81,8 +86,9 @@ export class NotificationService {
         const activeOps = ops.filter((o) => o.estado === 'EN_PROCESO' || o.estado === 'PLANIFICADA').length;
 
         this.counts.set({ urgentOrders, pendingOrders, expiringLotes, activeOps });
+        this._refreshing = false;
       },
-      error: () => {},
+      error: () => { this._refreshing = false; },
     });
   }
 }

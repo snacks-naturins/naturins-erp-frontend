@@ -1,31 +1,31 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from '../../core/guards/auth.guard';
+import { authGuard, permisoGuard } from '../../core/guards/auth.guard';
 
 export const VENTAS_ROUTES: Routes = [
   {
     path: 'pos',
-    canActivate: [authGuard],
+    canActivate: [authGuard, permisoGuard('Ventas')],
     loadComponent: () => import('./pages/pos/pos').then((m) => m.Pos),
   },
   {
     path: 'cotizaciones',
-    canActivate: [authGuard],
+    canActivate: [authGuard, permisoGuard('Cotizaciones')],
     loadComponent: () => import('./pages/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
   },
   {
     path: 'pedidos',
-    canActivate: [authGuard],
+    canActivate: [authGuard, permisoGuard('Pedidos')],
     loadComponent: () => import('./pages/pedidos/pedidos').then((m) => m.Pedidos),
   },
   {
     path: 'pedidos/:id',
-    canActivate: [authGuard],
+    canActivate: [authGuard, permisoGuard('Pedidos')],
     loadComponent: () => import('./pages/pedidos/pedido-detalle/pedido-detalle').then((m) => m.PedidoDetalle),
   },
   {
     path: 'metodos-pago',
-    canActivate: [authGuard],
+    canActivate: [authGuard, permisoGuard('Métodos de Pago')],
     loadComponent: () => import('./pages/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
   },
 ];

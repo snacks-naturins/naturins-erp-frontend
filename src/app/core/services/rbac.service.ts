@@ -44,11 +44,11 @@ export class RbacService {
   }
 
   hasPermission(modulo: string, accion: AccionRbac): boolean {
-    if (!this._cargado()) return true;
+    if (!this._cargado()) return false;
     if (this._permisos().length === 0 || this._error()) return false;
-    const m = modulo.toLowerCase();
+    const m = modulo.toLowerCase().trim();
     const p = this._permisos().find(
-      (x) => x.nombreModulo.toLowerCase().includes(m) || m.includes(x.nombreModulo.toLowerCase())
+      (x) => x.nombreModulo.toLowerCase().trim() === m
     );
     if (!p) return false;
     switch (accion) {
@@ -57,5 +57,9 @@ export class RbacService {
       case 'editar':   return p.puedeEditar;
       case 'eliminar': return p.puedeEliminar;
     }
+  }
+
+  permisos(): RolModuloResponse[] {
+    return this._permisos();
   }
 }
