@@ -1,15 +1,16 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>NaturinsErpFrontend</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/public/logo-mobile.svg">
 
   <!-- Prevenir flash de tema incorrecto -->
   <script>
-    (function() {
+    (function () {
       var t = localStorage.getItem('theme');
       if (t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
@@ -25,7 +26,9 @@
   <!-- Iconografía: Angular Material Icons (estilo Outlined) -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 </head>
+
 <body class="mat-typography">
   <app-root></app-root>
 </body>
+
 </html>
